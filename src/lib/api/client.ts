@@ -40,7 +40,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     const response = await fetch(buildUrl(path, options.query), {
       method: options.method ?? "GET",
       headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: options.body === undefined ? null : JSON.stringify(options.body),
       signal: options.signal ?? controller.signal,
     });
 
