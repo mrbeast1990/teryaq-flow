@@ -19,9 +19,9 @@ export function KPICard({
 }: {
   label: string;
   value: string;
-  hint?: string;
+  hint?: string | undefined;
   icon: LucideIcon;
-  tone?: KpiTone;
+  tone?: KpiTone | undefined;
 }) {
   return (
     <div className="card-surface flex flex-col gap-1.5 p-3">
