@@ -2,7 +2,7 @@ import { API_BASE_URL, API_TIMEOUT_MS, IS_API_CONFIGURED } from "./config";
 
 export class ApiError extends Error {
   status: number;
-  type?: 'AUTH_REQUIRED' | 'NETWORK_ERROR' | 'SERVER_ERROR';
+  type?: 'AUTH_REQUIRED' | 'NETWORK_ERROR' | 'SERVER_ERROR' | undefined;
   constructor(message: string, status: number, type?: ApiError['type']) {
     super(message);
     this.name = "ApiError";
