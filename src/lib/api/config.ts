@@ -4,7 +4,7 @@
  * Never hard-code hosts, IPs or localhost inside components.
  */
 export const API_BASE_URL: string =
-  (import.meta.env["VITE_API_BASE_URL"] as string | undefined)?.replace(/\/$/, "") ?? "";
+  (import.meta.env["VITE_API_BASE_URL"] as string | undefined)?.replace(/\/$/, "") || "https://dashboard.altiryaq-pharma.com";
 
 /** Whether a real API base URL is configured. While false, screens use demo data. */
 export const IS_API_CONFIGURED = API_BASE_URL.length > 0;
