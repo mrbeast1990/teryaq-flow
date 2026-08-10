@@ -1,5 +1,3 @@
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
 import { ActionButton } from "./ActionButton";
 
 export function CompactDateRange({
@@ -17,22 +15,22 @@ export function CompactDateRange({
 }) {
   return (
     <div className="flex flex-wrap items-end gap-2 px-1">
-      <div className="flex-1 min-w-[120px]">
-        <label className="block text-[11px] font-bold text-muted-foreground mb-1">من تاريخ</label>
+      <div className="min-w-[120px] flex-1">
+        <label className="mb-1 block text-[11px] font-bold text-muted-foreground">من تاريخ</label>
         <input
           type="date"
           value={dateFrom}
           onChange={(e) => onChangeFrom(e.target.value)}
-          className="w-full h-9 rounded-lg border border-border bg-card px-2 text-[13px] font-bold focus:ring-1 focus:ring-primary outline-none"
+          className="h-9 w-full rounded-lg border border-border bg-card px-2 text-[13px] font-bold outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
-      <div className="flex-1 min-w-[120px]">
-        <label className="block text-[11px] font-bold text-muted-foreground mb-1">إلى تاريخ</label>
+      <div className="min-w-[120px] flex-1">
+        <label className="mb-1 block text-[11px] font-bold text-muted-foreground">إلى تاريخ</label>
         <input
           type="date"
           value={dateTo}
           onChange={(e) => onChangeTo(e.target.value)}
-          className="w-full h-9 rounded-lg border border-border bg-card px-2 text-[13px] font-bold focus:ring-1 focus:ring-primary outline-none"
+          className="h-9 w-full rounded-lg border border-border bg-card px-2 text-[13px] font-bold outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
       <ActionButton label="تحديث" onClick={onRefresh} variant="primary" />

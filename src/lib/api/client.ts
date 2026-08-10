@@ -1,9 +1,10 @@
-import { API_BASE_URL, API_TIMEOUT_MS, IS_API_CONFIGURED } from "./config";
+import { API_BASE_URL, API_TIMEOUT_MS, API_USES_BROWSER_CREDENTIALS, IS_API_CONFIGURED } from "./config";
 
 export class ApiError extends Error {
   status: number;
-  type?: 'AUTH_REQUIRED' | 'NETWORK_ERROR' | 'SERVER_ERROR' | undefined;
-  constructor(message: string, status: number, type?: ApiError['type']) {
+  type?: "AUTH_REQUIRED" | "NETWORK_ERROR" | "SERVER_ERROR" | undefined;
+
+  constructor(message: string, status: number, type?: ApiError["type"]) {
     super(message);
     this.name = "ApiError";
     this.status = status;
@@ -21,18 +22,22 @@ type RequestOptions = {
 function buildUrl(path: string, query?: RequestOptions["query"]) {
   const url = `${API_BASE_URL}${path}`;
   if (!query) return url;
+
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined && value !== null && value !== "") params.append(key, String(value));
+    if (value !== undefined && value !== null && value !== "") {
+      params.append(key, String(value));
+    }
   }
+
   const qs = params.toString();
   return qs ? `${url}?${qs}` : url;
 }
 
-/** Single entry point for every HTTP call to the Teryaq SQL Connector API. */
+/** Single entry point for every HTTP call to the existing Teryaq SQL Connector API. */
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   if (!IS_API_CONFIGURED) {
-    throw new ApiError("لم يتم ضبط عنوان الـ API (VITE_API_BASE_URL).", 0);
+    throw new ApiError("لم يتم ضبط عنوان API (VITE_API_BASE_URL).", 0);
   }
 
   const controller = new AbortController();
@@ -44,14 +49,14 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       headers: { Accept: "application/json", "Content-Type": "application/json" },
       body: options.body === undefined ? null : JSON.stringify(options.body),
       signal: options.signal ?? controller.signal,
-      credentials: "include", // Required for Cloudflare Access browser session
+      credentials: API_USES_BROWSER_CREDENTIALS ? "include" : "omit",
     });
 
     const contentType = response.headers.get("content-type") || "";
 
-    // Cloudflare Access redirects to a login page (text/html) when unauthenticated
+    // Cloudflare Access returns HTML when the browser session is not authenticated.
     if (contentType.includes("text/html") || response.redirected) {
-      throw new ApiError("يتطلب تسجيل الدخول إلى Cloudflare", 401, "AUTH_REQUIRED");
+      throw new ApiError("يتطلب تسجيل الدخول إلى Cloudflare Access.", 401, "AUTH_REQUIRED");
     }
 
     if (!response.ok) {
@@ -59,9 +64,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     }
 
     return (await response.json()) as T;
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof ApiError) throw err;
-    throw new ApiError(err.message || "خطأ في الشبكة", 0, "NETWORK_ERROR");
+    const message = err instanceof Error ? err.message : "خطأ في الشبكة";
+    throw new ApiError(message, 0, "NETWORK_ERROR");
   } finally {
     clearTimeout(timeout);
   }

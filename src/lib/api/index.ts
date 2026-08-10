@@ -1,56 +1,102 @@
 export * from "./config";
 export * from "./client";
 
+import { API_ENDPOINTS } from "./config";
+import { apiRequest } from "./client";
+
 export interface SystemStatus {
+  success: boolean;
+  profile?: string;
   connected: boolean;
+  status?: string;
+  server?: string;
+  database?: string;
   databaseName?: string;
-  serverTime?: string;
+  message?: string;
+  backend?: {
+    host?: string;
+    port?: number;
+    version?: string;
+  };
+  lastConnectionTime?: string;
 }
 
-export interface RevenueMovement {
-  id: string | number;
-  label: string;
-  time?: string;
-  customer?: string;
-  invoiceNo?: string;
+export interface RevenueSummary {
+  cashSalesTotal: number;
+  debtorPaymentsTotal: number;
+  returnsTotal: number;
+  electronicPaymentsTotal: number;
+  netRevenue: number;
+  movementCount: number;
+  expectedTotal: number | null;
+  difference: number;
+}
+
+export interface RevenueSourceTotal {
+  sourceName: string;
+  total: number;
+  movementCount: number;
+}
+
+export interface RevenueSellerTotal {
+  sellerId: number | string;
+  sellerName: string;
+  total: number;
+  movementCount: number;
+}
+
+export interface RevenueMovementRow {
+  movementNo: number | string;
+  invoiceNo: number | string;
+  movementDate: string;
+  movementType: string;
+  customerName: string;
+  sellerId: number | string;
+  sellerName: string;
+  paymentMethod: string;
   amount: number;
-  sourceBadge?: string;
+  period: string;
+  notes?: string;
+  revenueSource: string;
+  accountNo?: number | string;
+  accountName?: string;
+  documentNo?: string;
+  documentKind?: string;
+  documentSide?: string;
 }
 
-export interface RevenueSource {
-  name: string;
-  total: number;
-  movements?: RevenueMovement[];
-}
-
-export interface RevenuePeriod {
-  periodName: string; // or userName
-  total: number;
-  sources: RevenueSource[];
+export interface RevenueFilterOption {
+  optionType: "movementType" | "paymentMethod" | "period" | "seller" | string;
+  optionValue: string;
+  optionLabel: string;
 }
 
 export interface RevenueDetailsResponse {
-  summary: {
-    netFinalRevenue: number;
-    cashSales: number;
-    electronicPayments: number;
-    debtorPayments: number;
-    returns: number;
+  success: boolean;
+  profile?: string;
+  selectedDate?: string;
+  dateFrom: string;
+  dateTo: string;
+  filters?: {
+    sellerId?: string;
+    period?: string;
+    paymentMethod?: string;
+    movementType?: string;
   };
-  periods: RevenuePeriod[];
+  summary: RevenueSummary;
+  sources: RevenueSourceTotal[];
+  sellerTotals: RevenueSellerTotal[];
+  filterOptions?: RevenueFilterOption[];
+  rows: RevenueMovementRow[];
 }
 
-export async function getSystemStatus(): Promise<SystemStatus> {
-  const { API_ENDPOINTS } = await import("./config");
-  const { apiRequest } = await import("./client");
+export function getSystemStatus(): Promise<SystemStatus> {
   return apiRequest<SystemStatus>(API_ENDPOINTS.status());
 }
 
-export async function getRevenueDetails(params: {
+export function getRevenueDetails(params: {
   dateFrom: string;
   dateTo: string;
 }): Promise<RevenueDetailsResponse> {
-  const { API_ENDPOINTS } = await import("./config");
-  const { apiRequest } = await import("./client");
   return apiRequest<RevenueDetailsResponse>(API_ENDPOINTS.revenueDetails(), { query: params });
 }

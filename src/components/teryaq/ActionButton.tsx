@@ -14,18 +14,21 @@ export function ActionButton({
   variant = "primary",
   onClick,
   type = "button",
+  disabled = false,
 }: {
   label: string;
   icon?: LucideIcon;
   variant?: Variant;
   onClick?: () => void;
   type?: "button" | "submit";
+  disabled?: boolean;
 }) {
   return (
     <button
       type={type}
       onClick={onClick}
-      className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[12px] font-bold transition-colors ${VARIANT[variant]}`}
+      disabled={disabled}
+      className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[12px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${VARIANT[variant]}`}
     >
       {Icon ? <Icon className="size-4" /> : null}
       {label}

@@ -1,29 +1,27 @@
-import { Settings, LogIn, WifiOff, Database } from "lucide-react";
+import { Database, LogIn, Settings, WifiOff } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { getSystemStatus, ApiError, API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, ApiError, getSystemStatus } from "@/lib/api";
 
 export function AppHeader() {
-  const { data: status, error, isLoading, refetch } = useQuery({
+  const { data: status, error, isLoading } = useQuery({
     queryKey: ["systemStatus"],
     queryFn: () => getSystemStatus(),
     refetchInterval: 30000,
-    retry: (failureCount, error: any) => {
-      // Don't retry if it's an auth error, just show the login button
-      if (error?.type === 'AUTH_REQUIRED') return false;
+    retry: (failureCount, error: unknown) => {
+      if (error instanceof ApiError && error.type === "AUTH_REQUIRED") return false;
       return failureCount < 2;
-    }
+    },
   });
 
   const apiError = error as ApiError | null;
-  const isAuthRequired = apiError?.type === 'AUTH_REQUIRED';
-  const isNetworkError = apiError?.type === 'NETWORK_ERROR';
-  
+  const isAuthRequired = apiError?.type === "AUTH_REQUIRED";
+  const isNetworkError = apiError?.type === "NETWORK_ERROR";
+
   const connected = status?.connected ?? false;
-  const connectionName = status?.databaseName || "AlmohasebSQL";
+  const connectionName = status?.database || status?.databaseName || "AlmohasebSQL";
 
   const handleLogin = () => {
-    // Navigate normally to the API base URL to trigger Cloudflare interactive login
     window.location.href = API_BASE_URL;
   };
 
@@ -35,17 +33,17 @@ export function AppHeader() {
             T
           </span>
           <span className="truncate text-lg font-extrabold tracking-tight">Teryaq</span>
-          
-          <div className="flex items-center gap-1.5 min-w-0">
+
+          <div className="flex min-w-0 items-center gap-1.5">
             {isLoading ? (
               <div className="flex h-6 items-center gap-1.5 rounded-full border border-border bg-secondary px-2 text-[11px] font-semibold text-muted-foreground">
                 <span className="size-1.5 rounded-full bg-muted animate-pulse" />
-                جاري التحميل...
+                جاري التحميل
               </div>
             ) : isAuthRequired ? (
               <button
                 onClick={handleLogin}
-                className="flex h-6 items-center gap-1.5 rounded-full border border-warning/30 bg-warning/10 px-2 text-[11px] font-bold text-warning hover:bg-warning/20 transition-colors"
+                className="flex h-6 items-center gap-1.5 rounded-full border border-warning/30 bg-warning/10 px-2 text-[11px] font-bold text-warning transition-colors hover:bg-warning/20"
               >
                 <LogIn className="size-3" />
                 يتطلب تسجيل الدخول
@@ -53,7 +51,7 @@ export function AppHeader() {
             ) : isNetworkError ? (
               <div className="flex h-6 items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-2 text-[11px] font-bold text-destructive">
                 <WifiOff className="size-3" />
-                تعذر الوصول إلى الخادم
+                تعذر الوصول للخادم
               </div>
             ) : (
               <div
@@ -68,7 +66,7 @@ export function AppHeader() {
                 ) : (
                   <Database className="size-3" />
                 )}
-                <span className="truncate max-w-[100px]">
+                <span className="max-w-[120px] truncate">
                   {connected ? connectionName : "AlmohasebSQL غير متصل"}
                 </span>
                 {connected ? "✓" : "✕"}
@@ -76,6 +74,7 @@ export function AppHeader() {
             )}
           </div>
         </div>
+
         <Link
           to="/more"
           aria-label="الإعدادات"
