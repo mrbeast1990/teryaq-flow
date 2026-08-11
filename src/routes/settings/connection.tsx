@@ -71,7 +71,7 @@ function fromConnection(connection?: SavedConnection | null): FormState {
 }
 
 function toPayload(form: FormState): ConnectionPayload {
-  return {
+  const payload: ConnectionPayload = {
     id: form.id || undefined,
     name: form.name.trim() || form.server.trim(),
     server: form.server.trim(),
@@ -205,7 +205,7 @@ function ConnectionSettingsPage() {
       <PageHeader
         title="إدارة الاتصال"
         subtitle="تبديل وتعديل الاتصالات المحفوظة في Teryaq SQL Connector الحالي"
-        action={<ActionButton label="رجوع" icon={ArrowRight} variant="ghost" onClick={() => history.back()} />}
+        actions={<ActionButton label="رجوع" icon={ArrowRight} variant="outline" onClick={() => window.history.back()} />}
       />
 
       <section className="card-surface mb-4 p-4">
