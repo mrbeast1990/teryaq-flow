@@ -48,8 +48,8 @@ function SupplierDetailsPage() {
 
         <div className="mt-3">
           <SegmentedTabs 
-            tabs={tabs} 
-            activeTab={activeTab} 
+            options={tabs} 
+            value={activeTab} 
             onChange={setActiveTab} 
           />
         </div>

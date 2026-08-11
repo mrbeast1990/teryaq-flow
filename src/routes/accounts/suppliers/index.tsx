@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SearchInput } from "@/components/teryaq/SearchInput";
-import { FilterBar } from "@/components/teryaq/FilterBar";
+import { FilterBar, FilterChip } from "@/components/teryaq/FilterBar";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { EmptyState, LoadingState } from "@/components/teryaq/States";
 import { FileDown, RefreshCw } from "lucide-react";
@@ -26,10 +26,7 @@ function SuppliersPage() {
 
   const { isLoading, data, refetch } = useQuery({
     queryKey: ['suppliers', filter, search],
-    queryFn: async () => {
-      // TODO: Connect to real API
-      return null;
-    },
+    queryFn: async () => null,
     enabled: false
   });
 
@@ -48,8 +45,8 @@ function SuppliersPage() {
           showBack 
           actions={
             <div className="flex gap-1">
-              <ActionButton icon={FileDown} onClick={() => {}} disabled />
-              <ActionButton icon={RefreshCw} onClick={() => refetch()} />
+              <ActionButton label="تصدير" icon={FileDown} onClick={() => {}} disabled variant="outline" />
+              <ActionButton label="تحديث" icon={RefreshCw} onClick={() => { refetch(); }} variant="outline" />
             </div>
           }
         />
@@ -59,11 +56,16 @@ function SuppliersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <FilterBar 
-            options={filterOptions} 
-            activeId={filter} 
-            onSelect={setFilter} 
-          />
+          <FilterBar>
+            {filterOptions.map(opt => (
+              <FilterChip 
+                key={opt.id}
+                label={opt.label}
+                active={filter === opt.id}
+                onClick={() => setFilter(opt.id)}
+              />
+            ))}
+          </FilterBar>
         </div>
       </div>
 
@@ -76,8 +78,7 @@ function SuppliersPage() {
             description="سيتم تحميل قائمة الموردين من النظام بمجرد ربط الـ API."
           />
         ) : (
-          <div className="flex flex-col gap-px overflow-hidden rounded-lg bg-border/50 border border-border">
-            {/* Supplier rows will be mapped here */}
+          <div className="flex flex-col gap-px overflow-hidden rounded-lg border border-border bg-border/50">
           </div>
         )}
       </div>

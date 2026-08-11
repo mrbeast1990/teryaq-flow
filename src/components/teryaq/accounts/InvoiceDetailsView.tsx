@@ -24,7 +24,7 @@ export function InvoiceDetailsView({ type, movementNo, onBack }: Props) {
           <p className="text-[11px] text-muted-foreground">رقم الحركة: {movementNo}</p>
         </div>
         <div className="flex gap-1">
-          <ActionButton icon={Printer} onClick={() => {}} variant="outline" />
+          <ActionButton label="طباعة" icon={Printer} onClick={() => {}} variant="outline" />
         </div>
       </div>
 
