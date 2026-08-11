@@ -11,16 +11,29 @@ import {
   Boxes,
   ScanSearch,
   BarChart3,
+  RotateCcw,
 } from "lucide-react";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SectionHeader } from "@/components/teryaq/SectionHeader";
 import { KPIGrid } from "@/components/teryaq/KPIGrid";
 import { KPICard } from "@/components/teryaq/KPICard";
-import { CompactListCard } from "@/components/teryaq/CompactListCard";
-import { DateRangeControl } from "@/components/teryaq/DateRangeControl";
-import { DEMO_KPIS_PRIMARY, DEMO_KPIS_SECONDARY, DEMO_RECENT_MOVEMENTS } from "@/lib/demo/dashboard";
-import { useState } from "react";
+import { ActionButton } from "@/components/teryaq/ActionButton";
+import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
+import { EmptyState } from "@/components/teryaq/States";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { 
+  getRevenueDetails, 
+  getTradingProfit, 
+  getCustomerBalances, 
+  getSupplierPayables, 
+  getOutOfStock, 
+  getLowStock, 
+  getExpiryItems,
+  ApiError
+} from "@/lib/api";
+import { useState, useMemo } from "react";
+import { format } from "date-fns";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,17 +47,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const ICONS = {
-  wallet: Wallet,
-  "trending-up": TrendingUp,
-  receipt: Receipt,
-  users: Users,
-  truck: Truck,
-  "package-search": PackageSearch,
-  "package-x": PackageX,
-  "calendar-clock": CalendarClock,
-} as const;
-
 const QUICK_ACTIONS = [
   { label: "إيراد اليوم", icon: Wallet, to: "/revenue" },
   { label: "حسابات الزبائن", icon: Users, to: "/accounts" },
@@ -56,38 +58,152 @@ const QUICK_ACTIONS = [
 
 function Index() {
   const [range, setRange] = useState("today");
+  const queryClient = useQueryClient();
+  
+  const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+
+  // Use the same logic as Revenue page for Today's Revenue
+  const { data: revenue, isLoading: loadingRev } = useQuery({
+    queryKey: ["revenue", todayStr, todayStr],
+    queryFn: () => getRevenueDetails({ dateFrom: todayStr, dateTo: todayStr }),
+    enabled: range === "today",
+  });
+
+  const { data: profit, isLoading: loadingProfit } = useQuery({
+    queryKey: ["profit", todayStr, todayStr],
+    queryFn: () => getTradingProfit({ dateFrom: todayStr, dateTo: todayStr }),
+    enabled: range === "today",
+  });
+
+  const { data: customers, isLoading: loadingCustomers } = useQuery({
+    queryKey: ["customers"],
+    queryFn: () => getCustomerBalances(),
+  });
+
+  const { data: suppliers, isLoading: loadingSuppliers } = useQuery({
+    queryKey: ["suppliers"],
+    queryFn: () => getSupplierPayables(),
+  });
+
+  const { data: outOfStock, isLoading: loadingOut } = useQuery({
+    queryKey: ["outOfStock"],
+    queryFn: () => getOutOfStock(),
+  });
+
+  const { data: lowStock, isLoading: loadingLow } = useQuery({
+    queryKey: ["lowStock"],
+    queryFn: () => getLowStock(),
+  });
+
+  const { data: expiry, isLoading: loadingExpiry } = useQuery({
+    queryKey: ["expiryItems"],
+    queryFn: () => getExpiryItems(),
+  });
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries();
+  };
+
+  const isUnavailable = range !== "today";
+
+  const formatCurrency = (val: number | undefined) => {
+    if (val === undefined) return "...";
+    return new Intl.NumberFormat("ar-LY").format(val);
+  };
+
+  const renderValue = (isLoading: boolean, value: string | number | undefined, suffix = "") => {
+    if (isUnavailable) return "غير متاح حاليًا";
+    if (isLoading) return "جاري التحميل...";
+    if (value === undefined) return "غير متاح حاليًا";
+    return `${typeof value === 'number' ? formatCurrency(value) : value} ${suffix}`;
+  };
 
   return (
     <AppShell>
-      <PageHeader title="نظرة عامة" subtitle="بيانات تجريبية للعرض فقط" />
-      <div className="mb-3">
-        <DateRangeControl value={range} onChange={setRange} />
+      <div className="flex items-center justify-between mb-1">
+        <PageHeader title="نظرة عامة" />
+        <button 
+          onClick={handleRefresh}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-muted-foreground hover:text-primary transition-colors"
+        >
+          <RotateCcw className="size-3.5" />
+          تحديث
+        </button>
+      </div>
+
+      <div className="mb-4">
+        <SegmentedTabs
+          options={[
+            { label: "اليوم", value: "today" },
+            { label: "الأسبوع", value: "week" },
+            { label: "الشهر", value: "month" },
+          ]}
+          value={range}
+          onChange={setRange}
+        />
       </div>
 
       <section className="space-y-2.5">
         <KPIGrid>
-          {DEMO_KPIS_PRIMARY.map((kpi) => (
-            <KPICard
-              key={kpi.id}
-              label={kpi.label}
-              value={kpi.value}
-              hint={kpi.hint}
-              tone={kpi.tone}
-              icon={ICONS[kpi.icon as keyof typeof ICONS]}
-            />
-          ))}
+          <KPICard
+            label="إيراد اليوم"
+            value={renderValue(loadingRev, revenue?.summary?.netRevenue)}
+            hint={revenue?.summary?.netRevenue !== undefined ? "د.ل" : undefined}
+            tone="info"
+            icon={Wallet}
+          />
+          <KPICard
+            label="أرباح اليوم"
+            value={renderValue(loadingProfit, profit?.profit)}
+            hint={profit?.margin ? `هامش ${profit.margin}٪` : undefined}
+            tone="success"
+            icon={TrendingUp}
+          />
+          <KPICard
+            label="عدد الحركات"
+            value={renderValue(loadingRev, revenue?.summary?.movementCount)}
+            hint={revenue?.summary?.movementCount !== undefined ? "حركة" : undefined}
+            tone="default"
+            icon={Receipt}
+          />
+          <KPICard
+            label="أرصدة الزبائن"
+            value={isLoadingAll(loadingCustomers) ? "جاري التحميل..." : (customers?.totalBalance !== undefined ? formatCurrency(customers.totalBalance) : "غير متاح حاليًا")}
+            hint={customers?.count ? `${customers.count} زبون مدين` : "د.ل"}
+            tone="default"
+            icon={Users}
+          />
         </KPIGrid>
+        
         <KPIGrid>
-          {DEMO_KPIS_SECONDARY.map((kpi) => (
-            <KPICard
-              key={kpi.id}
-              label={kpi.label}
-              value={kpi.value}
-              hint={kpi.hint}
-              tone={kpi.tone}
-              icon={ICONS[kpi.icon as keyof typeof ICONS]}
-            />
-          ))}
+          <KPICard
+            label="مستحقات الموردين"
+            value={isLoadingAll(loadingSuppliers) ? "جاري التحميل..." : (suppliers?.totalBalance !== undefined ? formatCurrency(suppliers.totalBalance) : "غير متاح حاليًا")}
+            hint={suppliers?.count ? `${suppliers.count} مورد` : "د.ل"}
+            tone="warning"
+            icon={Truck}
+          />
+          <KPICard
+            label="مخزون منخفض"
+            value={isLoadingAll(loadingLow) ? "جاري التحميل..." : (lowStock?.count !== undefined ? lowStock.count : "غير متاح حاليًا")}
+            hint="صنف"
+            tone="warning"
+            icon={PackageSearch}
+          />
+          <KPICard
+            label="أصناف نفدت"
+            value={isLoadingAll(loadingOut) ? "جاري التحميل..." : (outOfStock?.count !== undefined ? outOfStock.count : "غير متاح حاليًا")}
+            hint="صنف"
+            tone="danger"
+            icon={PackageX}
+          />
+          <KPICard
+            label="قرب الانتهاء"
+            value={isLoadingAll(loadingExpiry) ? "جاري التحميل..." : (expiry?.count !== undefined ? expiry.count : "غير متاح حاليًا")}
+            hint="صنف"
+            tone="danger"
+            icon={CalendarClock}
+          />
         </KPIGrid>
       </section>
 
@@ -111,19 +227,15 @@ function Index() {
 
       <section className="mt-5">
         <SectionHeader title="آخر الحركات" />
-        <div className="space-y-2">
-          {DEMO_RECENT_MOVEMENTS.map((row) => (
-            <CompactListCard
-              key={row.id}
-              title={row.title}
-              subtitle={row.subtitle}
-              value={row.value}
-              meta={row.meta}
-              icon={Receipt}
-            />
-          ))}
-        </div>
+        <EmptyState 
+          title="سيتم ربط آخر الحركات لاحقًا" 
+          description="بيانات الحركات المباشرة قيد التطوير"
+        />
       </section>
     </AppShell>
   );
+}
+
+function isLoadingAll(...states: boolean[]) {
+  return states.some(s => s);
 }
