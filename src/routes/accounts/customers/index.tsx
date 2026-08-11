@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 // TODO: Map real customers endpoint after Codex verification
 // export const getCustomers = createServerFn({ method: 'GET' })...
 
-export const Route = createFileRoute("/accounts/customers")({
+export const Route = createFileRoute("/accounts/customers/")({
   head: () => ({
     meta: [
       { title: "الزبائن — Teryaq" },

@@ -15,6 +15,10 @@ import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as SettingsConnectionRouteImport } from './routes/settings/connection'
+import { Route as AccountsCustomersIndexRouteImport } from './routes/accounts/customers/index'
+import { Route as AccountsCustomersIdRouteImport } from './routes/accounts/customers/$id'
+import { Route as AccountsSuppliersIndexRouteImport } from './routes/accounts/suppliers/index'
+import { Route as AccountsSuppliersIdRouteImport } from './routes/accounts/suppliers/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,39 +50,89 @@ const SettingsConnectionRoute = SettingsConnectionRouteImport.update({
   path: '/settings/connection',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountsCustomersIndexRoute = AccountsCustomersIndexRouteImport.update({
+  id: '/customers/',
+  path: '/customers/',
+  getParentRoute: () => AccountsRoute,
+} as any)
+const AccountsCustomersIdRoute = AccountsCustomersIdRouteImport.update({
+  id: '/customers/$id',
+  path: '/customers/$id',
+  getParentRoute: () => AccountsRoute,
+} as any)
+const AccountsSuppliersIndexRoute = AccountsSuppliersIndexRouteImport.update({
+  id: '/suppliers/',
+  path: '/suppliers/',
+  getParentRoute: () => AccountsRoute,
+} as any)
+const AccountsSuppliersIdRoute = AccountsSuppliersIdRouteImport.update({
+  id: '/suppliers/$id',
+  path: '/suppliers/$id',
+  getParentRoute: () => AccountsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/accounts': typeof AccountsRoute
+  '/accounts': typeof AccountsRouteWithChildren
   '/items': typeof ItemsRoute
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/accounts/customers/$id': typeof AccountsCustomersIdRoute
+  '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
+  '/accounts/customers/': typeof AccountsCustomersIndexRoute
+  '/accounts/suppliers/': typeof AccountsSuppliersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/accounts': typeof AccountsRoute
+  '/accounts': typeof AccountsRouteWithChildren
   '/items': typeof ItemsRoute
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/accounts/customers/$id': typeof AccountsCustomersIdRoute
+  '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
+  '/accounts/customers': typeof AccountsCustomersIndexRoute
+  '/accounts/suppliers': typeof AccountsSuppliersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/accounts': typeof AccountsRoute
+  '/accounts': typeof AccountsRouteWithChildren
   '/items': typeof ItemsRoute
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/accounts/customers/$id': typeof AccountsCustomersIdRoute
+  '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
+  '/accounts/customers/': typeof AccountsCustomersIndexRoute
+  '/accounts/suppliers/': typeof AccountsSuppliersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/accounts' | '/items' | '/more' | '/revenue' | '/settings/connection'
+    | '/'
+    | '/accounts'
+    | '/items'
+    | '/more'
+    | '/revenue'
+    | '/settings/connection'
+    | '/accounts/customers/$id'
+    | '/accounts/suppliers/$id'
+    | '/accounts/customers/'
+    | '/accounts/suppliers/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/accounts' | '/items' | '/more' | '/revenue' | '/settings/connection'
+    | '/'
+    | '/accounts'
+    | '/items'
+    | '/more'
+    | '/revenue'
+    | '/settings/connection'
+    | '/accounts/customers/$id'
+    | '/accounts/suppliers/$id'
+    | '/accounts/customers'
+    | '/accounts/suppliers'
   id:
     | '__root__'
     | '/'
@@ -87,11 +141,15 @@ export interface FileRouteTypes {
     | '/more'
     | '/revenue'
     | '/settings/connection'
+    | '/accounts/customers/$id'
+    | '/accounts/suppliers/$id'
+    | '/accounts/customers/'
+    | '/accounts/suppliers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountsRoute: typeof AccountsRoute
+  AccountsRoute: typeof AccountsRouteWithChildren
   ItemsRoute: typeof ItemsRoute
   MoreRoute: typeof MoreRoute
   RevenueRoute: typeof RevenueRoute
@@ -142,12 +200,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsConnectionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/accounts/customers/': {
+      id: '/accounts/customers/'
+      path: '/customers'
+      fullPath: '/accounts/customers/'
+      preLoaderRoute: typeof AccountsCustomersIndexRouteImport
+      parentRoute: typeof AccountsRoute
+    }
+    '/accounts/customers/$id': {
+      id: '/accounts/customers/$id'
+      path: '/customers/$id'
+      fullPath: '/accounts/customers/$id'
+      preLoaderRoute: typeof AccountsCustomersIdRouteImport
+      parentRoute: typeof AccountsRoute
+    }
+    '/accounts/suppliers/': {
+      id: '/accounts/suppliers/'
+      path: '/suppliers'
+      fullPath: '/accounts/suppliers/'
+      preLoaderRoute: typeof AccountsSuppliersIndexRouteImport
+      parentRoute: typeof AccountsRoute
+    }
+    '/accounts/suppliers/$id': {
+      id: '/accounts/suppliers/$id'
+      path: '/suppliers/$id'
+      fullPath: '/accounts/suppliers/$id'
+      preLoaderRoute: typeof AccountsSuppliersIdRouteImport
+      parentRoute: typeof AccountsRoute
+    }
   }
 }
 
+interface AccountsRouteChildren {
+  AccountsCustomersIdRoute: typeof AccountsCustomersIdRoute
+  AccountsSuppliersIdRoute: typeof AccountsSuppliersIdRoute
+  AccountsCustomersIndexRoute: typeof AccountsCustomersIndexRoute
+  AccountsSuppliersIndexRoute: typeof AccountsSuppliersIndexRoute
+}
+
+const AccountsRouteChildren: AccountsRouteChildren = {
+  AccountsCustomersIdRoute: AccountsCustomersIdRoute,
+  AccountsSuppliersIdRoute: AccountsSuppliersIdRoute,
+  AccountsCustomersIndexRoute: AccountsCustomersIndexRoute,
+  AccountsSuppliersIndexRoute: AccountsSuppliersIndexRoute,
+}
+
+const AccountsRouteWithChildren = AccountsRoute._addFileChildren(
+  AccountsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountsRoute: AccountsRoute,
+  AccountsRoute: AccountsRouteWithChildren,
   ItemsRoute: ItemsRoute,
   MoreRoute: MoreRoute,
   RevenueRoute: RevenueRoute,

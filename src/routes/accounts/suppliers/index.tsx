@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 
 // TODO: Map real suppliers endpoint after Codex verification
 
-export const Route = createFileRoute("/accounts/suppliers")({
+export const Route = createFileRoute("/accounts/suppliers/")({
   head: () => ({
     meta: [
       { title: "الموردين — Teryaq" },
