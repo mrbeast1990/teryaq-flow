@@ -77,20 +77,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Teryaq — نظام إدارة الصيدلية" },
+      { title: "نظرة عامة — Teryaq" },
       {
         name: "description",
-        content: "واجهة Teryaq لإدارة الصيدلية: الإيرادات، الحسابات، الأصناف والمخزون.",
+        content: "لوحة مؤشرات الصيدلية: الإيراد، الأرباح، الحركات والمخزون.",
       },
       { name: "author", content: "Teryaq" },
-      { property: "og:title", content: "Teryaq — نظام إدارة الصيدلية" },
+      { property: "og:title", content: "نظرة عامة — Teryaq" },
       {
         property: "og:description",
-        content: "لوحة تحكم احترافية لإدارة الصيدلية والمخزون والحسابات.",
+        content: "لوحة مؤشرات الصيدلية: الإيراد، الأرباح، الحركات والمخزون.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "نظرة عامة — Teryaq" },
+      { name: "twitter:description", content: "لوحة مؤشرات الصيدلية: الإيراد، الأرباح، الحركات والمخزون." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a8c90e6f855e726c876e5e060e347c79/id-preview-f640116a--74d274e2-40af-476b-97ed-453c0ed7f592.lovable.app-1786467647303.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a8c90e6f855e726c876e5e060e347c79/id-preview-f640116a--74d274e2-40af-476b-97ed-453c0ed7f592.lovable.app-1786467647303.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

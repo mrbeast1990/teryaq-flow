@@ -41,7 +41,7 @@ export const Route = createFileRoute("/")({
       { title: "نظرة عامة — Teryaq" },
       { name: "description", content: "لوحة مؤشرات الصيدلية: الإيراد، الأرباح، الحركات والمخزون." },
       { property: "og:title", content: "نظرة عامة — Teryaq" },
-      { property: "og:description", content: "لوحة مؤشرات الصيدلية اليومية بنظرة سريعة." },
+      { property: "og:description", content: "لوحة مؤشرات الصيدلية: الإيراد، الأرباح، الحركات والمخزون." },
     ],
   }),
   component: Index,
