@@ -35,7 +35,7 @@ function MorePage() {
     <AppShell>
       <PageHeader
         title="المزيد"
-        action={<StatusBadge label={connected ? "متصل" : "غير متصل"} tone={connected ? "success" : "danger"} />}
+        actions={<StatusBadge label={connected ? "متصل" : "غير متصل"} tone={connected ? "success" : "danger"} />}
       />
       <SectionHeader title="الإعدادات" />
       <div className="space-y-2">

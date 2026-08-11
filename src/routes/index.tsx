@@ -134,9 +134,9 @@ function Index() {
       <div className="mb-4">
         <SegmentedTabs
           options={[
-            { label: "اليوم", value: "today" },
-            { label: "الأسبوع", value: "week" },
-            { label: "الشهر", value: "month" },
+            { id: "today", label: "اليوم" },
+            { id: "week", label: "الأسبوع" },
+            { id: "month", label: "الشهر" },
           ]}
           value={range}
           onChange={setRange}
@@ -185,21 +185,21 @@ function Index() {
           />
           <KPICard
             label="مخزون منخفض"
-            value={isLoadingAll(loadingLow) ? "جاري التحميل..." : (lowStock?.count !== undefined ? lowStock.count : "غير متاح حاليًا")}
+            value={isLoadingAll(loadingLow) ? "جاري التحميل..." : (lowStock?.count !== undefined ? String(lowStock.count) : "غير متاح حاليًا")}
             hint="صنف"
             tone="warning"
             icon={PackageSearch}
           />
           <KPICard
             label="أصناف نفدت"
-            value={isLoadingAll(loadingOut) ? "جاري التحميل..." : (outOfStock?.count !== undefined ? outOfStock.count : "غير متاح حاليًا")}
+            value={isLoadingAll(loadingOut) ? "جاري التحميل..." : (outOfStock?.count !== undefined ? String(outOfStock.count) : "غير متاح حاليًا")}
             hint="صنف"
             tone="danger"
             icon={PackageX}
           />
           <KPICard
             label="قرب الانتهاء"
-            value={isLoadingAll(loadingExpiry) ? "جاري التحميل..." : (expiry?.count !== undefined ? expiry.count : "غير متاح حاليًا")}
+            value={isLoadingAll(loadingExpiry) ? "جاري التحميل..." : (expiry?.count !== undefined ? String(expiry.count) : "غير متاح حاليًا")}
             hint="صنف"
             tone="danger"
             icon={CalendarClock}
