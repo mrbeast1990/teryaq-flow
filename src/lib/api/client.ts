@@ -1,4 +1,4 @@
-import { API_BASE_URL, API_TIMEOUT_MS, API_USES_BROWSER_CREDENTIALS, IS_API_CONFIGURED } from "./config";
+import { API_TIMEOUT_MS, IS_API_CONFIGURED, getApiBaseUrl, getApiCredentialsMode } from "./config";
 
 export class ApiError extends Error {
   status: number;
@@ -20,7 +20,11 @@ type RequestOptions = {
 };
 
 function buildUrl(path: string, query?: RequestOptions["query"]) {
-  const url = `${API_BASE_URL}${path}`;
+  const baseUrl = getApiBaseUrl();
+  const normalizedPath = baseUrl.endsWith("/api") && path.startsWith("/api/")
+    ? path.slice(4)
+    : path;
+  const url = `${baseUrl}${normalizedPath}`;
   if (!query) return url;
 
   const params = new URLSearchParams();
@@ -49,7 +53,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       headers: { Accept: "application/json", "Content-Type": "application/json" },
       body: options.body === undefined ? null : JSON.stringify(options.body),
       signal: options.signal ?? controller.signal,
-      credentials: API_USES_BROWSER_CREDENTIALS ? "include" : "omit",
+      credentials: getApiCredentialsMode(),
     });
 
     const contentType = response.headers.get("content-type") || "";

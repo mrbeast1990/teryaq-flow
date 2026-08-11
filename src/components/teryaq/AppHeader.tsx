@@ -3,6 +3,14 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { API_BASE_URL, ApiError, getSystemStatus } from "@/lib/api";
 
+function compactServerName(server?: string | null) {
+  if (!server) return "";
+  const value = server.toLowerCase();
+  if (value.startsWith("localhost") || value.startsWith("127.0.0.1")) return "Localhost";
+  if (value.startsWith("desktop-7gfv")) return "DESKTOP";
+  return server.split("\\")[0] || server;
+}
+
 export function AppHeader() {
   const { data: status, error, isLoading } = useQuery({
     queryKey: ["systemStatus"],
@@ -19,10 +27,12 @@ export function AppHeader() {
   const isNetworkError = apiError?.type === "NETWORK_ERROR";
 
   const connected = status?.connected ?? false;
-  const connectionName = status?.database || status?.databaseName || "AlmohasebSQL";
+  const databaseName = status?.database || status?.databaseName || "AlmohasebSQL";
+  const serverName = compactServerName(status?.server);
+  const connectionLabel = serverName ? `${databaseName} • ${serverName}` : databaseName;
 
   const handleLogin = () => {
-    window.location.href = API_BASE_URL;
+    window.location.href = API_BASE_URL || "/";
   };
 
   return (
@@ -37,7 +47,7 @@ export function AppHeader() {
           <div className="flex min-w-0 items-center gap-1.5">
             {isLoading ? (
               <div className="flex h-6 items-center gap-1.5 rounded-full border border-border bg-secondary px-2 text-[11px] font-semibold text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-muted animate-pulse" />
+                <span className="size-1.5 animate-pulse rounded-full bg-muted" />
                 جاري التحميل
               </div>
             ) : isAuthRequired ? (
@@ -66,8 +76,8 @@ export function AppHeader() {
                 ) : (
                   <Database className="size-3" />
                 )}
-                <span className="max-w-[120px] truncate">
-                  {connected ? connectionName : "AlmohasebSQL غير متصل"}
+                <span className="max-w-[150px] truncate">
+                  {connected ? connectionLabel : "AlmohasebSQL غير متصل"}
                 </span>
                 {connected ? "✓" : "✕"}
               </div>

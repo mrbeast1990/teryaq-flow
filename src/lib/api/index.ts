@@ -21,6 +21,44 @@ export interface SystemStatus {
   lastConnectionTime?: string;
 }
 
+export interface SavedConnection {
+  id: string;
+  name: string;
+  server: string;
+  database: string;
+  user?: string;
+  port?: number | null;
+  encrypt?: boolean;
+  trustServerCertificate?: boolean;
+  tdsVersion?: string;
+  lastConnectionAt?: string | null;
+}
+
+export interface ConnectionsResponse {
+  success: boolean;
+  activeConnectionId: string | null;
+  connections: SavedConnection[];
+}
+
+export interface ConnectionPayload {
+  id?: string;
+  name?: string;
+  server: string;
+  database: string;
+  user?: string;
+  password?: string;
+  port?: number | null;
+  encrypt?: boolean;
+  trustServerCertificate?: boolean;
+  tdsVersion?: string;
+}
+
+export interface ConnectionActionResponse {
+  success: boolean;
+  message: string;
+  connection: SystemStatus;
+}
+
 export interface RevenueSummary {
   cashSalesTotal: number;
   debtorPaymentsTotal: number;
@@ -109,6 +147,30 @@ export interface StockInfoResponse {
 
 export function getSystemStatus(): Promise<SystemStatus> {
   return apiRequest<SystemStatus>(API_ENDPOINTS.status());
+}
+
+export function getConnections(): Promise<ConnectionsResponse> {
+  return apiRequest<ConnectionsResponse>(API_ENDPOINTS.connections());
+}
+
+export function testConnection(payload: ConnectionPayload): Promise<ConnectionActionResponse> {
+  return apiRequest<ConnectionActionResponse>(API_ENDPOINTS.testConnection(), {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function saveConnection(payload: ConnectionPayload): Promise<ConnectionActionResponse> {
+  return apiRequest<ConnectionActionResponse>(API_ENDPOINTS.saveConnection(), {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function useConnection(id: string): Promise<ConnectionActionResponse> {
+  return apiRequest<ConnectionActionResponse>(API_ENDPOINTS.useConnection(id), {
+    method: "POST",
+  });
 }
 
 export function getRevenueDetails(params: {

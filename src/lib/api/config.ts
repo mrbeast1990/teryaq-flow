@@ -1,16 +1,35 @@
 /**
  * Central API configuration.
- * The base URL is provided via the VITE_API_BASE_URL environment variable.
- * Never hard-code hosts, IPs or localhost inside components.
+ *
+ * Local development may use VITE_API_BASE_URL=http://127.0.0.1:3001.
+ * Public Flow runs the frontend and API on the same origin, so it must always
+ * call relative /api paths even when the local dev server has .env.local loaded.
  */
-export const API_BASE_URL: string =
+const ENV_API_BASE_URL: string =
   (import.meta.env["VITE_API_BASE_URL"] as string | undefined)?.replace(/\/$/, "") || "";
 
-/** Whether a real API base URL is configured. While false, screens may use demo data. */
-export const IS_API_CONFIGURED = API_BASE_URL.length > 0;
+function isFlowSameOriginHost() {
+  return typeof window !== "undefined" && window.location.hostname === "flow.altiryaq-pharma.com";
+}
 
-/** Cloudflare Access needs cookies; local development with CORS * must not send credentials. */
-export const API_USES_BROWSER_CREDENTIALS = /^https:\/\/dashboard\.altiryaq-pharma\.com/i.test(API_BASE_URL);
+export function getApiBaseUrl(): string {
+  return isFlowSameOriginHost() ? "" : ENV_API_BASE_URL;
+}
+
+export const API_BASE_URL: string = getApiBaseUrl();
+
+/** Same-origin /api is valid in production; local development may override with VITE_API_BASE_URL. */
+export const IS_API_CONFIGURED = true;
+
+/** Cloudflare Access uses the browser session on same-origin production. */
+export function getApiCredentialsMode(): RequestCredentials {
+  const baseUrl = getApiBaseUrl();
+  if (baseUrl.length === 0) return "same-origin";
+  if (/^https:\/\/(?:dashboard|flow)\.altiryaq-pharma\.com/i.test(baseUrl)) return "include";
+  return "omit";
+}
+
+export const API_USES_BROWSER_CREDENTIALS = getApiCredentialsMode() !== "omit";
 
 /** Default request timeout in milliseconds. */
 export const API_TIMEOUT_MS = 20000;
@@ -21,6 +40,10 @@ export const API_TIMEOUT_MS = 20000;
  */
 export const API_ENDPOINTS = {
   status: () => "/api/status",
+  connections: () => "/api/connections",
+  testConnection: () => "/api/test-connection",
+  saveConnection: () => "/api/save-connection",
+  useConnection: (id: string) => `/api/connections/${encodeURIComponent(id)}/use`,
   revenueDetails: () => "/api/revenue-details",
   tradingProfit: () => "/api/trading-profit",
   customers: () => "/api/customers",

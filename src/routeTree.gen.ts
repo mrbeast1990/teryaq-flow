@@ -14,6 +14,7 @@ import { Route as AccountsRouteImport } from './routes/accounts'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as RevenueRouteImport } from './routes/revenue'
+import { Route as SettingsConnectionRouteImport } from './routes/settings/connection'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const RevenueRoute = RevenueRouteImport.update({
   path: '/revenue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsConnectionRoute = SettingsConnectionRouteImport.update({
+  id: '/settings/connection',
+  path: '/settings/connection',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/items': typeof ItemsRoute
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/settings/connection': typeof SettingsConnectionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/items': typeof ItemsRoute
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/settings/connection': typeof SettingsConnectionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,23 @@ export interface FileRoutesById {
   '/items': typeof ItemsRoute
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/settings/connection': typeof SettingsConnectionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/accounts' | '/items' | '/more' | '/revenue'
+  fullPaths:
+    '/' | '/accounts' | '/items' | '/more' | '/revenue' | '/settings/connection'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/accounts' | '/items' | '/more' | '/revenue'
-  id: '__root__' | '/' | '/accounts' | '/items' | '/more' | '/revenue'
+  to:
+    '/' | '/accounts' | '/items' | '/more' | '/revenue' | '/settings/connection'
+  id:
+    | '__root__'
+    | '/'
+    | '/accounts'
+    | '/items'
+    | '/more'
+    | '/revenue'
+    | '/settings/connection'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +95,7 @@ export interface RootRouteChildren {
   ItemsRoute: typeof ItemsRoute
   MoreRoute: typeof MoreRoute
   RevenueRoute: typeof RevenueRoute
+  SettingsConnectionRoute: typeof SettingsConnectionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +135,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RevenueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/connection': {
+      id: '/settings/connection'
+      path: '/settings/connection'
+      fullPath: '/settings/connection'
+      preLoaderRoute: typeof SettingsConnectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +151,7 @@ const rootRouteChildren: RootRouteChildren = {
   ItemsRoute: ItemsRoute,
   MoreRoute: MoreRoute,
   RevenueRoute: RevenueRoute,
+  SettingsConnectionRoute: SettingsConnectionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
