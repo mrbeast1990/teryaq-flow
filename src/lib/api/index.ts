@@ -90,6 +90,23 @@ export interface RevenueDetailsResponse {
   rows: RevenueMovementRow[];
 }
 
+export interface TradingProfitResponse {
+  success: boolean;
+  profit: number;
+  margin?: number;
+}
+
+export interface GenericBalanceResponse {
+  success: boolean;
+  totalBalance: number;
+  count: number;
+}
+
+export interface StockInfoResponse {
+  success: boolean;
+  count: number;
+}
+
 export function getSystemStatus(): Promise<SystemStatus> {
   return apiRequest<SystemStatus>(API_ENDPOINTS.status());
 }
@@ -99,4 +116,31 @@ export function getRevenueDetails(params: {
   dateTo: string;
 }): Promise<RevenueDetailsResponse> {
   return apiRequest<RevenueDetailsResponse>(API_ENDPOINTS.revenueDetails(), { query: params });
+}
+
+export function getTradingProfit(params: {
+  dateFrom: string;
+  dateTo: string;
+}): Promise<TradingProfitResponse> {
+  return apiRequest<TradingProfitResponse>(API_ENDPOINTS.tradingProfit(), { query: params });
+}
+
+export function getCustomerBalances(): Promise<GenericBalanceResponse> {
+  return apiRequest<GenericBalanceResponse>(API_ENDPOINTS.customers());
+}
+
+export function getSupplierPayables(): Promise<GenericBalanceResponse> {
+  return apiRequest<GenericBalanceResponse>(API_ENDPOINTS.suppliers());
+}
+
+export function getOutOfStock(): Promise<StockInfoResponse> {
+  return apiRequest<StockInfoResponse>(API_ENDPOINTS.itemsOutOfStock());
+}
+
+export function getLowStock(): Promise<StockInfoResponse> {
+  return apiRequest<StockInfoResponse>(API_ENDPOINTS.itemsStock());
+}
+
+export function getExpiryItems(): Promise<StockInfoResponse> {
+  return apiRequest<StockInfoResponse>(API_ENDPOINTS.itemsExpiry());
 }
