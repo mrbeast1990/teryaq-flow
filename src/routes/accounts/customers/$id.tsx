@@ -1,25 +1,48 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
-import { EmptyState } from "@/components/teryaq/States";
-import { useState } from "react";
+import { LoadingState } from "@/components/teryaq/States";
 import { FinancialStatement } from "@/components/teryaq/accounts/FinancialStatement";
 import { InvoiceList } from "@/components/teryaq/accounts/InvoiceList";
 import { PaymentList } from "@/components/teryaq/accounts/PaymentList";
+import { getCustomerDetails, getCustomerLedger, getCustomers } from "@/lib/api";
 
 export const Route = createFileRoute("/accounts/customers/$id")({
   head: () => ({
-    meta: [
-      { title: "تفاصيل الزبون — Teryaq" },
-    ],
+    meta: [{ title: "تفاصيل الزبون — Teryaq" }],
   }),
   component: CustomerDetailsPage,
 });
 
+function formatNumber(value?: number | null) {
+  return new Intl.NumberFormat("ar-LY", { maximumFractionDigits: 2 }).format(Number(value || 0));
+}
+
 function CustomerDetailsPage() {
-  const { id } = useParams({ from: '/accounts/customers/$id' });
+  const { id } = useParams({ from: "/accounts/customers/$id" });
   const [activeTab, setActiveTab] = useState("statement");
+
+  const detailsQuery = useQuery({
+    queryKey: ["accounts", "customer", id, "details"],
+    queryFn: () => getCustomerDetails(id),
+  });
+  const customersQuery = useQuery({
+    queryKey: ["accounts", "customers"],
+    queryFn: () => getCustomers(),
+  });
+  const ledgerQuery = useQuery({
+    queryKey: ["accounts", "customer", id, "ledger", "summary"],
+    queryFn: () => getCustomerLedger(id),
+  });
+
+  const listCustomer = customersQuery.data?.customers?.find((item) => String(item.id) === String(id));
+  const customer = detailsQuery.data?.customer;
+  const balance = listCustomer?.currentBalance ?? ledgerQuery.data?.rows?.[0]?.runningBalance ?? 0;
+  const name = customer?.name || listCustomer?.name || `زبون ${id}`;
+  const phone = customer?.phone || listCustomer?.phone || "هاتف غير مسجل";
 
   const tabs = [
     { id: "statement", label: "كشف الحساب" },
@@ -30,29 +53,29 @@ function CustomerDetailsPage() {
   return (
     <AppShell>
       <div className="sticky top-0 z-20 -mx-4 mb-2 bg-background/80 px-4 pb-2 pt-1 backdrop-blur-md">
-        <PageHeader 
-          title="تفاصيل الزبون" 
-          subtitle={`معرف: ${id}`} 
-          showBack 
-        />
-        
-        <div className="mt-3 flex items-center justify-between rounded-lg bg-primary/5 p-3 border border-primary/10">
-          <div className="min-w-0">
-            <div className="h-5 w-32 animate-pulse rounded bg-muted/20" /> {/* Name placeholder */}
-            <div className="mt-1 h-3 w-20 animate-pulse rounded bg-muted/10" /> {/* Phone placeholder */}
-          </div>
-          <div className="text-left">
-            <p className="text-[10px] text-muted-foreground">الرصيد الحالي</p>
-            <div className="h-6 w-24 animate-pulse rounded bg-muted/20" /> {/* Balance placeholder */}
-          </div>
+        <PageHeader title="تفاصيل الزبون" subtitle={`معرف: ${id}`} showBack />
+
+        <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/10 bg-primary/5 p-3">
+          {detailsQuery.isLoading && !customer ? (
+            <div className="w-full">
+              <LoadingState rows={1} />
+            </div>
+          ) : (
+            <>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-extrabold">{name}</p>
+                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{phone}</p>
+              </div>
+              <div className="shrink-0 text-left">
+                <p className="text-[10px] text-muted-foreground">الرصيد الحالي</p>
+                <p className="num text-base font-extrabold">{formatNumber(balance)}</p>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="mt-3">
-          <SegmentedTabs 
-            options={tabs} 
-            value={activeTab} 
-            onChange={setActiveTab} 
-          />
+          <SegmentedTabs options={tabs} value={activeTab} onChange={setActiveTab} />
         </div>
       </div>
 
