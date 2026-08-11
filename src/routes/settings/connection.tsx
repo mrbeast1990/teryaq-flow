@@ -83,6 +83,7 @@ function toPayload(form: FormState): ConnectionPayload {
     trustServerCertificate: form.trustServerCertificate,
     tdsVersion: form.tdsVersion.trim() || "7_3_A",
   };
+  return payload;
 }
 
 function formatDateTime(value?: string | null) {

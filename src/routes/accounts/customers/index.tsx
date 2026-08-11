@@ -54,7 +54,7 @@ function CustomersPage() {
           <SearchInput 
             placeholder="اسم الزبون، رقم الهاتف..." 
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.currentTarget.value)}
           />
           <FilterBar>
             {filterOptions.map(opt => (

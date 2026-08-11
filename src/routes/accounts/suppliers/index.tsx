@@ -54,7 +54,7 @@ function SuppliersPage() {
           <SearchInput 
             placeholder="اسم المورد، رقم الهاتف..." 
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.currentTarget.value)}
           />
           <FilterBar>
             {filterOptions.map(opt => (
