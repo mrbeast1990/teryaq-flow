@@ -3,14 +3,14 @@ import { StatusBadge, type StatusTone } from "../StatusBadge";
 
 interface Props {
   name: string;
-  code?: string;
-  barcode?: string;
-  formattedQuantity?: string;
-  rawQuantity?: number;
-  purchasePrice?: number;
-  salePrice?: number;
-  expiryStatus?: "valid" | "near" | "expired";
-  expiryDate?: string;
+  code?: string | null | undefined;
+  barcode?: string | null | undefined;
+  formattedQuantity?: string | null | undefined;
+  rawQuantity?: number | null | undefined;
+  purchasePrice?: number | null | undefined;
+  salePrice?: number | null | undefined;
+  expiryStatus?: "valid" | "near" | "expired" | null | undefined;
+  expiryDate?: string | null | undefined;
   onClick?: () => void;
 }
 
@@ -76,7 +76,7 @@ export function InventoryItemRow({
         {expiryStatus && (
           <div className="flex items-center gap-2">
             {expiryDate && <span className="text-[11px] text-muted-foreground">{expiryDate}</span>}
-            <StatusBadge label={expiryLabel[expiryStatus]} tone={expiryTone[expiryStatus]} />
+            <StatusBadge label={expiryLabel[expiryStatus] || ""} tone={expiryTone[expiryStatus] || "neutral"} />
           </div>
         )}
       </div>

@@ -14,6 +14,10 @@ import { Route as AccountsRouteImport } from './routes/accounts'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as RevenueRouteImport } from './routes/revenue'
+import { Route as ItemsExpiryRouteImport } from './routes/items/expiry'
+import { Route as ItemsOutOfStockRouteImport } from './routes/items/out-of-stock'
+import { Route as ItemsStockRouteImport } from './routes/items/stock'
+import { Route as ItemsTrackRouteImport } from './routes/items/track'
 import { Route as SettingsConnectionRouteImport } from './routes/settings/connection'
 import { Route as AccountsCustomersIndexRouteImport } from './routes/accounts/customers/index'
 import { Route as AccountsCustomersIdRouteImport } from './routes/accounts/customers/$id'
@@ -45,6 +49,26 @@ const RevenueRoute = RevenueRouteImport.update({
   path: '/revenue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ItemsExpiryRoute = ItemsExpiryRouteImport.update({
+  id: '/expiry',
+  path: '/expiry',
+  getParentRoute: () => ItemsRoute,
+} as any)
+const ItemsOutOfStockRoute = ItemsOutOfStockRouteImport.update({
+  id: '/out-of-stock',
+  path: '/out-of-stock',
+  getParentRoute: () => ItemsRoute,
+} as any)
+const ItemsStockRoute = ItemsStockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => ItemsRoute,
+} as any)
+const ItemsTrackRoute = ItemsTrackRouteImport.update({
+  id: '/track',
+  path: '/track',
+  getParentRoute: () => ItemsRoute,
+} as any)
 const SettingsConnectionRoute = SettingsConnectionRouteImport.update({
   id: '/settings/connection',
   path: '/settings/connection',
@@ -74,9 +98,13 @@ const AccountsSuppliersIdRoute = AccountsSuppliersIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
-  '/items': typeof ItemsRoute
+  '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/items/expiry': typeof ItemsExpiryRoute
+  '/items/out-of-stock': typeof ItemsOutOfStockRoute
+  '/items/stock': typeof ItemsStockRoute
+  '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
@@ -86,9 +114,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
-  '/items': typeof ItemsRoute
+  '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/items/expiry': typeof ItemsExpiryRoute
+  '/items/out-of-stock': typeof ItemsOutOfStockRoute
+  '/items/stock': typeof ItemsStockRoute
+  '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
@@ -99,9 +131,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
-  '/items': typeof ItemsRoute
+  '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/items/expiry': typeof ItemsExpiryRoute
+  '/items/out-of-stock': typeof ItemsOutOfStockRoute
+  '/items/stock': typeof ItemsStockRoute
+  '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
@@ -116,6 +152,10 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/revenue'
+    | '/items/expiry'
+    | '/items/out-of-stock'
+    | '/items/stock'
+    | '/items/track'
     | '/settings/connection'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
@@ -128,6 +168,10 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/revenue'
+    | '/items/expiry'
+    | '/items/out-of-stock'
+    | '/items/stock'
+    | '/items/track'
     | '/settings/connection'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
@@ -140,6 +184,10 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/revenue'
+    | '/items/expiry'
+    | '/items/out-of-stock'
+    | '/items/stock'
+    | '/items/track'
     | '/settings/connection'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
@@ -150,7 +198,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountsRoute: typeof AccountsRouteWithChildren
-  ItemsRoute: typeof ItemsRoute
+  ItemsRoute: typeof ItemsRouteWithChildren
   MoreRoute: typeof MoreRoute
   RevenueRoute: typeof RevenueRoute
   SettingsConnectionRoute: typeof SettingsConnectionRoute
@@ -192,6 +240,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/revenue'
       preLoaderRoute: typeof RevenueRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/items/expiry': {
+      id: '/items/expiry'
+      path: '/expiry'
+      fullPath: '/items/expiry'
+      preLoaderRoute: typeof ItemsExpiryRouteImport
+      parentRoute: typeof ItemsRoute
+    }
+    '/items/out-of-stock': {
+      id: '/items/out-of-stock'
+      path: '/out-of-stock'
+      fullPath: '/items/out-of-stock'
+      preLoaderRoute: typeof ItemsOutOfStockRouteImport
+      parentRoute: typeof ItemsRoute
+    }
+    '/items/stock': {
+      id: '/items/stock'
+      path: '/stock'
+      fullPath: '/items/stock'
+      preLoaderRoute: typeof ItemsStockRouteImport
+      parentRoute: typeof ItemsRoute
+    }
+    '/items/track': {
+      id: '/items/track'
+      path: '/track'
+      fullPath: '/items/track'
+      preLoaderRoute: typeof ItemsTrackRouteImport
+      parentRoute: typeof ItemsRoute
     }
     '/settings/connection': {
       id: '/settings/connection'
@@ -249,10 +325,26 @@ const AccountsRouteWithChildren = AccountsRoute._addFileChildren(
   AccountsRouteChildren,
 )
 
+interface ItemsRouteChildren {
+  ItemsExpiryRoute: typeof ItemsExpiryRoute
+  ItemsOutOfStockRoute: typeof ItemsOutOfStockRoute
+  ItemsStockRoute: typeof ItemsStockRoute
+  ItemsTrackRoute: typeof ItemsTrackRoute
+}
+
+const ItemsRouteChildren: ItemsRouteChildren = {
+  ItemsExpiryRoute: ItemsExpiryRoute,
+  ItemsOutOfStockRoute: ItemsOutOfStockRoute,
+  ItemsStockRoute: ItemsStockRoute,
+  ItemsTrackRoute: ItemsTrackRoute,
+}
+
+const ItemsRouteWithChildren = ItemsRoute._addFileChildren(ItemsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountsRoute: AccountsRouteWithChildren,
-  ItemsRoute: ItemsRoute,
+  ItemsRoute: ItemsRouteWithChildren,
   MoreRoute: MoreRoute,
   RevenueRoute: RevenueRoute,
   SettingsConnectionRoute: SettingsConnectionRoute,
