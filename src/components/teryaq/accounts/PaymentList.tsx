@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ApiError, type CustomerReceiptRow, type SupplierPaymentRow, getCustomerReceipts, getSupplierPayments } from "@/lib/api";
+import { ApiError, type CustomerReceiptRow, type SupplierPaymentRow, type RowsResponse, getCustomerReceipts, getSupplierPayments } from "@/lib/api";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 
 interface Props {

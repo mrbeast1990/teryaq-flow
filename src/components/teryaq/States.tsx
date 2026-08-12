@@ -40,7 +40,7 @@ export function ErrorState({
   onRetry,
 }: {
   title?: string;
-  description?: string | null;
+  description?: string | null | undefined;
   onRetry?: () => void;
 }) {
   return (
