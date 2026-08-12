@@ -22,8 +22,18 @@ function AccountsPage() {
       <PageHeader title="الحسابات" />
 
       <div className="grid gap-2">
-        <CompactListCard title="الزبائن" subtitle="الأرصدة، كشف الحساب، فواتير البيع، والسدادات" icon={Users} to="/accounts/customers" />
-        <CompactListCard title="الموردين" subtitle="الأرصدة، كشف الحساب، فواتير الشراء، والسدادات" icon={Truck} to="/accounts/suppliers" />
+        <CompactListCard
+          title="الزبائن"
+          subtitle="الأرصدة، كشف الحساب، فواتير البيع، والسدادات"
+          icon={Users}
+          to="/accounts/customers/"
+        />
+        <CompactListCard
+          title="الموردين"
+          subtitle="الأرصدة، كشف الحساب، فواتير الشراء، والسدادات"
+          icon={Truck}
+          to="/accounts/suppliers/"
+        />
       </div>
     </AppShell>
   );

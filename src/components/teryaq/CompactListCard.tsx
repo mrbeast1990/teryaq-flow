@@ -37,7 +37,10 @@ export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to }
 
   if (to) {
     return (
-      <Link to={to} className="card-surface block transition-colors hover:bg-secondary/50">
+      <Link
+        to={to}
+        className="card-surface block cursor-pointer touch-manipulation transition-colors hover:bg-secondary/50 active:scale-[0.99] active:bg-secondary/70"
+      >
         {content}
       </Link>
     );
