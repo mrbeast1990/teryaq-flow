@@ -22,23 +22,34 @@ export const Route = createFileRoute("/items")({
 function ItemsPage() {
   return (
     <AppShell>
-      <PageHeader title="الأصناف" subtitle="هيكل التنقل — المرحلة الأولى" />
-      <div className="mb-3">
-        <SearchInput placeholder="بحث عن صنف…" />
-      </div>
-      <SectionHeader title="الأقسام" />
+      <PageHeader title="الأصناف" subtitle="إدارة المخزون وتتبع الحركة" />
       <div className="grid gap-2 sm:grid-cols-2">
-        <CompactListCard title="المخزون" subtitle="أرصدة الأصناف الحالية" icon={Boxes} />
-        <CompactListCard title="تتبع صنف" subtitle="حركة صنف تفصيلية" icon={ScanSearch} />
-        <CompactListCard title="أصناف نفدت" subtitle="رصيد صفر" icon={PackageX} />
-        <CompactListCard title="قرب الانتهاء" subtitle="حسب تاريخ الصلاحية" icon={CalendarClock} />
-      </div>
-      <div className="mt-4">
-        <EmptyState
-          title="لم يتم ربط البيانات بعد"
-          description="ستظهر بيانات المخزون الفعلية بعد ربط الـ API."
+        <CompactListCard
+          title="المخزون"
+          subtitle="أرصدة الأصناف الحالية"
+          icon={Boxes}
+          to="/items/stock"
+        />
+        <CompactListCard
+          title="تتبع صنف"
+          subtitle="حركة صنف تفصيلية"
+          icon={ScanSearch}
+          to="/items/track"
+        />
+        <CompactListCard
+          title="أصناف نفدت"
+          subtitle="رصيد صفر"
+          icon={PackageX}
+          to="/items/out-of-stock"
+        />
+        <CompactListCard
+          title="انتهاء الصلاحية"
+          subtitle="حسب تاريخ الصلاحية"
+          icon={CalendarClock}
+          to="/items/expiry"
         />
       </div>
+
     </AppShell>
   );
 }
