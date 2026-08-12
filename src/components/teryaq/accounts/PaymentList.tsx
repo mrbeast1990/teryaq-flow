@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ApiError, type CustomerReceiptRow, type SupplierPaymentRow, getCustomerReceipts, getSupplierPayments } from "@/lib/api";
+import { ApiError, type CustomerReceiptRow, type SupplierPaymentRow, type RowsResponse, getCustomerReceipts, getSupplierPayments } from "@/lib/api";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 
 interface Props {
@@ -21,11 +21,11 @@ function formatDate(value?: string | null) {
 export function PaymentList({ type, accountId }: Props) {
   const query = useQuery({
     queryKey: ["accounts", type, accountId, "payments"],
-    queryFn: () => (type === "customer" ? getCustomerReceipts(accountId) : getSupplierPayments(accountId)),
+    queryFn: () => (type === "customer" ? getCustomerReceipts(accountId) : getSupplierPayments(accountId)) as Promise<RowsResponse<CustomerReceiptRow | SupplierPaymentRow>>,
   });
 
   const errorMessage = query.error instanceof ApiError || query.error instanceof Error ? query.error.message : undefined;
-  const rows = (query.data?.rows || []) as Array<CustomerReceiptRow | SupplierPaymentRow>;
+  const rows = (query.data as RowsResponse<CustomerReceiptRow | SupplierPaymentRow>)?.rows || [];
 
   if (query.isLoading) return <LoadingState />;
   if (query.isError) return <ErrorState description={errorMessage} onRetry={() => query.refetch()} />;

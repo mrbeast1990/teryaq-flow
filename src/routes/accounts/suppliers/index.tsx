@@ -109,7 +109,7 @@ function SuppliersPage() {
           <SearchInput
             placeholder="اسم المورد، الهاتف، أو الرقم..."
             value={search}
-            onChange={(event) => setSearch(event.currentTarget.value)}
+            onChange={(value) => setSearch(value)}
           />
           <FilterBar>
             {filterOptions.map((option) => (

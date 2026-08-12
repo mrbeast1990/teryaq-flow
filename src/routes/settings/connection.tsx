@@ -72,7 +72,7 @@ function fromConnection(connection?: SavedConnection | null): FormState {
 
 function toPayload(form: FormState): ConnectionPayload {
   const payload: ConnectionPayload = {
-    id: form.id || undefined,
+    id: form.id || (undefined as any),
     name: form.name.trim() || form.server.trim(),
     server: form.server.trim(),
     database: form.database.trim(),

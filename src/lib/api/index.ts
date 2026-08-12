@@ -367,3 +367,83 @@ export function getLowStock(): Promise<StockInfoResponse> {
 export function getExpiryItems(): Promise<StockInfoResponse> {
   return apiRequest<StockInfoResponse>(API_ENDPOINTS.itemsExpiry());
 }
+
+// TODO: Phase 5 - Map real Items & Inventory endpoints after Codex verification
+
+export interface ItemInfo {
+  id: number | string;
+  name: string;
+  code?: string;
+  barcode?: string;
+  quantity?: number;
+  formattedQuantity?: string;
+  purchasePrice?: number;
+  salePrice?: number;
+  expiryDate?: string;
+  expiryStatus?: "valid" | "near" | "expired";
+}
+
+export interface InventoryResponse {
+  success: boolean;
+  rows: ItemInfo[];
+}
+
+export interface ItemMovement {
+  date: string;
+  type: "purchase" | "sales" | "return-sales" | "return-purchase" | "transfer" | "adjustment" | string;
+  movementNo: string | number;
+  sideName: string; // Supplier or Customer
+  inQty?: number;
+  outQty?: number;
+  formattedQuantity?: string;
+  price: number;
+  total: number;
+}
+
+export interface ItemTrackingSummary {
+  currentStock: number;
+  formattedStock?: string;
+  totalIn: number;
+  totalOut: number;
+  salesReturns: number;
+  purchaseReturns: number;
+  lastPurchasePrice: number;
+  lastSalePrice: number;
+}
+
+export interface ItemTrackingResponse {
+  success: boolean;
+  summary: ItemTrackingSummary;
+  purchases: ItemMovement[];
+  sales: ItemMovement[];
+  suppliers: {
+    name: string;
+    count: number;
+    totalQty: number;
+    lastPurchaseDate: string;
+    lastPurchasePrice: number;
+  }[];
+  customers: {
+    name: string;
+    count: number;
+    totalQty: number;
+    lastSaleDate: string;
+    lastSalePrice: number;
+  }[];
+  movements: ItemMovement[];
+}
+
+export function getInventory(params: {
+  search?: string;
+  filter?: string;
+  sortBy?: string;
+}): Promise<InventoryResponse> {
+  // TODO: map real inventory endpoint
+  return apiRequest<InventoryResponse>(API_ENDPOINTS.itemsStock(), { query: params });
+}
+
+export function getItemTracking(id: string | number): Promise<ItemTrackingResponse> {
+  // TODO: map real item tracking endpoint
+  return apiRequest<ItemTrackingResponse>(`/api/items/${id}/track`);
+}
+
