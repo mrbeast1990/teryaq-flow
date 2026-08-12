@@ -14,7 +14,7 @@ interface Props {
   onClick?: () => void;
 }
 
-function formatCurrency(value?: number) {
+function formatCurrency(value?: number | null) {
   return new Intl.NumberFormat("ar-LY", { maximumFractionDigits: 2 }).format(Number(value || 0));
 }
 
