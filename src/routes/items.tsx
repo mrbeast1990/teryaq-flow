@@ -2,10 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Boxes, ScanSearch, PackageX, CalendarClock } from "lucide-react";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
-import { SectionHeader } from "@/components/teryaq/SectionHeader";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
-import { SearchInput } from "@/components/teryaq/SearchInput";
-import { EmptyState } from "@/components/teryaq/States";
 
 export const Route = createFileRoute("/items")({
   head: () => ({
@@ -49,7 +46,6 @@ function ItemsPage() {
           to="/items/expiry"
         />
       </div>
-
     </AppShell>
   );
 }
