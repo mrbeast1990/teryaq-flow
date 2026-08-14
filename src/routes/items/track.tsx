@@ -116,13 +116,13 @@ function ItemTrackingPage() {
           ) : (
             <div className="space-y-3">
               {activeTab === "summary" && (
-                <ItemSummaryCards tracking={tracking} />
+                <ItemSummaryCards tracking={tracking || undefined} />
               )}
-              {activeTab === "purchases" && <PurchaseMovementList rows={(tracking?.purchases || []).map(movementToRow)} />}
-              {activeTab === "sales" && <SalesMovementList rows={(tracking?.sales || []).map(movementToRow)} />}
+              {activeTab === "purchases" && <PurchaseMovementList rows={(tracking?.purchases || []).map((m) => movementToRow(m))} />}
+              {activeTab === "sales" && <SalesMovementList rows={(tracking?.sales || []).map((m) => movementToRow(m))} />}
               {activeTab === "suppliers" && <ItemSupplierList rows={(tracking?.suppliers || []).map(supplierToRow)} />}
               {activeTab === "customers" && <ItemCustomerList rows={(tracking?.customers || []).map(customerToRow)} />}
-              {activeTab === "movements" && <ItemMovementList rows={(tracking?.movements || []).map(movementToRow)} />}
+              {activeTab === "movements" && <ItemMovementList rows={(tracking?.movements || []).map((m) => movementToRow(m))} />}
             </div>
           )}
         </div>
