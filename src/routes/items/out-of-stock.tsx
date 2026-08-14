@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/teryaq/PageHeader";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 import { getInventory, ApiError } from "@/lib/api";
-import { InventoryItemRow } from "@/components/teryaq/items/InventoryItemRow";
+import { OutOfStockRow } from "@/components/teryaq/items/OutOfStockRow";
 
 export const Route = createFileRoute("/items/out-of-stock")({
   head: () => ({
@@ -50,7 +50,7 @@ function OutOfStockPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {items.map((item) => (
-              <InventoryItemRow
+              <OutOfStockRow
                 key={item.id}
                 name={item.name}
                 code={item.code}

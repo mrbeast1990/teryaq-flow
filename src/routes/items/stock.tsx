@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FileDown, Filter, RefreshCw } from "lucide-react";
+import { FileDown, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SearchInput } from "@/components/teryaq/SearchInput";
 import { ActionButton } from "@/components/teryaq/ActionButton";
-import { FilterBar, FilterChip } from "@/components/teryaq/FilterBar";
+import { InventoryFilters } from "@/components/teryaq/items/InventoryFilters";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 import { getInventory, ApiError } from "@/lib/api";
 import { InventoryItemRow } from "@/components/teryaq/items/InventoryItemRow";
@@ -49,11 +49,15 @@ function InventoryPage() {
             value={search}
             onChange={(val) => setSearch(val)}
           />
-          <FilterBar>
-            <FilterChip label="الكل" active={filter === "all"} onClick={() => setFilter("all")} />
-            <FilterChip label="المتوفر فقط" active={filter === "available"} onClick={() => setFilter("available")} />
-            <FilterChip label="قريب الانتهاء" active={filter === "near-expiry"} onClick={() => setFilter("near-expiry")} />
-          </FilterBar>
+          <InventoryFilters
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { id: "all", label: "الكل" },
+              { id: "available", label: "المتوفر فقط" },
+              { id: "near-expiry", label: "قريب الانتهاء" },
+            ]}
+          />
         </div>
       </div>
 
