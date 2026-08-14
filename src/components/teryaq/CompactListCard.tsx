@@ -10,7 +10,7 @@ type Props = {
   icon?: LucideIcon;
   to?: string;
   onClick?: (() => void) | undefined;
-  actionLabel?: string;
+  actionLabel?: string | undefined;
 };
 
 export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to, onClick, actionLabel }: Props) {
