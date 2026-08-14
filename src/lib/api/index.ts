@@ -576,7 +576,7 @@ function numberOrNull(value: unknown): number | null {
   return Number.isFinite(number) ? number : null;
 }
 
-function compactQuantity(parts: { packages?: number | null; units?: number | null; packSize?: number | null; raw?: number | null }) {
+function compactQuantity(parts: { packages?: number | null | undefined; units?: number | null | undefined; packSize?: number | null | undefined; raw?: number | null | undefined }) {
   const packages = numberOrNull(parts.packages) ?? 0;
   const units = numberOrNull(parts.units) ?? 0;
   const packSize = numberOrNull(parts.packSize) ?? 1;
@@ -620,11 +620,11 @@ function mapItem(row: BackendItemRow, quantityKey: "currentQuantity" | "currentS
     remainingUnits: numberOrNull(row.remainingUnits),
     packSize: numberOrNull(row.packSize),
     unitName: row.unitName ?? null,
-    formattedQuantity: formatBackendQuantity(row, quantityKey),
+    formattedQuantity: formatBackendQuantity(row, quantityKey) || null,
     purchasePrice: numberOrNull(row.purchasePrice),
     salePrice: numberOrNull(row.salePrice),
     expiryDate: row.expiryDate ?? null,
-    expiryStatus: expiryStatus(row.expiryDate, row.daysRemaining),
+    expiryStatus: expiryStatus(row.expiryDate, row.daysRemaining) || null,
     batch: row.batch ?? null,
     daysRemaining: numberOrNull(row.daysRemaining),
     lastSaleDate: row.lastSaleDate ?? null,
@@ -716,7 +716,7 @@ function mapParty(row: BackendPartyRow, item?: ItemInfo | null) {
 function mapInventoryRows(response: BackendRowsResponse<BackendItemRow>, quantityKey?: "currentQuantity" | "quantity"): InventoryResponse {
   return {
     success: response.success,
-    profile: response.profile,
+    profile: response.profile || undefined,
     rows: (response.rows || []).map((row) => mapItem(row, quantityKey || "currentQuantity")),
     totalCount: numberOrNull(response.totalCount),
   };
@@ -749,7 +749,7 @@ export function getInventory(params: {
     limit: "all",
   };
 
-  if (params.filter === "available") query.availableOnly = true;
+  if (params.filter === "available") query["availableOnly"] = true;
   if (params.filter === "near-expiry") {
     return apiRequest<BackendRowsResponse<BackendItemRow> & { days?: number }>(API_ENDPOINTS.itemsExpiry(), {
       query: { search: params.search, days: 90 },
@@ -767,7 +767,7 @@ export function getItemTracking(id: string | number): Promise<ItemTrackingRespon
     const sales = movements.filter((row) => row.movementGroup === "sale");
     return {
       success: response.success,
-      profile: response.profile,
+      profile: response.profile || undefined,
       item,
       summary: {
         currentStock: item?.rawQuantity ?? null,
@@ -784,8 +784,8 @@ export function getItemTracking(id: string | number): Promise<ItemTrackingRespon
       },
       purchases,
       sales,
-      suppliers: (response.suppliers || []).map((row) => mapParty(row, item)),
-      customers: (response.customers || []).map((row) => mapParty(row, item)),
+      suppliers: (response.suppliers || []).map((row) => ({ ...mapParty(row, item), total: numberOrNull(row.total) || null })),
+      customers: (response.customers || []).map((row) => ({ ...mapParty(row, item), total: numberOrNull(row.total) || null })),
       movements,
     };
   });
