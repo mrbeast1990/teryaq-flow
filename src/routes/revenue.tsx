@@ -144,7 +144,7 @@ function RevenuePage() {
           type="sales"
           movementNo={selectedInvoice.invoiceNo}
           displayMovementNo={selectedInvoice.movementNo}
-          transactionDateTime={transactionDateTime}
+          transactionDateTime={transactionDateTime || null}
           transactionDateTimeSource={movement?.movementDateTimeSource || undefined}
           onBack={() => setSelectedInvoice(null)}
         />

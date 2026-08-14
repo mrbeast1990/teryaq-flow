@@ -68,21 +68,21 @@ function ItemTrackingPage() {
     };
   }
 
-  function supplierToRow(row: NonNullable<typeof tracking>["suppliers"][number]) {
+  function supplierToRow(row: { name: string; quantity?: string | null; lastPurchaseDate: string | null; total?: number | null }) {
     return {
       name: row.name,
-      quantity: row.quantity || (row.totalQty != null ? String(row.totalQty) : null),
+      quantity: row.quantity || null,
       lastDate: formatDate(row.lastPurchaseDate),
-      total: row.total,
+      total: row.total ?? null,
     };
   }
 
-  function customerToRow(row: NonNullable<typeof tracking>["customers"][number]) {
+  function customerToRow(row: { name: string; quantity?: string | null; lastSaleDate: string | null; total?: number | null }) {
     return {
       name: row.name,
-      quantity: row.quantity || (row.totalQty != null ? String(row.totalQty) : null),
+      quantity: row.quantity || null,
       lastDate: formatDate(row.lastSaleDate),
-      total: row.total,
+      total: row.total ?? null,
     };
   }
 
@@ -116,13 +116,13 @@ function ItemTrackingPage() {
           ) : (
             <div className="space-y-3">
               {activeTab === "summary" && (
-                <ItemSummaryCards tracking={tracking} />
+                <ItemSummaryCards tracking={tracking || undefined} />
               )}
-              {activeTab === "purchases" && <PurchaseMovementList rows={(tracking?.purchases || []).map(movementToRow)} />}
-              {activeTab === "sales" && <SalesMovementList rows={(tracking?.sales || []).map(movementToRow)} />}
+              {activeTab === "purchases" && <PurchaseMovementList rows={(tracking?.purchases || []).map((m) => movementToRow(m))} />}
+              {activeTab === "sales" && <SalesMovementList rows={(tracking?.sales || []).map((m) => movementToRow(m))} />}
               {activeTab === "suppliers" && <ItemSupplierList rows={(tracking?.suppliers || []).map(supplierToRow)} />}
               {activeTab === "customers" && <ItemCustomerList rows={(tracking?.customers || []).map(customerToRow)} />}
-              {activeTab === "movements" && <ItemMovementList rows={(tracking?.movements || []).map(movementToRow)} />}
+              {activeTab === "movements" && <ItemMovementList rows={(tracking?.movements || []).map((m) => movementToRow(m))} />}
             </div>
           )}
         </div>
@@ -167,7 +167,7 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString("ar-LY");
 }
 
-function ItemSummaryCards({ tracking }: { tracking?: Awaited<ReturnType<typeof getItemTracking>> }) {
+function ItemSummaryCards({ tracking }: { tracking?: Awaited<ReturnType<typeof getItemTracking>> | undefined }) {
   const summary = tracking?.summary;
   const cards = [
     { label: "المخزون الحالي", value: summary?.formattedStock || "-" },

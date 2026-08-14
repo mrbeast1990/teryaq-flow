@@ -9,8 +9,8 @@ type Props = {
   meta?: string;
   icon?: LucideIcon;
   to?: string;
-  onClick?: () => void;
-  actionLabel?: string;
+  onClick?: (() => void) | undefined;
+  actionLabel?: string | undefined;
 };
 
 export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to, onClick, actionLabel }: Props) {
