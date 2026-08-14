@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { Boxes, ScanSearch, PackageX, CalendarClock } from "lucide-react";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
@@ -17,6 +17,13 @@ export const Route = createFileRoute("/items")({
 });
 
 function ItemsPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isItemsRoot = pathname.replace(/\/+$/, "") === "/items";
+
+  if (!isItemsRoot) {
+    return <Outlet />;
+  }
+
   return (
     <AppShell>
       <PageHeader title="الأصناف" subtitle="إدارة المخزون وتتبع الحركة" />

@@ -8,7 +8,7 @@ import { SearchInput } from "@/components/teryaq/SearchInput";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { InventoryFilters } from "@/components/teryaq/items/InventoryFilters";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
-import { getInventory, ApiError } from "@/lib/api";
+import { getInventory, ApiError, type ItemInfo } from "@/lib/api";
 import { InventoryItemRow } from "@/components/teryaq/items/InventoryItemRow";
 
 export const Route = createFileRoute("/items/stock")({
@@ -17,6 +17,33 @@ export const Route = createFileRoute("/items/stock")({
   }),
   component: InventoryPage,
 });
+
+function exportInventory(rows: ItemInfo[]) {
+  if (!rows.length) {
+    window.alert("لا توجد بيانات للتصدير.");
+    return;
+  }
+  const headers = ["اسم الصنف", "الكود", "الباركود", "الكمية", "آخر شراء", "آخر بيع", "الصلاحية"];
+  const lines = rows.map((row) => [
+    row.name || "",
+    row.code || "",
+    row.barcode || "",
+    row.formattedQuantity || "",
+    String(row.purchasePrice ?? ""),
+    String(row.salePrice ?? ""),
+    row.expiryDate || "",
+  ]);
+  const csv = [headers, ...lines]
+    .map((line) => line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\r\n");
+  const blob = new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `inventory-${new Date().toISOString().slice(0, 10)}.csv`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
 
 function InventoryPage() {
   const [search, setSearch] = useState("");
@@ -38,7 +65,7 @@ function InventoryPage() {
           showBack
           actions={
             <div className="flex gap-1">
-              <ActionButton label="تصدير" icon={FileDown} variant="outline" disabled={!items.length} />
+              <ActionButton label="تصدير" icon={FileDown} variant="outline" disabled={!items.length} onClick={() => exportInventory(items)} />
               <ActionButton label="تحديث" icon={RefreshCw} variant="outline" onClick={() => query.refetch()} />
             </div>
           }

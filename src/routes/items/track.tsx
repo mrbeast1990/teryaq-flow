@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SearchInput } from "@/components/teryaq/SearchInput";
 import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
-import { getItemTracking, getInventory, ApiError, type ItemInfo } from "@/lib/api";
+import { getItemTracking, getInventory, ApiError, type ItemInfo, type ItemMovement } from "@/lib/api";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { ItemSearchResults } from "@/components/teryaq/items/ItemSearchResults";
 import { SelectedItemHeader } from "@/components/teryaq/items/SelectedItemHeader";
@@ -50,6 +50,42 @@ function ItemTrackingPage() {
     enabled: !!selectedItem,
   });
 
+  const tracking = trackingQuery.data;
+
+  function movementToRow(row: ItemMovement, options: { showPrice?: boolean } = {}) {
+    const showPrice = options.showPrice !== false;
+    return {
+      date: formatDate(row.date),
+      title: row.type || "-",
+      subtitle: [
+        row.sideName,
+        row.invoiceNo ? `فاتورة: ${row.invoiceNo}` : "",
+        row.movementNo ? `حركة: ${row.movementNo}` : "",
+        showPrice && row.price != null ? `السعر: ${formatNumber(row.price)}` : "",
+      ].filter(Boolean).join(" · "),
+      quantity: row.formattedQuantity || "",
+      amount: row.total,
+    };
+  }
+
+  function supplierToRow(row: NonNullable<typeof tracking>["suppliers"][number]) {
+    return {
+      name: row.name,
+      quantity: row.quantity || (row.totalQty != null ? String(row.totalQty) : null),
+      lastDate: formatDate(row.lastPurchaseDate),
+      total: row.total,
+    };
+  }
+
+  function customerToRow(row: NonNullable<typeof tracking>["customers"][number]) {
+    return {
+      name: row.name,
+      quantity: row.quantity || (row.totalQty != null ? String(row.totalQty) : null),
+      lastDate: formatDate(row.lastSaleDate),
+      total: row.total,
+    };
+  }
+
   if (selectedItem) {
     return (
       <AppShell>
@@ -80,13 +116,13 @@ function ItemTrackingPage() {
           ) : (
             <div className="space-y-3">
               {activeTab === "summary" && (
-                <EmptyState title="ملخص حركة الصنف" description="سيتم عرض إحصائيات الدخول والخروج والربحية هنا." />
+                <ItemSummaryCards tracking={tracking} />
               )}
-              {activeTab === "purchases" && <PurchaseMovementList />}
-              {activeTab === "sales" && <SalesMovementList />}
-              {activeTab === "suppliers" && <ItemSupplierList />}
-              {activeTab === "customers" && <ItemCustomerList />}
-              {activeTab === "movements" && <ItemMovementList />}
+              {activeTab === "purchases" && <PurchaseMovementList rows={(tracking?.purchases || []).map(movementToRow)} />}
+              {activeTab === "sales" && <SalesMovementList rows={(tracking?.sales || []).map(movementToRow)} />}
+              {activeTab === "suppliers" && <ItemSupplierList rows={(tracking?.suppliers || []).map(supplierToRow)} />}
+              {activeTab === "customers" && <ItemCustomerList rows={(tracking?.customers || []).map(customerToRow)} />}
+              {activeTab === "movements" && <ItemMovementList rows={(tracking?.movements || []).map(movementToRow)} />}
             </div>
           )}
         </div>
@@ -99,7 +135,7 @@ function ItemTrackingPage() {
       <PageHeader title="تتبع صنف" showBack subtitle="اختر صنفًا لعرض تفاصيل حركته" />
       <div className="mb-4">
         <SearchInput
-          placeholder="ابحث عن صنف بالاسم أو الكود..."
+          placeholder="ابحث عن صنف بالاسم أو الكود أو الباركود..."
           value={search}
           onChange={(val) => setSearch(val)}
         />
@@ -117,5 +153,41 @@ function ItemTrackingPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+function formatNumber(value?: number | null) {
+  return new Intl.NumberFormat("ar-LY", { maximumFractionDigits: 2 }).format(Number(value || 0));
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("ar-LY");
+}
+
+function ItemSummaryCards({ tracking }: { tracking?: Awaited<ReturnType<typeof getItemTracking>> }) {
+  const summary = tracking?.summary;
+  const cards = [
+    { label: "المخزون الحالي", value: summary?.formattedStock || "-" },
+    { label: "إجمالي الداخل", value: formatNumber(summary?.totalIn) },
+    { label: "إجمالي الخارج", value: formatNumber(summary?.totalOut) },
+    { label: "مردودات البيع", value: formatNumber(summary?.salesReturns) },
+    { label: "مردودات الشراء", value: formatNumber(summary?.purchaseReturns) },
+    { label: "آخر سعر شراء", value: formatNumber(summary?.lastPurchasePrice) },
+    { label: "آخر سعر بيع", value: formatNumber(summary?.lastSalePrice) },
+    { label: "الربح التقريبي", value: summary?.approximateProfit == null ? "غير متوفر" : formatNumber(summary.approximateProfit) },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {cards.map((card) => (
+        <div key={card.label} className="card-surface p-3">
+          <p className="text-[11px] font-bold text-muted-foreground">{card.label}</p>
+          <p className="num mt-1 text-[15px] font-extrabold">{card.value}</p>
+        </div>
+      ))}
+    </div>
   );
 }

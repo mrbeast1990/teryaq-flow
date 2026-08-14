@@ -357,80 +357,340 @@ export function getPurchaseInvoice(movementNo: string | number): Promise<Invoice
 }
 
 export function getOutOfStock(): Promise<StockInfoResponse> {
-  return apiRequest<StockInfoResponse>(API_ENDPOINTS.itemsOutOfStock());
+  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsOutOfStock())
+    .then((response) => ({ success: response.success, count: response.rows?.length || 0 }));
 }
 
 export function getLowStock(): Promise<StockInfoResponse> {
-  return apiRequest<StockInfoResponse>(API_ENDPOINTS.itemsStock());
+  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsStock(), { query: { availableOnly: true, limit: 500 } })
+    .then((response) => ({ success: response.success, count: response.rows?.length || 0 }));
 }
 
 export function getExpiryItems(): Promise<StockInfoResponse> {
-  return apiRequest<StockInfoResponse>(API_ENDPOINTS.itemsExpiry());
+  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsExpiry(), { query: { days: 90 } })
+    .then((response) => ({ success: response.success, count: response.rows?.length || 0 }));
 }
-
-// TODO: Phase 5 - Map real Items & Inventory endpoints after Codex verification
 
 export interface ItemInfo {
   id: number | string;
   name: string;
-  code?: string;
-  barcode?: string;
-  quantity?: number;
-  formattedQuantity?: string;
-  purchasePrice?: number;
-  salePrice?: number;
-  expiryDate?: string;
-  expiryStatus?: "valid" | "near" | "expired";
+  code?: string | number | null;
+  barcode?: string | null;
+  quantity?: number | null;
+  rawQuantity?: number | null;
+  packageQuantity?: number | null;
+  remainingUnits?: number | null;
+  packSize?: number | null;
+  unitName?: string | null;
+  formattedQuantity?: string | null;
+  purchasePrice?: number | null;
+  salePrice?: number | null;
+  expiryDate?: string | null;
+  expiryStatus?: "valid" | "near" | "expired" | null;
+  batch?: string | null;
+  daysRemaining?: number | null;
+  lastSaleDate?: string | null;
+  lastPurchaseDate?: string | null;
+  lastSupplier?: string | null;
 }
 
 export interface InventoryResponse {
   success: boolean;
+  profile?: string;
   rows: ItemInfo[];
+  totalCount?: number | null;
 }
 
 export interface ItemMovement {
   date: string;
   type: "purchase" | "sales" | "return-sales" | "return-purchase" | "transfer" | "adjustment" | string;
   movementNo: string | number;
+  invoiceNo?: string | number | null;
   sideName: string; // Supplier or Customer
-  inQty?: number;
-  outQty?: number;
-  formattedQuantity?: string;
-  price: number;
-  total: number;
+  inQty?: number | null;
+  outQty?: number | null;
+  quantity?: number | null;
+  rawQuantity?: number | null;
+  businessQuantity?: number | null;
+  unitName?: string | null;
+  unitOldQuantity?: number | null;
+  businessUnitPrice?: number | null;
+  formattedQuantity?: string | null;
+  price: number | null;
+  total: number | null;
+  itemCost?: number | null;
+  movementGroup?: string | null;
 }
 
 export interface ItemTrackingSummary {
-  currentStock: number;
-  formattedStock?: string;
-  totalIn: number;
-  totalOut: number;
-  salesReturns: number;
-  purchaseReturns: number;
-  lastPurchasePrice: number;
-  lastSalePrice: number;
+  currentStock: number | null;
+  formattedStock?: string | null;
+  totalIn: number | null;
+  totalOut: number | null;
+  salesReturns: number | null;
+  purchaseReturns: number | null;
+  lastPurchasePrice: number | null;
+  lastSalePrice: number | null;
+  approximateProfit?: number | null;
+  lastPurchaseDate?: string | null;
+  lastSaleDate?: string | null;
 }
 
 export interface ItemTrackingResponse {
   success: boolean;
+  profile?: string;
+  item?: ItemInfo | null;
   summary: ItemTrackingSummary;
   purchases: ItemMovement[];
   sales: ItemMovement[];
   suppliers: {
     name: string;
-    count: number;
-    totalQty: number;
-    lastPurchaseDate: string;
-    lastPurchasePrice: number;
+    count: number | null;
+    totalQty: number | null;
+    quantity?: string | null;
+    lastPurchaseDate: string | null;
+    lastPurchasePrice: number | null;
+    total?: number | null;
   }[];
   customers: {
     name: string;
-    count: number;
-    totalQty: number;
-    lastSaleDate: string;
-    lastSalePrice: number;
+    count: number | null;
+    totalQty: number | null;
+    quantity?: string | null;
+    lastSaleDate: string | null;
+    lastSalePrice: number | null;
+    total?: number | null;
   }[];
   movements: ItemMovement[];
+}
+
+type BackendItemRow = {
+  itemCode?: number | string | null;
+  itemId?: number | string | null;
+  itemName?: string | null;
+  barcode?: string | number | null;
+  currentQuantity?: number | null;
+  currentStock?: number | null;
+  quantity?: number | null;
+  rawQuantityInSmallUnits?: number | null;
+  packageQuantity?: number | null;
+  remainingUnits?: number | null;
+  packSize?: number | null;
+  unitName?: string | null;
+  formattedQuantity?: string | null;
+  purchasePrice?: number | null;
+  salePrice?: number | null;
+  expiryDate?: string | null;
+  batch?: string | null;
+  daysRemaining?: number | null;
+  lastSaleDate?: string | null;
+  lastPurchaseDate?: string | null;
+  lastSupplier?: string | null;
+};
+
+type BackendRowsResponse<T> = {
+  success: boolean;
+  profile?: string;
+  rows?: T[];
+  totalCount?: number | null;
+  bucket?: string | null;
+  days?: number | null;
+};
+
+type BackendTrackMovement = {
+  date?: string | null;
+  movementType?: string | null;
+  movementNo?: number | string | null;
+  invoiceNo?: number | string | null;
+  personName?: string | null;
+  quantity?: number | null;
+  rawQuantity?: number | null;
+  businessQuantity?: number | null;
+  unitName?: string | null;
+  unitOldQuantity?: number | null;
+  businessUnitPrice?: number | null;
+  price?: number | null;
+  total?: number | null;
+  itemCost?: number | null;
+  movementGroup?: string | null;
+};
+
+type BackendPartyRow = {
+  name?: string | null;
+  movementCount?: number | null;
+  quantity?: number | null;
+  total?: number | null;
+  lastPurchaseDate?: string | null;
+  lastSaleDate?: string | null;
+};
+
+type BackendTrackResponse = {
+  success: boolean;
+  profile?: string;
+  item?: BackendItemRow | null;
+  summary?: {
+    quantityIn?: number | null;
+    quantityOut?: number | null;
+    salesReturns?: number | null;
+    purchaseReturns?: number | null;
+    approximateProfit?: number | null;
+    lastPurchaseDate?: string | null;
+    lastSaleDate?: string | null;
+  };
+  movements?: BackendTrackMovement[];
+  suppliers?: BackendPartyRow[];
+  customers?: BackendPartyRow[];
+};
+
+function numberOrNull(value: unknown): number | null {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function compactQuantity(parts: { packages?: number | null; units?: number | null; packSize?: number | null; raw?: number | null }) {
+  const packages = numberOrNull(parts.packages) ?? 0;
+  const units = numberOrNull(parts.units) ?? 0;
+  const packSize = numberOrNull(parts.packSize) ?? 1;
+  const raw = numberOrNull(parts.raw) ?? 0;
+
+  if (packSize > 1) {
+    const textParts: string[] = [];
+    if (packages !== 0) textParts.push(`${formatPlainNumber(packages)} علبة`);
+    if (units !== 0) textParts.push(`${formatPlainNumber(units)} وحدة`);
+    return textParts.length ? textParts.join(" + ") : "0 وحدة";
+  }
+
+  return `${formatPlainNumber(raw)} وحدة`;
+}
+
+function formatPlainNumber(value: number) {
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 3 }).format(value);
+}
+
+function formatBackendQuantity(row: BackendItemRow, quantityKey: "currentQuantity" | "currentStock" | "quantity" = "currentQuantity") {
+  if (row.formattedQuantity) return row.formattedQuantity;
+  const raw = numberOrNull(row.rawQuantityInSmallUnits ?? row[quantityKey]);
+  return compactQuantity({
+    raw,
+    packSize: row.packSize,
+    packages: row.packageQuantity,
+    units: row.remainingUnits,
+  });
+}
+
+function mapItem(row: BackendItemRow, quantityKey: "currentQuantity" | "currentStock" | "quantity" = "currentQuantity"): ItemInfo {
+  const rawQuantity = numberOrNull(row.rawQuantityInSmallUnits ?? row[quantityKey]);
+  return {
+    id: row.itemId ?? row.itemCode ?? "",
+    code: row.itemCode ?? row.itemId ?? null,
+    name: row.itemName || "-",
+    barcode: row.barcode == null ? null : String(row.barcode),
+    quantity: numberOrNull(row[quantityKey] ?? row.currentQuantity ?? row.currentStock ?? row.quantity),
+    rawQuantity,
+    packageQuantity: numberOrNull(row.packageQuantity),
+    remainingUnits: numberOrNull(row.remainingUnits),
+    packSize: numberOrNull(row.packSize),
+    unitName: row.unitName ?? null,
+    formattedQuantity: formatBackendQuantity(row, quantityKey),
+    purchasePrice: numberOrNull(row.purchasePrice),
+    salePrice: numberOrNull(row.salePrice),
+    expiryDate: row.expiryDate ?? null,
+    expiryStatus: expiryStatus(row.expiryDate, row.daysRemaining),
+    batch: row.batch ?? null,
+    daysRemaining: numberOrNull(row.daysRemaining),
+    lastSaleDate: row.lastSaleDate ?? null,
+    lastPurchaseDate: row.lastPurchaseDate ?? null,
+    lastSupplier: row.lastSupplier ?? null,
+  };
+}
+
+function expiryStatus(expiryDate?: string | null, daysRemaining?: number | null): ItemInfo["expiryStatus"] {
+  if (!expiryDate && daysRemaining == null) return null;
+  const days = numberOrNull(daysRemaining);
+  if (days != null) {
+    if (days < 0) return "expired";
+    if (days <= 90) return "near";
+    return "valid";
+  }
+  const date = expiryDate ? new Date(expiryDate) : null;
+  if (!date || Number.isNaN(date.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil((date.getTime() - today.getTime()) / 86400000);
+  if (diffDays < 0) return "expired";
+  if (diffDays <= 90) return "near";
+  return "valid";
+}
+
+function formatMovementQuantity(rawQuantity: number | null, packSize?: number | null) {
+  const absoluteRaw = Math.abs(rawQuantity ?? 0);
+  const safePackSize = numberOrNull(packSize) ?? 1;
+  if (safePackSize > 1) {
+    const packages = Math.floor(absoluteRaw / safePackSize);
+    const units = absoluteRaw - packages * safePackSize;
+    return compactQuantity({ raw: absoluteRaw, packSize: safePackSize, packages, units });
+  }
+  return `${formatPlainNumber(absoluteRaw)} وحدة`;
+}
+
+function formatBusinessMovementQuantity(row: BackendTrackMovement, fallbackQuantity: number | null, item?: ItemInfo | null) {
+  const businessQuantity = numberOrNull(row.businessQuantity);
+  const unitName = row.unitName || null;
+  if (businessQuantity != null && unitName) {
+    return `${formatPlainNumber(businessQuantity)} ${unitName}`;
+  }
+  return formatMovementQuantity(fallbackQuantity, item?.packSize);
+}
+
+function mapMovement(row: BackendTrackMovement, item?: ItemInfo | null): ItemMovement {
+  const rawQuantity = numberOrNull(row.quantity);
+  const group = row.movementGroup || "other";
+  const sourceRawQuantity = numberOrNull(row.rawQuantity);
+  const businessQuantity = numberOrNull(row.businessQuantity);
+  return {
+    date: row.date || "",
+    type: row.movementType || group,
+    movementNo: row.movementNo ?? "",
+    invoiceNo: row.invoiceNo ?? null,
+    sideName: row.personName || "-",
+    quantity: rawQuantity,
+    rawQuantity: sourceRawQuantity,
+    businessQuantity,
+    unitName: row.unitName ?? null,
+    unitOldQuantity: numberOrNull(row.unitOldQuantity),
+    businessUnitPrice: numberOrNull(row.businessUnitPrice),
+    inQty: rawQuantity != null && rawQuantity > 0 ? rawQuantity : null,
+    outQty: rawQuantity != null && rawQuantity < 0 ? Math.abs(rawQuantity) : null,
+    formattedQuantity: formatBusinessMovementQuantity(row, rawQuantity, item),
+    price: numberOrNull(row.price),
+    total: numberOrNull(row.total),
+    itemCost: numberOrNull(row.itemCost),
+    movementGroup: group,
+  };
+}
+
+function mapParty(row: BackendPartyRow, item?: ItemInfo | null) {
+  const quantity = numberOrNull(row.quantity);
+  return {
+    name: row.name || "-",
+    count: numberOrNull(row.movementCount),
+    totalQty: quantity,
+    quantity: formatMovementQuantity(quantity, item?.packSize),
+    lastPurchaseDate: row.lastPurchaseDate ?? null,
+    lastSaleDate: row.lastSaleDate ?? null,
+    lastPurchasePrice: null,
+    lastSalePrice: null,
+    total: numberOrNull(row.total),
+  };
+}
+
+function mapInventoryRows(response: BackendRowsResponse<BackendItemRow>, quantityKey?: "currentQuantity" | "quantity"): InventoryResponse {
+  return {
+    success: response.success,
+    profile: response.profile,
+    rows: (response.rows || []).map((row) => mapItem(row, quantityKey || "currentQuantity")),
+    totalCount: numberOrNull(response.totalCount),
+  };
 }
 
 export function getInventory(params: {
@@ -438,12 +698,67 @@ export function getInventory(params: {
   filter?: string;
   sortBy?: string;
 }): Promise<InventoryResponse> {
-  // TODO: map real inventory endpoint
-  return apiRequest<InventoryResponse>(API_ENDPOINTS.itemsStock(), { query: params });
+  if (params.filter === "out-of-stock") {
+    return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsOutOfStock(), {
+      query: { search: params.search, sort: params.sortBy },
+    }).then((response) => mapInventoryRows(response));
+  }
+
+  if (params.filter?.startsWith("expiry-")) {
+    const expiryFilter = params.filter.replace("expiry-", "");
+    const query = /^\d+$/.test(expiryFilter)
+      ? { search: params.search, days: expiryFilter }
+      : { search: params.search, bucket: expiryFilter };
+    return apiRequest<BackendRowsResponse<BackendItemRow> & { days?: number }>(API_ENDPOINTS.itemsExpiry(), {
+      query,
+    }).then((response) => mapInventoryRows(response, "quantity"));
+  }
+
+  const query: Record<string, string | number | boolean | undefined> = {
+    search: params.search,
+    sort: params.sortBy,
+    limit: "all",
+  };
+
+  if (params.filter === "available") query.availableOnly = true;
+  if (params.filter === "near-expiry") {
+    return apiRequest<BackendRowsResponse<BackendItemRow> & { days?: number }>(API_ENDPOINTS.itemsExpiry(), {
+      query: { search: params.search, days: 90 },
+    }).then((response) => mapInventoryRows(response, "quantity"));
+  }
+
+  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsStock(), { query }).then((response) => mapInventoryRows(response));
 }
 
 export function getItemTracking(id: string | number): Promise<ItemTrackingResponse> {
-  // TODO: map real item tracking endpoint
-  return apiRequest<ItemTrackingResponse>(`/api/items/${id}/track`);
+  return apiRequest<BackendTrackResponse>(API_ENDPOINTS.itemsTrack(), { query: { itemId: id } }).then((response) => {
+    const item = response.item ? mapItem(response.item, "currentStock") : null;
+    const movements = (response.movements || []).map((row) => mapMovement(row, item));
+    const purchases = movements.filter((row) => row.movementGroup === "purchase");
+    const sales = movements.filter((row) => row.movementGroup === "sale");
+    return {
+      success: response.success,
+      profile: response.profile,
+      item,
+      summary: {
+        currentStock: item?.rawQuantity ?? null,
+        formattedStock: item?.formattedQuantity ?? null,
+        totalIn: numberOrNull(response.summary?.quantityIn),
+        totalOut: numberOrNull(response.summary?.quantityOut),
+        salesReturns: numberOrNull(response.summary?.salesReturns),
+        purchaseReturns: numberOrNull(response.summary?.purchaseReturns),
+        lastPurchasePrice: item?.purchasePrice ?? null,
+        lastSalePrice: item?.salePrice ?? null,
+        approximateProfit: numberOrNull(response.summary?.approximateProfit),
+        lastPurchaseDate: response.summary?.lastPurchaseDate ?? null,
+        lastSaleDate: response.summary?.lastSaleDate ?? null,
+      },
+      purchases,
+      sales,
+      suppliers: (response.suppliers || []).map((row) => mapParty(row, item)),
+      customers: (response.customers || []).map((row) => mapParty(row, item)),
+      movements,
+    };
+  });
 }
 
