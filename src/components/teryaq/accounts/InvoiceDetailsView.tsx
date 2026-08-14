@@ -9,8 +9,8 @@ interface Props {
   movementNo: string;
   onBack?: () => void;
   displayMovementNo?: string;
-  transactionDateTime?: string | null;
-  transactionDateTimeSource?: string | null;
+  transactionDateTime?: string | null | undefined;
+  transactionDateTimeSource?: string | null | undefined;
 }
 
 function formatNumber(value?: number | null) {
@@ -114,7 +114,7 @@ export function InvoiceDetailsView({ type, movementNo, onBack, displayMovementNo
   );
 }
 
-function InfoCell({ label, value, important = false, title }: { label: string; value: string; important?: boolean; title?: string }) {
+function InfoCell({ label, value, important = false, title }: { label: string; value: string; important?: boolean; title?: string | undefined }) {
   return (
     <div className="rounded-lg border border-border bg-background px-3 py-2" title={title}>
       <p className="text-[11px] font-bold text-muted-foreground">{label}</p>

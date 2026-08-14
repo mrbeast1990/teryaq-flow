@@ -9,7 +9,7 @@ type Props = {
   meta?: string;
   icon?: LucideIcon;
   to?: string;
-  onClick?: () => void;
+  onClick?: (() => void) | undefined;
   actionLabel?: string;
 };
 

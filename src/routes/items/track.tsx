@@ -167,7 +167,7 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString("ar-LY");
 }
 
-function ItemSummaryCards({ tracking }: { tracking?: Awaited<ReturnType<typeof getItemTracking>> }) {
+function ItemSummaryCards({ tracking }: { tracking?: Awaited<ReturnType<typeof getItemTracking>> | undefined }) {
   const summary = tracking?.summary;
   const cards = [
     { label: "المخزون الحالي", value: summary?.formattedStock || "-" },

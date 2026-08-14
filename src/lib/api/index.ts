@@ -6,7 +6,7 @@ import { apiRequest } from "./client";
 
 export interface SystemStatus {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   connected: boolean;
   status?: string;
   server?: string;
@@ -111,7 +111,7 @@ export interface RevenueFilterOption {
 
 export interface RevenueDetailsResponse {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   selectedDate?: string;
   dateFrom: string;
   dateTo: string;
@@ -130,7 +130,7 @@ export interface RevenueDetailsResponse {
 
 export interface RevenueMovementDetailsResponse {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   movement?: {
     movementNo: number | string;
     invoiceNo?: number | string | null;
@@ -182,14 +182,14 @@ export interface AccountPerson {
 
 export interface AccountsListResponse {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   customers?: AccountPerson[];
   suppliers?: AccountPerson[];
 }
 
 export interface CustomerDetailsResponse {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   customer: Omit<AccountPerson, "currentBalance" | "lastTransactionDate" | "lastTransactionAmount">;
 }
 
@@ -205,7 +205,7 @@ export interface StatementRow {
 
 export interface RowsResponse<T> {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   rows: T[];
 }
 
@@ -268,7 +268,7 @@ export interface InvoiceItemRow {
 
 export interface InvoiceDetailsResponse {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   header: InvoiceHeader;
   items: InvoiceItemRow[];
 }
@@ -425,7 +425,7 @@ export interface ItemInfo {
 
 export interface InventoryResponse {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   rows: ItemInfo[];
   totalCount?: number | null;
 }
@@ -467,7 +467,7 @@ export interface ItemTrackingSummary {
 
 export interface ItemTrackingResponse {
   success: boolean;
-  profile?: string;
+  profile?: string | null | undefined;
   item?: ItemInfo | null;
   summary: ItemTrackingSummary;
   purchases: ItemMovement[];
