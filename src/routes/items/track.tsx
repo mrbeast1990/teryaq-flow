@@ -68,21 +68,21 @@ function ItemTrackingPage() {
     };
   }
 
-  function supplierToRow(row: NonNullable<typeof tracking>["suppliers"][number]) {
+  function supplierToRow(row: { name: string; quantity?: string | null; lastPurchaseDate: string | null; total?: number | null }) {
     return {
       name: row.name,
-      quantity: row.quantity || (row.totalQty != null ? String(row.totalQty) : null),
+      quantity: row.quantity || null,
       lastDate: formatDate(row.lastPurchaseDate),
-      total: row.total,
+      total: row.total ?? null,
     };
   }
 
-  function customerToRow(row: NonNullable<typeof tracking>["customers"][number]) {
+  function customerToRow(row: { name: string; quantity?: string | null; lastSaleDate: string | null; total?: number | null }) {
     return {
       name: row.name,
-      quantity: row.quantity || (row.totalQty != null ? String(row.totalQty) : null),
+      quantity: row.quantity || null,
       lastDate: formatDate(row.lastSaleDate),
-      total: row.total,
+      total: row.total ?? null,
     };
   }
 
