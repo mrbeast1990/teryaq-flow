@@ -81,7 +81,7 @@ function OutOfStockPage() {
               <OutOfStockRow
                 key={item.id}
                 name={item.name}
-                code={item.code}
+                code={item.code == null ? null : String(item.code)}
                 barcode={item.barcode}
                 formattedQuantity={item.formattedQuantity}
                 purchasePrice={item.purchasePrice}
