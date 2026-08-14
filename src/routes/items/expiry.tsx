@@ -5,10 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { ActionButton } from "@/components/teryaq/ActionButton";
-import { FilterBar, FilterChip } from "@/components/teryaq/FilterBar";
+import { InventoryFilters } from "@/components/teryaq/items/InventoryFilters";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 import { getInventory, ApiError } from "@/lib/api";
-import { InventoryItemRow } from "@/components/teryaq/items/InventoryItemRow";
+import { ExpiryItemRow } from "@/components/teryaq/items/ExpiryItemRow";
 
 export const Route = createFileRoute("/items/expiry")({
   head: () => ({
@@ -41,12 +41,16 @@ function ExpiryPage() {
             </div>
           }
         />
-        <FilterBar>
-          <FilterChip label="منتهي" active={filter === "expired"} onClick={() => setFilter("expired")} />
-          <FilterChip label="خلال 30 يوم" active={filter === "30"} onClick={() => setFilter("30")} />
-          <FilterChip label="خلال 60 يوم" active={filter === "60"} onClick={() => setFilter("60")} />
-          <FilterChip label="خلال 90 يوم" active={filter === "90"} onClick={() => setFilter("90")} />
-        </FilterBar>
+        <InventoryFilters
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { id: "expired", label: "منتهي" },
+            { id: "30", label: "خلال 30 يوم" },
+            { id: "60", label: "خلال 60 يوم" },
+            { id: "90", label: "خلال 90 يوم" },
+          ]}
+        />
       </div>
 
       <div className="mt-2 min-h-[50vh]">
@@ -62,7 +66,7 @@ function ExpiryPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {items.map((item) => (
-              <InventoryItemRow
+              <ExpiryItemRow
                 key={item.id}
                 name={item.name}
                 code={item.code}

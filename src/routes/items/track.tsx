@@ -8,8 +8,14 @@ import { SearchInput } from "@/components/teryaq/SearchInput";
 import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 import { getItemTracking, getInventory, ApiError, type ItemInfo } from "@/lib/api";
-import { StatusBadge } from "@/components/teryaq/StatusBadge";
 import { ActionButton } from "@/components/teryaq/ActionButton";
+import { ItemSearchResults } from "@/components/teryaq/items/ItemSearchResults";
+import { SelectedItemHeader } from "@/components/teryaq/items/SelectedItemHeader";
+import { PurchaseMovementList } from "@/components/teryaq/items/PurchaseMovementList";
+import { SalesMovementList } from "@/components/teryaq/items/SalesMovementList";
+import { ItemMovementList } from "@/components/teryaq/items/ItemMovementList";
+import { ItemSupplierList } from "@/components/teryaq/items/ItemSupplierList";
+import { ItemCustomerList } from "@/components/teryaq/items/ItemCustomerList";
 
 export const Route = createFileRoute("/items/track")({
   head: () => ({
@@ -17,6 +23,15 @@ export const Route = createFileRoute("/items/track")({
   }),
   component: ItemTrackingPage,
 });
+
+const TABS = [
+  { id: "summary", label: "ملخص" },
+  { id: "purchases", label: "مشتريات" },
+  { id: "sales", label: "مبيعات" },
+  { id: "suppliers", label: "موردون" },
+  { id: "customers", label: "عملاء" },
+  { id: "movements", label: "كل الحركات" },
+];
 
 function ItemTrackingPage() {
   const [search, setSearch] = useState("");
@@ -43,51 +58,35 @@ function ItemTrackingPage() {
             title="تتبع صنف"
             showBack
             actions={
-              <ActionButton
-                label="تغيير الصنف"
-                variant="outline"
-                onClick={() => setSelectedItem(null)}
-              />
+              <ActionButton label="تغيير الصنف" variant="outline" onClick={() => setSelectedItem(null)} />
             }
           />
-          <div className="card-surface mb-3 p-3">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0">
-                <p className="text-[15px] font-extrabold text-primary">{selectedItem.name}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {selectedItem.code ? `كود: ${selectedItem.code}` : ""}
-                  {selectedItem.barcode ? ` · باركود: ${selectedItem.barcode}` : ""}
-                </p>
-              </div>
-              <div className="shrink-0 text-left">
-                <p className="num text-[15px] font-extrabold">{selectedItem.formattedQuantity || "0"}</p>
-                <p className="text-[11px] text-muted-foreground">الرصيد الحالي</p>
-              </div>
+          <SelectedItemHeader item={selectedItem} />
+          <div className="-mx-4 overflow-x-auto px-4">
+            <div className="min-w-[420px]">
+              <SegmentedTabs value={activeTab} onChange={setActiveTab} options={TABS} />
             </div>
           </div>
-          <SegmentedTabs
-            value={activeTab}
-            onChange={setActiveTab}
-            options={[
-              { id: "summary", label: "ملخص" },
-              { id: "purchases", label: "مشتريات" },
-              { id: "sales", label: "مبيعات" },
-              { id: "movements", label: "حركات" },
-            ]}
-          />
         </div>
 
         <div className="mt-2 min-h-[40vh]">
           {trackingQuery.isLoading ? (
             <LoadingState rows={4} />
           ) : trackingQuery.isError ? (
-            <ErrorState description={trackingQuery.error instanceof ApiError ? trackingQuery.error.message : "تعذر تحميل بيانات التتبع"} />
+            <ErrorState
+              description={trackingQuery.error instanceof ApiError ? trackingQuery.error.message : "تعذر تحميل بيانات التتبع"}
+              onRetry={() => trackingQuery.refetch()}
+            />
           ) : (
             <div className="space-y-3">
-              {activeTab === "summary" && <EmptyState title="ملخص حركة الصنف" description="سيتم عرض إحصائيات الدخول والخروج والربحية هنا." />}
-              {activeTab === "purchases" && <EmptyState title="لا توجد عمليات شراء" description="لم يتم العثور على فواتير شراء لهذا الصنف." />}
-              {activeTab === "sales" && <EmptyState title="لا توجد عمليات بيع" description="لم يتم العثور على فواتير بيع لهذا الصنف." />}
-              {activeTab === "movements" && <EmptyState title="لا توجد حركات" description="لا يوجد سجل حركات لهذا الصنف." />}
+              {activeTab === "summary" && (
+                <EmptyState title="ملخص حركة الصنف" description="سيتم عرض إحصائيات الدخول والخروج والربحية هنا." />
+              )}
+              {activeTab === "purchases" && <PurchaseMovementList />}
+              {activeTab === "sales" && <SalesMovementList />}
+              {activeTab === "suppliers" && <ItemSupplierList />}
+              {activeTab === "customers" && <ItemCustomerList />}
+              {activeTab === "movements" && <ItemMovementList />}
             </div>
           )}
         </div>
@@ -114,28 +113,7 @@ function ItemTrackingPage() {
         ) : !searchResults.data?.rows.length ? (
           <EmptyState title="لا توجد نتائج" description="لم يتم العثور على صنف يطابق بحثك." />
         ) : (
-          <div className="flex flex-col gap-px overflow-hidden rounded-lg border border-border bg-border/50">
-            {searchResults.data.rows.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setSelectedItem(item)}
-                className="card-surface flex w-full items-center justify-between p-3 text-right transition-colors hover:bg-secondary/50"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-[13px] font-extrabold">{item.name}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {item.code ? `كود: ${item.code}` : ""}
-                    {item.barcode ? ` · باركود: ${item.barcode}` : ""}
-                  </p>
-                </div>
-                <div className="shrink-0 text-left">
-                  <p className="num text-[13px] font-bold text-primary">{item.formattedQuantity || "0"}</p>
-                  <p className="text-[10px] text-muted-foreground">الرصيد</p>
-                </div>
-              </button>
-            ))}
-          </div>
+          <ItemSearchResults items={searchResults.data.rows} onSelect={(item) => setSelectedItem(item)} />
         )}
       </div>
     </AppShell>
