@@ -8,6 +8,9 @@ interface Props {
   type: "sales" | "purchase";
   movementNo: string;
   onBack?: () => void;
+  displayMovementNo?: string;
+  transactionDateTime?: string | null;
+  transactionDateTimeSource?: string | null;
 }
 
 function formatNumber(value?: number | null) {
@@ -21,7 +24,26 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString("ar-LY");
 }
 
-export function InvoiceDetailsView({ type, movementNo, onBack }: Props) {
+function formatDateTime(value?: string | null) {
+  if (!value) return "-";
+  const sqlDateTime = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
+  if (sqlDateTime) {
+    const [, year, month, day, hour, minute] = sqlDateTime;
+    const date = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+    return `${date.toLocaleDateString("ar-LY")} ${date.toLocaleTimeString("ar-LY", {
+      hour: "numeric",
+      minute: "2-digit",
+    })}`;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return `${date.toLocaleDateString("ar-LY")} ${date.toLocaleTimeString("ar-LY", {
+    hour: "numeric",
+    minute: "2-digit",
+  })}`;
+}
+
+export function InvoiceDetailsView({ type, movementNo, onBack, displayMovementNo, transactionDateTime, transactionDateTimeSource }: Props) {
   const query = useQuery({
     queryKey: ["accounts", "invoice", type, movementNo],
     queryFn: () => (type === "sales" ? getSalesInvoice(movementNo) : getPurchaseInvoice(movementNo)),
@@ -39,7 +61,7 @@ export function InvoiceDetailsView({ type, movementNo, onBack }: Props) {
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div>
           <h3 className="text-sm font-bold">{type === "sales" ? "فاتورة بيع" : "فاتورة شراء"}</h3>
-          <p className="text-[11px] text-muted-foreground">رقم الحركة: {movementNo}</p>
+          <p className="text-[11px] text-muted-foreground">رقم الحركة: {displayMovementNo || movementNo}</p>
         </div>
         <div className="flex gap-1">
           {onBack ? <ActionButton label="رجوع" icon={ArrowRight} onClick={onBack} variant="outline" /> : null}
@@ -50,6 +72,9 @@ export function InvoiceDetailsView({ type, movementNo, onBack }: Props) {
       <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/10 p-3 text-[12px]">
         <InfoCell label="رقم الفاتورة" value={String(header.invoiceNo || header.movementNo || "-")} />
         <InfoCell label="التاريخ" value={formatDate(header.date)} />
+        {transactionDateTime ? (
+          <InfoCell label="وقت الحركة" value={formatDateTime(transactionDateTime)} title={transactionDateTimeSource || undefined} />
+        ) : null}
         <InfoCell label={type === "sales" ? "الزبون" : "المورد"} value={header.personName || "-"} />
         <InfoCell label="نوع الحساب" value={header.accountLabel || "-"} />
         <InfoCell label="الإجمالي" value={formatNumber(header.total)} important />
@@ -89,9 +114,9 @@ export function InvoiceDetailsView({ type, movementNo, onBack }: Props) {
   );
 }
 
-function InfoCell({ label, value, important = false }: { label: string; value: string; important?: boolean }) {
+function InfoCell({ label, value, important = false, title }: { label: string; value: string; important?: boolean; title?: string }) {
   return (
-    <div className="rounded-lg border border-border bg-background px-3 py-2">
+    <div className="rounded-lg border border-border bg-background px-3 py-2" title={title}>
       <p className="text-[11px] font-bold text-muted-foreground">{label}</p>
       <p className={`mt-0.5 truncate text-[12px] ${important ? "num font-extrabold" : "font-bold"}`}>{value}</p>
     </div>

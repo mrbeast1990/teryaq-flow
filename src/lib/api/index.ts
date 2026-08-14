@@ -128,6 +128,31 @@ export interface RevenueDetailsResponse {
   rows: RevenueMovementRow[];
 }
 
+export interface RevenueMovementDetailsResponse {
+  success: boolean;
+  profile?: string;
+  movement?: {
+    movementNo: number | string;
+    invoiceNo?: number | string | null;
+    movementDate?: string | null;
+    movementCreatedAt?: string | null;
+    movementHasRealTime?: number | boolean | null;
+    movementDateTimeSource?: string | null;
+    invoiceDate?: string | null;
+    invoiceCreatedAt?: string | null;
+    invoiceHasRealTime?: number | boolean | null;
+    invoiceDateTimeSource?: string | null;
+    amount?: number | null;
+    paymentMethod?: string | null;
+    accountNo?: number | string | null;
+    accountName?: string | null;
+    customerName?: string | null;
+    sellerName?: string | null;
+  } | null;
+  invoiceLines?: unknown[];
+  linkedPayments?: unknown[];
+}
+
 export interface TradingProfitResponse {
   success: boolean;
   profit: number;
@@ -281,6 +306,10 @@ export function getRevenueDetails(params: {
   dateTo: string;
 }): Promise<RevenueDetailsResponse> {
   return apiRequest<RevenueDetailsResponse>(API_ENDPOINTS.revenueDetails(), { query: params });
+}
+
+export function getRevenueMovementDetails(movementNo: string | number): Promise<RevenueMovementDetailsResponse> {
+  return apiRequest<RevenueMovementDetailsResponse>(API_ENDPOINTS.revenueMovementDetails(movementNo));
 }
 
 export function getTradingProfit(params: {

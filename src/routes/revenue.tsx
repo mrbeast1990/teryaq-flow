@@ -12,7 +12,8 @@ import { KPICard } from "@/components/teryaq/KPICard";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { StatusBadge } from "@/components/teryaq/StatusBadge";
 import { ErrorState, LoadingState } from "@/components/teryaq/States";
-import { API_BASE_URL, ApiError, getRevenueDetails, type RevenueMovementRow } from "@/lib/api";
+import { InvoiceDetailsView } from "@/components/teryaq/accounts/InvoiceDetailsView";
+import { API_BASE_URL, ApiError, getRevenueDetails, getRevenueMovementDetails, type RevenueMovementRow } from "@/lib/api";
 
 export const Route = createFileRoute("/revenue")({
   component: RevenuePage,
@@ -48,6 +49,17 @@ function formatShortDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("ar-LY");
+}
+
+function isSalesInvoiceMovement(movement: RevenueMovementRow) {
+  const source = movement.revenueSource || "";
+  const type = movement.movementType || "";
+  const invoiceNo = movement.invoiceNo == null ? "" : String(movement.invoiceNo);
+  if (!invoiceNo || invoiceNo === "0") return false;
+  if (Number(movement.amount) <= 0) return false;
+  if (source.includes("مردود") || type.includes("مردود")) return false;
+  if (source.includes("سداد") || type.includes("سداد")) return false;
+  return true;
 }
 
 function buildPeriodBreakdowns(rows: RevenueMovementRow[], sellerTotals: Array<{ sellerName: string; total: number; movementCount: number }>) {
@@ -90,6 +102,7 @@ function RevenuePage() {
   const [dateTo, setDateTo] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedPeriodName, setSelectedPeriodName] = useState<string | null>(null);
   const [selectedSourceName, setSelectedSourceName] = useState<string | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<{ invoiceNo: string; movementNo: string } | null>(null);
 
   const { data, error, isLoading, isError, refetch } = useQuery({
     queryKey: ["revenue", { dateFrom, dateTo }],
@@ -111,10 +124,33 @@ function RevenuePage() {
   const selectedPeriod = periodBreakdowns.find((period) => period.periodName === selectedPeriodName) ?? null;
   const selectedSource = selectedPeriod?.sources.find((source) => source.name === selectedSourceName) ?? null;
   const mismatchedPeriods = periodBreakdowns.filter((period) => Math.abs(period.difference) > 0.01);
+  const selectedMovementDetails = useQuery({
+    queryKey: ["revenue", "movement", selectedInvoice?.movementNo],
+    queryFn: () => getRevenueMovementDetails(selectedInvoice?.movementNo || ""),
+    enabled: Boolean(selectedInvoice?.movementNo),
+  });
 
   const handleLogin = () => {
     window.location.href = API_BASE_URL;
   };
+
+  if (selectedInvoice) {
+    const movement = selectedMovementDetails.data?.movement;
+    const transactionDateTime = movement?.movementHasRealTime ? movement.movementCreatedAt : null;
+    return (
+      <AppShell>
+        <PageHeader title="تفاصيل الفاتورة" subtitle="بيانات الفاتورة الحقيقية من Teryaq SQL Connector" />
+        <InvoiceDetailsView
+          type="sales"
+          movementNo={selectedInvoice.invoiceNo}
+          displayMovementNo={selectedInvoice.movementNo}
+          transactionDateTime={transactionDateTime}
+          transactionDateTimeSource={movement?.movementDateTimeSource || undefined}
+          onBack={() => setSelectedInvoice(null)}
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -278,16 +314,25 @@ function RevenuePage() {
                     <StatusBadge label={`${selectedSource.movements.length.toLocaleString("ar-LY")} حركة`} tone="neutral" />
                   </div>
                   <div className="space-y-2">
-                    {selectedSource.movements.map((movement) => (
-                      <CompactListCard
-                        key={`${movement.movementNo}-${movement.invoiceNo}-${movement.amount}`}
-                        title={`${movement.movementType} | ${formatShortDate(movement.movementDate)}`}
-                        subtitle={`العميل: ${movement.customerName || "غير محدد"} | فاتورة #${movement.invoiceNo}`}
-                        value={formatMoney(movement.amount)}
-                        meta={movement.paymentMethod}
-                        icon={Receipt}
-                      />
-                    ))}
+                    {selectedSource.movements.map((movement) => {
+                      const canOpenInvoice = isSalesInvoiceMovement(movement);
+                      return (
+                        <CompactListCard
+                          key={`${movement.movementNo}-${movement.invoiceNo}-${movement.amount}`}
+                          title={`${movement.movementType} | ${formatShortDate(movement.movementDate)}`}
+                          subtitle={`العميل: ${movement.customerName || "غير محدد"} | حركة #${movement.movementNo} | فاتورة #${movement.invoiceNo}`}
+                          value={formatMoney(movement.amount)}
+                          meta={movement.paymentMethod}
+                          actionLabel={canOpenInvoice ? "عرض الفاتورة" : undefined}
+                          onClick={
+                            canOpenInvoice
+                              ? () => setSelectedInvoice({ invoiceNo: String(movement.invoiceNo), movementNo: String(movement.movementNo) })
+                              : undefined
+                          }
+                          icon={Receipt}
+                        />
+                      );
+                    })}
                   </div>
                 </section>
               ) : null}

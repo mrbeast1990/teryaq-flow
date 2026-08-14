@@ -45,6 +45,7 @@ export const API_ENDPOINTS = {
   saveConnection: () => "/api/save-connection",
   useConnection: (id: string) => `/api/connections/${encodeURIComponent(id)}/use`,
   revenueDetails: () => "/api/revenue-details",
+  revenueMovementDetails: (movementNo: string | number) => `/api/revenue-movement/${movementNo}`,
   tradingProfit: () => "/api/trading-profit",
   customers: () => "/api/customers",
   suppliers: () => "/api/suppliers",

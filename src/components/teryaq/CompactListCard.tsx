@@ -9,9 +9,11 @@ type Props = {
   meta?: string;
   icon?: LucideIcon;
   to?: string;
+  onClick?: () => void;
+  actionLabel?: string;
 };
 
-export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to }: Props) {
+export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to, onClick, actionLabel }: Props) {
   const content = (
     <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5">
       {Icon ? (
@@ -30,7 +32,8 @@ export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to }
       <div className="shrink-0 text-left">
         {value ? <p className="num text-[13px] font-extrabold">{value}</p> : null}
         {meta ? <p className="text-[11px] text-muted-foreground">{meta}</p> : null}
-        {!value && !meta && to ? <ChevronLeft className="size-4 text-muted-foreground" /> : null}
+        {actionLabel ? <p className="text-[11px] font-bold text-primary">{actionLabel}</p> : null}
+        {!value && !meta && (to || onClick) ? <ChevronLeft className="size-4 text-muted-foreground" /> : null}
       </div>
     </div>
   );
@@ -43,6 +46,17 @@ export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to }
       >
         {content}
       </Link>
+    );
+  }
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="card-surface block w-full cursor-pointer touch-manipulation text-right transition-colors hover:bg-secondary/50 active:scale-[0.99] active:bg-secondary/70"
+      >
+        {content}
+      </button>
     );
   }
   return <div className="card-surface">{content}</div>;
