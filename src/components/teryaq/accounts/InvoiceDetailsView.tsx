@@ -253,8 +253,8 @@ function InvoiceItemRow({ item }: { item: ApiInvoiceItemRow }) {
              <span>{item.unitName}</span>
           </div>
           <span className="text-[9px] opacity-30">×</span>
-          <div className="num">
-            {formatNumber(item.price)}
+          <div className="text-muted-foreground/60">
+            {formatCurrency(item.price)}
           </div>
         </div>
       </div>
