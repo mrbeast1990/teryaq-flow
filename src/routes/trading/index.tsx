@@ -15,28 +15,19 @@ export const Route = createFileRoute("/trading/")({
   component: TradingDashboard,
 });
 
-function formatCurrency(value?: number | null) {
-  const formatted = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  }).format(Number(value || 0));
-
-  return (
-    <span className="num inline-block whitespace-nowrap" dir="ltr">
-      {formatted} د.ل
-    </span>
-  );
-}
-
 function TradingDashboard() {
   const [dateRange, setDateRange] = useState("today");
   
+  // Get date strings for query
+  const dateFromStr = new Date().toISOString().split('T')[0] ?? "";
+  const dateToStr = new Date().toISOString().split('T')[0] ?? "";
+
   // Real API wiring (placeholder query for Phase 6)
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["trading", "summary", dateRange],
     queryFn: () => getTradingProfit({ 
-      dateFrom: new Date().toISOString().split('T')[0], 
-      dateTo: new Date().toISOString().split('T')[0] 
+      dateFrom: dateFromStr, 
+      dateTo: dateToStr 
     }),
     enabled: false, // ZERO DEMO DATA: Do not fetch yet, or wait for Codex
   });

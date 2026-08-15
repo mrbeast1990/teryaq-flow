@@ -8,29 +8,25 @@ export function TradingNav() {
       title: "المتاجرة والأرباح",
       subtitle: "نظرة عامة على الأداء المالي",
       icon: TrendingUp,
-      path: "/trading",
-      color: "text-info",
+      to: "/trading",
     },
     {
       title: "أرباح الأيام",
       subtitle: "النتائج المالية حسب التاريخ",
       icon: Calendar,
-      path: "/trading/daily",
-      color: "text-primary",
+      to: "/trading/daily",
     },
     {
       title: "أرباح الأصناف",
       subtitle: "تحليل ربحية كل صنف على حدة",
       icon: Package,
-      path: "/trading/items",
-      color: "text-success",
+      to: "/trading/items",
     },
     {
       title: "ملخص الأرباح",
       subtitle: "تحليل هوامش الربح والتكاليف",
       icon: BarChart3,
-      path: "/trading/profit",
-      color: "text-warning",
+      to: "/trading/profit",
     },
   ];
 
@@ -40,12 +36,11 @@ export function TradingNav() {
       <div className="grid gap-2 sm:grid-cols-2">
         {items.map((item) => (
           <CompactListCard
-            key={item.path}
+            key={item.to}
             title={item.title}
             subtitle={item.subtitle}
             icon={item.icon}
-            path={item.path}
-            iconColor={item.color}
+            to={item.to}
           />
         ))}
       </div>
