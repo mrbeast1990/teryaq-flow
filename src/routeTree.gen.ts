@@ -11,10 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountsRouteImport } from './routes/accounts'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as TradingRouteImport } from './routes/trading'
+import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
+import { Route as AnalyticsAlertsRouteImport } from './routes/analytics/alerts'
+import { Route as AnalyticsCapitalRouteImport } from './routes/analytics/capital'
+import { Route as AnalyticsCompareRouteImport } from './routes/analytics/compare'
+import { Route as AnalyticsItemProfitRouteImport } from './routes/analytics/item-profit'
+import { Route as AnalyticsManagerRouteImport } from './routes/analytics/manager'
+import { Route as AnalyticsPricesRouteImport } from './routes/analytics/prices'
+import { Route as AnalyticsSearchRouteImport } from './routes/analytics/search'
 import { Route as ItemsExpiryRouteImport } from './routes/items/expiry'
 import { Route as ItemsOutOfStockRouteImport } from './routes/items/out-of-stock'
 import { Route as ItemsStockRouteImport } from './routes/items/stock'
@@ -39,6 +48,11 @@ const AccountsRoute = AccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemsRoute = ItemsRouteImport.update({
   id: '/items',
   path: '/items',
@@ -58,6 +72,46 @@ const TradingRoute = TradingRouteImport.update({
   id: '/trading',
   path: '/trading',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsIndexRoute = AnalyticsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AnalyticsRoute,
+} as any)
+const AnalyticsAlertsRoute = AnalyticsAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => AnalyticsRoute,
+} as any)
+const AnalyticsCapitalRoute = AnalyticsCapitalRouteImport.update({
+  id: '/capital',
+  path: '/capital',
+  getParentRoute: () => AnalyticsRoute,
+} as any)
+const AnalyticsCompareRoute = AnalyticsCompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => AnalyticsRoute,
+} as any)
+const AnalyticsItemProfitRoute = AnalyticsItemProfitRouteImport.update({
+  id: '/item-profit',
+  path: '/item-profit',
+  getParentRoute: () => AnalyticsRoute,
+} as any)
+const AnalyticsManagerRoute = AnalyticsManagerRouteImport.update({
+  id: '/manager',
+  path: '/manager',
+  getParentRoute: () => AnalyticsRoute,
+} as any)
+const AnalyticsPricesRoute = AnalyticsPricesRouteImport.update({
+  id: '/prices',
+  path: '/prices',
+  getParentRoute: () => AnalyticsRoute,
+} as any)
+const AnalyticsSearchRoute = AnalyticsSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AnalyticsRoute,
 } as any)
 const ItemsExpiryRoute = ItemsExpiryRouteImport.update({
   id: '/expiry',
@@ -128,10 +182,18 @@ const AccountsSuppliersIdRoute = AccountsSuppliersIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
+  '/analytics': typeof AnalyticsRouteWithChildren
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
+  '/analytics/alerts': typeof AnalyticsAlertsRoute
+  '/analytics/capital': typeof AnalyticsCapitalRoute
+  '/analytics/compare': typeof AnalyticsCompareRoute
+  '/analytics/item-profit': typeof AnalyticsItemProfitRoute
+  '/analytics/manager': typeof AnalyticsManagerRoute
+  '/analytics/prices': typeof AnalyticsPricesRoute
+  '/analytics/search': typeof AnalyticsSearchRoute
   '/items/expiry': typeof ItemsExpiryRoute
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
@@ -140,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/trading/daily': typeof TradingDailyRoute
   '/trading/items': typeof TradingItemsRoute
   '/trading/profit': typeof TradingProfitRoute
+  '/analytics/': typeof AnalyticsIndexRoute
   '/trading/': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
@@ -152,6 +215,13 @@ export interface FileRoutesByTo {
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/analytics/alerts': typeof AnalyticsAlertsRoute
+  '/analytics/capital': typeof AnalyticsCapitalRoute
+  '/analytics/compare': typeof AnalyticsCompareRoute
+  '/analytics/item-profit': typeof AnalyticsItemProfitRoute
+  '/analytics/manager': typeof AnalyticsManagerRoute
+  '/analytics/prices': typeof AnalyticsPricesRoute
+  '/analytics/search': typeof AnalyticsSearchRoute
   '/items/expiry': typeof ItemsExpiryRoute
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
@@ -160,6 +230,7 @@ export interface FileRoutesByTo {
   '/trading/daily': typeof TradingDailyRoute
   '/trading/items': typeof TradingItemsRoute
   '/trading/profit': typeof TradingProfitRoute
+  '/analytics': typeof AnalyticsIndexRoute
   '/trading': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
@@ -170,10 +241,18 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
+  '/analytics': typeof AnalyticsRouteWithChildren
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
+  '/analytics/alerts': typeof AnalyticsAlertsRoute
+  '/analytics/capital': typeof AnalyticsCapitalRoute
+  '/analytics/compare': typeof AnalyticsCompareRoute
+  '/analytics/item-profit': typeof AnalyticsItemProfitRoute
+  '/analytics/manager': typeof AnalyticsManagerRoute
+  '/analytics/prices': typeof AnalyticsPricesRoute
+  '/analytics/search': typeof AnalyticsSearchRoute
   '/items/expiry': typeof ItemsExpiryRoute
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
@@ -182,6 +261,7 @@ export interface FileRoutesById {
   '/trading/daily': typeof TradingDailyRoute
   '/trading/items': typeof TradingItemsRoute
   '/trading/profit': typeof TradingProfitRoute
+  '/analytics/': typeof AnalyticsIndexRoute
   '/trading/': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
@@ -193,10 +273,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accounts'
+    | '/analytics'
     | '/items'
     | '/more'
     | '/revenue'
     | '/trading'
+    | '/analytics/alerts'
+    | '/analytics/capital'
+    | '/analytics/compare'
+    | '/analytics/item-profit'
+    | '/analytics/manager'
+    | '/analytics/prices'
+    | '/analytics/search'
     | '/items/expiry'
     | '/items/out-of-stock'
     | '/items/stock'
@@ -205,6 +293,7 @@ export interface FileRouteTypes {
     | '/trading/daily'
     | '/trading/items'
     | '/trading/profit'
+    | '/analytics/'
     | '/trading/'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
@@ -217,6 +306,13 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/revenue'
+    | '/analytics/alerts'
+    | '/analytics/capital'
+    | '/analytics/compare'
+    | '/analytics/item-profit'
+    | '/analytics/manager'
+    | '/analytics/prices'
+    | '/analytics/search'
     | '/items/expiry'
     | '/items/out-of-stock'
     | '/items/stock'
@@ -225,6 +321,7 @@ export interface FileRouteTypes {
     | '/trading/daily'
     | '/trading/items'
     | '/trading/profit'
+    | '/analytics'
     | '/trading'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
@@ -234,10 +331,18 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/accounts'
+    | '/analytics'
     | '/items'
     | '/more'
     | '/revenue'
     | '/trading'
+    | '/analytics/alerts'
+    | '/analytics/capital'
+    | '/analytics/compare'
+    | '/analytics/item-profit'
+    | '/analytics/manager'
+    | '/analytics/prices'
+    | '/analytics/search'
     | '/items/expiry'
     | '/items/out-of-stock'
     | '/items/stock'
@@ -246,6 +351,7 @@ export interface FileRouteTypes {
     | '/trading/daily'
     | '/trading/items'
     | '/trading/profit'
+    | '/analytics/'
     | '/trading/'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
@@ -256,6 +362,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountsRoute: typeof AccountsRouteWithChildren
+  AnalyticsRoute: typeof AnalyticsRouteWithChildren
   ItemsRoute: typeof ItemsRouteWithChildren
   MoreRoute: typeof MoreRoute
   RevenueRoute: typeof RevenueRoute
@@ -277,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/accounts'
       fullPath: '/accounts'
       preLoaderRoute: typeof AccountsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/items': {
@@ -306,6 +420,62 @@ declare module '@tanstack/react-router' {
       fullPath: '/trading'
       preLoaderRoute: typeof TradingRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/analytics/': {
+      id: '/analytics/'
+      path: '/'
+      fullPath: '/analytics/'
+      preLoaderRoute: typeof AnalyticsIndexRouteImport
+      parentRoute: typeof AnalyticsRoute
+    }
+    '/analytics/alerts': {
+      id: '/analytics/alerts'
+      path: '/alerts'
+      fullPath: '/analytics/alerts'
+      preLoaderRoute: typeof AnalyticsAlertsRouteImport
+      parentRoute: typeof AnalyticsRoute
+    }
+    '/analytics/capital': {
+      id: '/analytics/capital'
+      path: '/capital'
+      fullPath: '/analytics/capital'
+      preLoaderRoute: typeof AnalyticsCapitalRouteImport
+      parentRoute: typeof AnalyticsRoute
+    }
+    '/analytics/compare': {
+      id: '/analytics/compare'
+      path: '/compare'
+      fullPath: '/analytics/compare'
+      preLoaderRoute: typeof AnalyticsCompareRouteImport
+      parentRoute: typeof AnalyticsRoute
+    }
+    '/analytics/item-profit': {
+      id: '/analytics/item-profit'
+      path: '/item-profit'
+      fullPath: '/analytics/item-profit'
+      preLoaderRoute: typeof AnalyticsItemProfitRouteImport
+      parentRoute: typeof AnalyticsRoute
+    }
+    '/analytics/manager': {
+      id: '/analytics/manager'
+      path: '/manager'
+      fullPath: '/analytics/manager'
+      preLoaderRoute: typeof AnalyticsManagerRouteImport
+      parentRoute: typeof AnalyticsRoute
+    }
+    '/analytics/prices': {
+      id: '/analytics/prices'
+      path: '/prices'
+      fullPath: '/analytics/prices'
+      preLoaderRoute: typeof AnalyticsPricesRouteImport
+      parentRoute: typeof AnalyticsRoute
+    }
+    '/analytics/search': {
+      id: '/analytics/search'
+      path: '/search'
+      fullPath: '/analytics/search'
+      preLoaderRoute: typeof AnalyticsSearchRouteImport
+      parentRoute: typeof AnalyticsRoute
     }
     '/items/expiry': {
       id: '/items/expiry'
@@ -419,6 +589,32 @@ const AccountsRouteWithChildren = AccountsRoute._addFileChildren(
   AccountsRouteChildren,
 )
 
+interface AnalyticsRouteChildren {
+  AnalyticsAlertsRoute: typeof AnalyticsAlertsRoute
+  AnalyticsCapitalRoute: typeof AnalyticsCapitalRoute
+  AnalyticsCompareRoute: typeof AnalyticsCompareRoute
+  AnalyticsItemProfitRoute: typeof AnalyticsItemProfitRoute
+  AnalyticsManagerRoute: typeof AnalyticsManagerRoute
+  AnalyticsPricesRoute: typeof AnalyticsPricesRoute
+  AnalyticsSearchRoute: typeof AnalyticsSearchRoute
+  AnalyticsIndexRoute: typeof AnalyticsIndexRoute
+}
+
+const AnalyticsRouteChildren: AnalyticsRouteChildren = {
+  AnalyticsAlertsRoute: AnalyticsAlertsRoute,
+  AnalyticsCapitalRoute: AnalyticsCapitalRoute,
+  AnalyticsCompareRoute: AnalyticsCompareRoute,
+  AnalyticsItemProfitRoute: AnalyticsItemProfitRoute,
+  AnalyticsManagerRoute: AnalyticsManagerRoute,
+  AnalyticsPricesRoute: AnalyticsPricesRoute,
+  AnalyticsSearchRoute: AnalyticsSearchRoute,
+  AnalyticsIndexRoute: AnalyticsIndexRoute,
+}
+
+const AnalyticsRouteWithChildren = AnalyticsRoute._addFileChildren(
+  AnalyticsRouteChildren,
+)
+
 interface ItemsRouteChildren {
   ItemsExpiryRoute: typeof ItemsExpiryRoute
   ItemsOutOfStockRoute: typeof ItemsOutOfStockRoute
@@ -455,6 +651,7 @@ const TradingRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountsRoute: AccountsRouteWithChildren,
+  AnalyticsRoute: AnalyticsRouteWithChildren,
   ItemsRoute: ItemsRouteWithChildren,
   MoreRoute: MoreRoute,
   RevenueRoute: RevenueRoute,

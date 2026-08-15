@@ -145,7 +145,7 @@ function TradingDashboard() {
                 value="غير متوفر"
                 hint="لا يرجعه Backend حاليًا"
                 icon={Percent}
-                tone="neutral"
+                tone="default"
               />
             </KPIGrid>
 
