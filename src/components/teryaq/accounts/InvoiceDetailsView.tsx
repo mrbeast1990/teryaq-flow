@@ -18,12 +18,9 @@ function formatCurrency(value?: number | null) {
     minimumFractionDigits: 3,
     maximumFractionDigits: 3,
   }).format(Number(value || 0));
-  
+
   return (
-    <span className="inline-flex flex-row-reverse items-baseline gap-1" dir="ltr">
-      <span>د.ل</span>
-      <span className="num">{formatted}</span>
-    </span>
+    <span className="num inline-block whitespace-nowrap" dir="ltr">{formatted} د.ل</span>
   );
 }
 
