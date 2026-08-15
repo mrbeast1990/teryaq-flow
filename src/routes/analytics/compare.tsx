@@ -24,7 +24,7 @@ function ComparePeriodsPage() {
     <AppShell>
       <PageHeader
         title="مقارنة الفترات"
-        subtitle="تحليل الفروقات المالية بين فترتين"
+        subtitle="مقارنة المبيعات والإيراد بين فترتين"
       />
 
       <div className="space-y-6 pb-8">

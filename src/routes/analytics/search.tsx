@@ -22,7 +22,7 @@ function GlobalSearchPage() {
     <AppShell>
       <PageHeader
         title="البحث الشامل"
-        subtitle="البحث في الأصناف، الزبائن، الموردين والفواتير"
+        subtitle="بحث متقدم في النظام (أصناف، زبائن، موردين، فواتير)"
       />
 
       <div className="sticky top-0 z-10 -mx-4 mb-6 bg-slate-50/80 px-4 py-3 backdrop-blur-sm dark:bg-slate-900/80">
