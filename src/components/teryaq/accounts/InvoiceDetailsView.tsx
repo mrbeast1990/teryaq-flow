@@ -13,8 +13,22 @@ interface Props {
   transactionDateTimeSource?: string | null | undefined;
 }
 
+function formatCurrency(value?: number | null) {
+  const formatted = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  }).format(Number(value || 0));
+  
+  return (
+    <span className="inline-flex flex-row-reverse items-baseline gap-1" dir="ltr">
+      <span>د.ل</span>
+      <span className="num">{formatted}</span>
+    </span>
+  );
+}
+
 function formatNumber(value?: number | null) {
-  return new Intl.NumberFormat("ar-LY", { maximumFractionDigits: 2 }).format(Number(value || 0));
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 3 }).format(Number(value || 0));
 }
 
 function formatDate(value?: string | null) {
