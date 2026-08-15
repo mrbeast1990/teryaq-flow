@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
-import { CompactDateRange } from "@/components/teryaq/revenue/CompactDateRange";
+import { CompactDateRange } from "@/components/teryaq/CompactDateRange";
 import { EmptyState } from "@/components/teryaq/States";
 import { CalendarDays, ArrowLeftRight } from "lucide-react";
 import { useState } from "react";
@@ -34,8 +34,8 @@ function ComparePeriodsPage() {
             <CompactDateRange
               dateFrom={period1.from}
               dateTo={period1.to}
-              onDateFromChange={(v) => setPeriod1(prev => ({ ...prev, from: v }))}
-              onDateToChange={(v) => setPeriod1(prev => ({ ...prev, to: v }))}
+              onChangeFrom={(v: string) => setPeriod1(prev => ({ ...prev, from: v }))}
+              onChangeTo={(v: string) => setPeriod1(prev => ({ ...prev, to: v }))}
             />
           </div>
 
@@ -44,8 +44,8 @@ function ComparePeriodsPage() {
             <CompactDateRange
               dateFrom={period2.from}
               dateTo={period2.to}
-              onDateFromChange={(v) => setPeriod2(prev => ({ ...prev, from: v }))}
-              onDateToChange={(v) => setPeriod2(prev => ({ ...prev, to: v }))}
+              onChangeFrom={(v: string) => setPeriod2(prev => ({ ...prev, from: v }))}
+              onChangeTo={(v: string) => setPeriod2(prev => ({ ...prev, to: v }))}
             />
           </div>
         </div>
@@ -61,13 +61,6 @@ function ComparePeriodsPage() {
           description="اختر الفترات الزمنية للمقارنة لعرض التحليلات المالية."
           icon={CalendarDays}
         />
-
-        {/* 
-          Future Comparison Fields:
-          - الإيراد
-          - المبيعات
-          - الربح الرسمي
-        */}
       </div>
     </AppShell>
   );
