@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { EmptyState } from "@/components/teryaq/States";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, BarChart3, Wallet, Package2, ShieldAlert, DollarSign, TrendingUp } from "lucide-react";
 import { KPIGrid } from "@/components/teryaq/KPIGrid";
 import { KPICard } from "@/components/teryaq/KPICard";
 import { SectionHeader } from "@/components/teryaq/SectionHeader";
@@ -28,18 +28,18 @@ function ManagerDashboardPage() {
         <div>
           <SectionHeader title="الملخص التشغيلي" />
           <KPIGrid>
-            <KPICard title="المبيعات" loading={false} />
-            <KPICard title="الإيرادات" loading={false} />
-            <KPICard title="النواقص" loading={false} />
-            <KPICard title="الصلاحية" loading={false} />
+            <KPICard label="المبيعات" value="---" icon={BarChart3} />
+            <KPICard label="الإيرادات" value="---" icon={Wallet} />
+            <KPICard label="النواقص" value="---" icon={Package2} />
+            <KPICard label="الصلاحية" value="---" icon={ShieldAlert} />
           </KPIGrid>
         </div>
 
         <div>
           <SectionHeader title="ملخص المتاجرة" />
           <KPIGrid>
-            <KPICard title="تكلفة المبيعات" loading={false} />
-            <KPICard title="مجمل الربح" loading={false} />
+            <KPICard label="تكلفة المبيعات" value="---" icon={DollarSign} />
+            <KPICard label="مجمل الربح" value="---" icon={TrendingUp} />
           </KPIGrid>
         </div>
 

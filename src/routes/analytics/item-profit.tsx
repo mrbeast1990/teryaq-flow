@@ -18,7 +18,7 @@ export const Route = createFileRoute("/analytics/item-profit")({
 function ItemProfitabilityPage() {
   const [activeTab, setActiveTab] = useState("top-profit");
 
-  const tabs = [
+  const options = [
     { id: "top-profit", label: "الأعلى ربحًا" },
     { id: "low-profit", label: "الأقل ربحًا" },
     { id: "top-sales", label: "الأعلى مبيعًا" },
@@ -41,8 +41,8 @@ function ItemProfitabilityPage() {
       </div>
 
       <SegmentedTabs
-        tabs={tabs}
-        activeTab={activeTab}
+        options={options}
+        value={activeTab}
         onChange={setActiveTab}
       />
 

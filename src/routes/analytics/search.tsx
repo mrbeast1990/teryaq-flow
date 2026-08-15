@@ -29,7 +29,7 @@ function GlobalSearchPage() {
         <SearchInput
           placeholder="ابحث عن أي شيء..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={setQuery}
         />
       </div>
 
