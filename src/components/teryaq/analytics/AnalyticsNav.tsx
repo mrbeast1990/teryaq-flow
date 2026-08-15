@@ -5,12 +5,6 @@ import { SectionHeader } from "../SectionHeader";
 export function AnalyticsNav() {
   const analyticsLinks = [
     {
-      title: "مركز التحليلات",
-      subtitle: "لوحة التحكم والتحليلات الرئيسية",
-      icon: BarChart3,
-      to: "/analytics",
-    },
-    {
       title: "البحث الشامل",
       subtitle: "بحث متقدم في الأصناف والزبائن والفواتير",
       icon: Search,
@@ -23,34 +17,22 @@ export function AnalyticsNav() {
       to: "/analytics/compare",
     },
     {
-      title: "تنبيهات الإدارة",
-      subtitle: "إشعارات هامة حول المخزون والأسعار",
-      icon: AlertCircle,
-      to: "/analytics/alerts",
-    },
-    {
       title: "تحليل ربحية الأصناف",
       subtitle: "أداء الأصناف المالي وتقدير الأرباح",
       icon: TrendingUp,
       to: "/analytics/item-profit",
     },
     {
-      title: "رأس المال والبضاعة",
-      subtitle: "تقدير قيمة المخزون ورأس المال",
-      icon: Wallet,
-      to: "/analytics/capital",
-    },
-    {
-      title: "لوحة المدير",
-      subtitle: "نظرة تنفيذية سريعة على الصيدلية",
-      icon: LayoutDashboard,
-      to: "/analytics/manager",
-    },
-    {
       title: "مراقبة أسعار الشراء",
       subtitle: "تتبع تغيرات أسعار التكلفة من الموردين",
       icon: History,
       to: "/analytics/prices",
+    },
+    {
+      title: "مركز التنبيهات",
+      subtitle: "إشعارات هامة حول المخزون والأسعار",
+      icon: AlertCircle,
+      to: "/analytics/alerts",
     },
   ];
 
