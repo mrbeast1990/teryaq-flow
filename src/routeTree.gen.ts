@@ -18,10 +18,8 @@ import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as TradingRouteImport } from './routes/trading'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
 import { Route as AnalyticsAlertsRouteImport } from './routes/analytics/alerts'
-import { Route as AnalyticsCapitalRouteImport } from './routes/analytics/capital'
 import { Route as AnalyticsCompareRouteImport } from './routes/analytics/compare'
 import { Route as AnalyticsItemProfitRouteImport } from './routes/analytics/item-profit'
-import { Route as AnalyticsManagerRouteImport } from './routes/analytics/manager'
 import { Route as AnalyticsPricesRouteImport } from './routes/analytics/prices'
 import { Route as AnalyticsSearchRouteImport } from './routes/analytics/search'
 import { Route as ItemsExpiryRouteImport } from './routes/items/expiry'
@@ -83,11 +81,6 @@ const AnalyticsAlertsRoute = AnalyticsAlertsRouteImport.update({
   path: '/alerts',
   getParentRoute: () => AnalyticsRoute,
 } as any)
-const AnalyticsCapitalRoute = AnalyticsCapitalRouteImport.update({
-  id: '/capital',
-  path: '/capital',
-  getParentRoute: () => AnalyticsRoute,
-} as any)
 const AnalyticsCompareRoute = AnalyticsCompareRouteImport.update({
   id: '/compare',
   path: '/compare',
@@ -96,11 +89,6 @@ const AnalyticsCompareRoute = AnalyticsCompareRouteImport.update({
 const AnalyticsItemProfitRoute = AnalyticsItemProfitRouteImport.update({
   id: '/item-profit',
   path: '/item-profit',
-  getParentRoute: () => AnalyticsRoute,
-} as any)
-const AnalyticsManagerRoute = AnalyticsManagerRouteImport.update({
-  id: '/manager',
-  path: '/manager',
   getParentRoute: () => AnalyticsRoute,
 } as any)
 const AnalyticsPricesRoute = AnalyticsPricesRouteImport.update({
@@ -188,10 +176,8 @@ export interface FileRoutesByFullPath {
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
   '/analytics/alerts': typeof AnalyticsAlertsRoute
-  '/analytics/capital': typeof AnalyticsCapitalRoute
   '/analytics/compare': typeof AnalyticsCompareRoute
   '/analytics/item-profit': typeof AnalyticsItemProfitRoute
-  '/analytics/manager': typeof AnalyticsManagerRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/search': typeof AnalyticsSearchRoute
   '/items/expiry': typeof ItemsExpiryRoute
@@ -216,10 +202,8 @@ export interface FileRoutesByTo {
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
   '/analytics/alerts': typeof AnalyticsAlertsRoute
-  '/analytics/capital': typeof AnalyticsCapitalRoute
   '/analytics/compare': typeof AnalyticsCompareRoute
   '/analytics/item-profit': typeof AnalyticsItemProfitRoute
-  '/analytics/manager': typeof AnalyticsManagerRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/search': typeof AnalyticsSearchRoute
   '/items/expiry': typeof ItemsExpiryRoute
@@ -247,10 +231,8 @@ export interface FileRoutesById {
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
   '/analytics/alerts': typeof AnalyticsAlertsRoute
-  '/analytics/capital': typeof AnalyticsCapitalRoute
   '/analytics/compare': typeof AnalyticsCompareRoute
   '/analytics/item-profit': typeof AnalyticsItemProfitRoute
-  '/analytics/manager': typeof AnalyticsManagerRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/search': typeof AnalyticsSearchRoute
   '/items/expiry': typeof ItemsExpiryRoute
@@ -279,10 +261,8 @@ export interface FileRouteTypes {
     | '/revenue'
     | '/trading'
     | '/analytics/alerts'
-    | '/analytics/capital'
     | '/analytics/compare'
     | '/analytics/item-profit'
-    | '/analytics/manager'
     | '/analytics/prices'
     | '/analytics/search'
     | '/items/expiry'
@@ -307,10 +287,8 @@ export interface FileRouteTypes {
     | '/more'
     | '/revenue'
     | '/analytics/alerts'
-    | '/analytics/capital'
     | '/analytics/compare'
     | '/analytics/item-profit'
-    | '/analytics/manager'
     | '/analytics/prices'
     | '/analytics/search'
     | '/items/expiry'
@@ -337,10 +315,8 @@ export interface FileRouteTypes {
     | '/revenue'
     | '/trading'
     | '/analytics/alerts'
-    | '/analytics/capital'
     | '/analytics/compare'
     | '/analytics/item-profit'
-    | '/analytics/manager'
     | '/analytics/prices'
     | '/analytics/search'
     | '/items/expiry'
@@ -435,13 +411,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsAlertsRouteImport
       parentRoute: typeof AnalyticsRoute
     }
-    '/analytics/capital': {
-      id: '/analytics/capital'
-      path: '/capital'
-      fullPath: '/analytics/capital'
-      preLoaderRoute: typeof AnalyticsCapitalRouteImport
-      parentRoute: typeof AnalyticsRoute
-    }
     '/analytics/compare': {
       id: '/analytics/compare'
       path: '/compare'
@@ -454,13 +423,6 @@ declare module '@tanstack/react-router' {
       path: '/item-profit'
       fullPath: '/analytics/item-profit'
       preLoaderRoute: typeof AnalyticsItemProfitRouteImport
-      parentRoute: typeof AnalyticsRoute
-    }
-    '/analytics/manager': {
-      id: '/analytics/manager'
-      path: '/manager'
-      fullPath: '/analytics/manager'
-      preLoaderRoute: typeof AnalyticsManagerRouteImport
       parentRoute: typeof AnalyticsRoute
     }
     '/analytics/prices': {
@@ -591,10 +553,8 @@ const AccountsRouteWithChildren = AccountsRoute._addFileChildren(
 
 interface AnalyticsRouteChildren {
   AnalyticsAlertsRoute: typeof AnalyticsAlertsRoute
-  AnalyticsCapitalRoute: typeof AnalyticsCapitalRoute
   AnalyticsCompareRoute: typeof AnalyticsCompareRoute
   AnalyticsItemProfitRoute: typeof AnalyticsItemProfitRoute
-  AnalyticsManagerRoute: typeof AnalyticsManagerRoute
   AnalyticsPricesRoute: typeof AnalyticsPricesRoute
   AnalyticsSearchRoute: typeof AnalyticsSearchRoute
   AnalyticsIndexRoute: typeof AnalyticsIndexRoute
@@ -602,10 +562,8 @@ interface AnalyticsRouteChildren {
 
 const AnalyticsRouteChildren: AnalyticsRouteChildren = {
   AnalyticsAlertsRoute: AnalyticsAlertsRoute,
-  AnalyticsCapitalRoute: AnalyticsCapitalRoute,
   AnalyticsCompareRoute: AnalyticsCompareRoute,
   AnalyticsItemProfitRoute: AnalyticsItemProfitRoute,
-  AnalyticsManagerRoute: AnalyticsManagerRoute,
   AnalyticsPricesRoute: AnalyticsPricesRoute,
   AnalyticsSearchRoute: AnalyticsSearchRoute,
   AnalyticsIndexRoute: AnalyticsIndexRoute,
