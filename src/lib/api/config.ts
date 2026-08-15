@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
   revenueDetails: () => "/api/revenue-details",
   revenueMovementDetails: (movementNo: string | number) => `/api/revenue-movement/${movementNo}`,
   tradingProfit: () => "/api/trading-profit",
+  analyticsDailyProfit: () => "/api/analytics/daily-profit",
   customers: () => "/api/customers",
   suppliers: () => "/api/suppliers",
   customerDetails: (id: string | number) => `/api/customer/${encodeURIComponent(String(id))}`,

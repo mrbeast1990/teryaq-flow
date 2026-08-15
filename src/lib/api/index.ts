@@ -155,8 +155,91 @@ export interface RevenueMovementDetailsResponse {
 
 export interface TradingProfitResponse {
   success: boolean;
-  profit: number;
+  profile?: string | null | undefined;
+  dateFrom?: string;
+  dateTo?: string;
+  summary?: TradingProfitSummary;
+  officialSummary?: TradingProfitSummary;
+  actualRevenue?: {
+    netRevenue?: number | null;
+    movementCount?: number | null;
+    cashSalesTotal?: number | null;
+    debtorPaymentsTotal?: number | null;
+    returnsTotal?: number | null;
+    electronicPaymentsTotal?: number | null;
+    sourceTable?: string | null;
+  };
+  reconciliation?: {
+    officialRevenue?: number | null;
+    actualRevenue?: number | null;
+    shortfall?: number | null;
+    isSnapshotIncomplete?: boolean | null;
+    source?: string | null;
+  };
+  staleSource?: {
+    isStale?: boolean | null;
+    isMissingOfficial?: boolean | null;
+    isDifferent?: boolean | null;
+    officialRevenue?: number | null;
+    actualNetRevenue?: number | null;
+    revenueDifference?: number | null;
+    message?: string | null;
+  };
+  movements?: TradingProfitMovement[];
+  actualMovements?: TradingProfitMovement[];
+  profit?: number;
   margin?: number;
+}
+
+export interface TradingProfitSummary {
+  revenue?: number | null;
+  costOfGoods?: number | null;
+  grossProfit?: number | null;
+  supplierPayments?: number | null;
+  expenses?: number | null;
+  netProfit?: number | null;
+  liveRowCount?: number | null;
+  sourceTable?: string | null;
+}
+
+export interface TradingProfitMovement {
+  date?: string | null;
+  kind?: string | null;
+  description?: string | null;
+  tradingUser?: string | null;
+  amount?: number | null;
+  profit?: number | null;
+  cost?: number | null;
+  refreshProfit?: number | null;
+  referenceNo?: number | string | null;
+  sourceTable?: string | null;
+  movementNo?: number | string | null;
+  invoiceNo?: number | string | null;
+  customerName?: string | null;
+  sellerName?: string | null;
+  paymentMethod?: string | null;
+  revenueSource?: string | null;
+  accountNo?: number | string | null;
+}
+
+export interface AnalyticsProfitItemRow {
+  itemId: number | string;
+  itemName: string;
+  quantity?: number | null;
+  salesValue?: number | null;
+  approximateProfit?: number | null;
+}
+
+export interface AnalyticsDailyProfitResponse {
+  success: boolean;
+  profile?: string | null | undefined;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  revenue?: RevenueSummary;
+  tradingProfit?: TradingProfitSummary;
+  bestProfitItems?: AnalyticsProfitItemRow[];
+  worstProfitItems?: AnalyticsProfitItemRow[];
+  mostSoldItems?: AnalyticsProfitItemRow[];
 }
 
 export interface GenericBalanceResponse {
@@ -318,6 +401,17 @@ export function getTradingProfit(params: {
 }): Promise<TradingProfitResponse> {
   return apiRequest<TradingProfitResponse>(API_ENDPOINTS.tradingProfit(), { query: params });
 }
+
+export function getAnalyticsDailyProfit(params: {
+  dateFrom: string;
+  dateTo: string;
+}): Promise<AnalyticsDailyProfitResponse> {
+  return apiRequest<AnalyticsDailyProfitResponse>(API_ENDPOINTS.analyticsDailyProfit(), { query: params });
+}
+
+// TODO: Single-item analytical drill-down can later use /api/analytics/item-profit?itemId=...
+// analyticsItemProfit ultimately depends on trackItem TOP (500), so historical
+// ranges for very high-movement items may be incomplete.
 
 export function getCustomerBalances(): Promise<GenericBalanceResponse> {
   return getCustomers().then((response) => {
