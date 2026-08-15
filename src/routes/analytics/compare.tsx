@@ -36,6 +36,7 @@ function ComparePeriodsPage() {
               dateTo={period1.to}
               onChangeFrom={(v: string) => setPeriod1(prev => ({ ...prev, from: v }))}
               onChangeTo={(v: string) => setPeriod1(prev => ({ ...prev, to: v }))}
+              onRefresh={() => {}}
             />
           </div>
 
@@ -46,6 +47,7 @@ function ComparePeriodsPage() {
               dateTo={period2.to}
               onChangeFrom={(v: string) => setPeriod2(prev => ({ ...prev, from: v }))}
               onChangeTo={(v: string) => setPeriod2(prev => ({ ...prev, to: v }))}
+              onRefresh={() => {}}
             />
           </div>
         </div>
