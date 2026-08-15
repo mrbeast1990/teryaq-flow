@@ -13,8 +13,22 @@ interface Props {
   transactionDateTimeSource?: string | null | undefined;
 }
 
+function formatCurrency(value?: number | null) {
+  const formatted = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  }).format(Number(value || 0));
+  
+  return (
+    <span className="inline-flex flex-row-reverse items-baseline gap-1" dir="ltr">
+      <span>د.ل</span>
+      <span className="num">{formatted}</span>
+    </span>
+  );
+}
+
 function formatNumber(value?: number | null) {
-  return new Intl.NumberFormat("ar-LY", { maximumFractionDigits: 2 }).format(Number(value || 0));
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 3 }).format(Number(value || 0));
 }
 
 function formatDate(value?: string | null) {
@@ -186,8 +200,7 @@ export function InvoiceDetailsView({ type, movementNo, onBack, displayMovementNo
               {header.notes && <p className="text-[11px] text-muted-foreground">{header.notes}</p>}
             </div>
             <div className="text-left">
-              <span className="num text-2xl font-black text-primary">{formatNumber(header.total)}</span>
-              <span className="mr-1 text-[12px] font-bold text-primary/70">د.ل</span>
+              <span className="text-2xl font-black text-primary">{formatCurrency(header.total)}</span>
             </div>
           </div>
         </div>
@@ -198,7 +211,7 @@ export function InvoiceDetailsView({ type, movementNo, onBack, displayMovementNo
         <div className="flex items-center justify-between max-w-2xl mx-auto gap-4">
            <div className="min-w-0">
              <p className="text-[10px] font-bold text-muted-foreground leading-none">الإجمالي</p>
-             <p className="num text-[18px] font-black text-primary">{formatNumber(header.total)} د.ل</p>
+             <div className="text-[18px] font-black text-primary">{formatCurrency(header.total)}</div>
            </div>
            <ActionButton 
             label="طباعة" 
@@ -220,9 +233,9 @@ function InvoiceItemRow({ item }: { item: ApiInvoiceItemRow }) {
           {item.itemName}
         </h4>
         <div className="shrink-0 text-left">
-          <span className="num text-[14px] font-black text-foreground">
-            {formatNumber(item.total)}
-          </span>
+          <div className="text-[14px] font-black text-foreground">
+            {formatCurrency(item.total)}
+          </div>
         </div>
       </div>
 
@@ -240,8 +253,8 @@ function InvoiceItemRow({ item }: { item: ApiInvoiceItemRow }) {
              <span>{item.unitName}</span>
           </div>
           <span className="text-[9px] opacity-30">×</span>
-          <div className="num">
-            {formatNumber(item.price)}
+          <div className="text-muted-foreground/60">
+            {formatCurrency(item.price)}
           </div>
         </div>
       </div>
