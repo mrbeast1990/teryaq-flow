@@ -233,9 +233,9 @@ function InvoiceItemRow({ item }: { item: ApiInvoiceItemRow }) {
           {item.itemName}
         </h4>
         <div className="shrink-0 text-left">
-          <span className="num text-[14px] font-black text-foreground">
-            {formatNumber(item.total)}
-          </span>
+          <div className="text-[14px] font-black text-foreground">
+            {formatCurrency(item.total)}
+          </div>
         </div>
       </div>
 
