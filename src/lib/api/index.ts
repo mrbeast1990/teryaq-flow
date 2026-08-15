@@ -242,6 +242,97 @@ export interface AnalyticsDailyProfitResponse {
   mostSoldItems?: AnalyticsProfitItemRow[];
 }
 
+export interface AnalyticsSearchRow {
+  resultType: string;
+  id: string | number;
+  title: string;
+  subtitle?: string | null;
+  targetType: "item" | "customer" | "supplier" | "sales-invoice" | "purchase-invoice" | "revenue-movement" | string;
+  targetId: string | number;
+}
+
+export interface AnalyticsSearchResponse {
+  success?: boolean;
+  profile?: string | null | undefined;
+  query: string;
+  rows: AnalyticsSearchRow[];
+}
+
+export interface AnalyticsComparePeriod {
+  dateFrom: string;
+  dateTo: string;
+  revenue?: RevenueSummary;
+  profit?: TradingProfitSummary;
+}
+
+export interface AnalyticsComparePeriodsResponse {
+  success: boolean;
+  profile?: string | null | undefined;
+  left: AnalyticsComparePeriod;
+  right: AnalyticsComparePeriod;
+}
+
+export interface AnalyticsPriceChangeRow {
+  itemId: number | string;
+  itemName: string;
+  barcode?: string | null;
+  previousPurchasePrice?: number | null;
+  latestPurchasePrice?: number | null;
+  difference?: number | null;
+  percentChange?: number | null;
+  previousPriceDate?: string | null;
+  latestPriceDate?: string | null;
+  supplierName?: string | null;
+}
+
+export interface AnalyticsPriceChangesResponse {
+  success: boolean;
+  profile?: string | null | undefined;
+  rows: AnalyticsPriceChangeRow[];
+}
+
+export interface AnalyticsAlertRow {
+  severity: "high" | "medium" | "low" | string;
+  title: string;
+  value?: number | null;
+  message?: string | null;
+}
+
+export interface AnalyticsAlertsResponse {
+  success: boolean;
+  profile?: string | null | undefined;
+  rows: AnalyticsAlertRow[];
+}
+
+export interface AnalyticsItemProfitResponse {
+  success: boolean;
+  profile?: string | null | undefined;
+  item?: ItemInfo | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  summary?: {
+    totalPurchasedQuantity?: number | null;
+    totalSoldQuantity?: number | null;
+    remainingQuantity?: number | null;
+    costOfGoodsSold?: number | null;
+    totalSalesValue?: number | null;
+    totalApproximateProfit?: number | null;
+    profitMarginPercent?: number | null;
+  };
+  suppliers?: {
+    name: string;
+    quantity?: number | null;
+    total?: number | null;
+    lastPurchaseDate?: string | null;
+  }[];
+  customers?: {
+    name: string;
+    quantity?: number | null;
+    total?: number | null;
+    lastSaleDate?: string | null;
+  }[];
+}
+
 export interface GenericBalanceResponse {
   success: boolean;
   totalBalance: number;
@@ -407,6 +498,35 @@ export function getAnalyticsDailyProfit(params: {
   dateTo: string;
 }): Promise<AnalyticsDailyProfitResponse> {
   return apiRequest<AnalyticsDailyProfitResponse>(API_ENDPOINTS.analyticsDailyProfit(), { query: params });
+}
+
+export function getAnalyticsGlobalSearch(q: string): Promise<AnalyticsSearchResponse> {
+  return apiRequest<AnalyticsSearchResponse>(API_ENDPOINTS.analyticsGlobalSearch(), { query: { q } });
+}
+
+export function getAnalyticsComparePeriods(params: {
+  leftFrom: string;
+  leftTo: string;
+  rightFrom: string;
+  rightTo: string;
+}): Promise<AnalyticsComparePeriodsResponse> {
+  return apiRequest<AnalyticsComparePeriodsResponse>(API_ENDPOINTS.analyticsComparePeriods(), { query: params });
+}
+
+export function getAnalyticsPriceChanges(): Promise<AnalyticsPriceChangesResponse> {
+  return apiRequest<AnalyticsPriceChangesResponse>(API_ENDPOINTS.analyticsPriceChanges());
+}
+
+export function getAnalyticsAlerts(): Promise<AnalyticsAlertsResponse> {
+  return apiRequest<AnalyticsAlertsResponse>(API_ENDPOINTS.analyticsAlerts());
+}
+
+export function getAnalyticsItemProfit(params: {
+  itemId: string | number;
+  dateFrom?: string;
+  dateTo?: string;
+}): Promise<AnalyticsItemProfitResponse> {
+  return apiRequest<AnalyticsItemProfitResponse>(API_ENDPOINTS.analyticsItemProfit(), { query: params });
 }
 
 // TODO: Single-item analytical drill-down can later use /api/analytics/item-profit?itemId=...
