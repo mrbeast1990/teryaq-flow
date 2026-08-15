@@ -14,11 +14,16 @@ import { Route as AccountsRouteImport } from './routes/accounts'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as RevenueRouteImport } from './routes/revenue'
+import { Route as TradingRouteImport } from './routes/trading'
 import { Route as ItemsExpiryRouteImport } from './routes/items/expiry'
 import { Route as ItemsOutOfStockRouteImport } from './routes/items/out-of-stock'
 import { Route as ItemsStockRouteImport } from './routes/items/stock'
 import { Route as ItemsTrackRouteImport } from './routes/items/track'
 import { Route as SettingsConnectionRouteImport } from './routes/settings/connection'
+import { Route as TradingIndexRouteImport } from './routes/trading/index'
+import { Route as TradingDailyRouteImport } from './routes/trading/daily'
+import { Route as TradingItemsRouteImport } from './routes/trading/items'
+import { Route as TradingProfitRouteImport } from './routes/trading/profit'
 import { Route as AccountsCustomersIndexRouteImport } from './routes/accounts/customers/index'
 import { Route as AccountsCustomersIdRouteImport } from './routes/accounts/customers/$id'
 import { Route as AccountsSuppliersIndexRouteImport } from './routes/accounts/suppliers/index'
@@ -49,6 +54,11 @@ const RevenueRoute = RevenueRouteImport.update({
   path: '/revenue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TradingRoute = TradingRouteImport.update({
+  id: '/trading',
+  path: '/trading',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemsExpiryRoute = ItemsExpiryRouteImport.update({
   id: '/expiry',
   path: '/expiry',
@@ -73,6 +83,26 @@ const SettingsConnectionRoute = SettingsConnectionRouteImport.update({
   id: '/settings/connection',
   path: '/settings/connection',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TradingIndexRoute = TradingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TradingRoute,
+} as any)
+const TradingDailyRoute = TradingDailyRouteImport.update({
+  id: '/daily',
+  path: '/daily',
+  getParentRoute: () => TradingRoute,
+} as any)
+const TradingItemsRoute = TradingItemsRouteImport.update({
+  id: '/items',
+  path: '/items',
+  getParentRoute: () => TradingRoute,
+} as any)
+const TradingProfitRoute = TradingProfitRouteImport.update({
+  id: '/profit',
+  path: '/profit',
+  getParentRoute: () => TradingRoute,
 } as any)
 const AccountsCustomersIndexRoute = AccountsCustomersIndexRouteImport.update({
   id: '/customers/',
@@ -101,11 +131,16 @@ export interface FileRoutesByFullPath {
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/trading': typeof TradingRouteWithChildren
   '/items/expiry': typeof ItemsExpiryRoute
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/trading/daily': typeof TradingDailyRoute
+  '/trading/items': typeof TradingItemsRoute
+  '/trading/profit': typeof TradingProfitRoute
+  '/trading/': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
   '/accounts/customers/': typeof AccountsCustomersIndexRoute
@@ -122,6 +157,10 @@ export interface FileRoutesByTo {
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/trading/daily': typeof TradingDailyRoute
+  '/trading/items': typeof TradingItemsRoute
+  '/trading/profit': typeof TradingProfitRoute
+  '/trading': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
   '/accounts/customers': typeof AccountsCustomersIndexRoute
@@ -134,11 +173,16 @@ export interface FileRoutesById {
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/revenue': typeof RevenueRoute
+  '/trading': typeof TradingRouteWithChildren
   '/items/expiry': typeof ItemsExpiryRoute
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/trading/daily': typeof TradingDailyRoute
+  '/trading/items': typeof TradingItemsRoute
+  '/trading/profit': typeof TradingProfitRoute
+  '/trading/': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
   '/accounts/customers/': typeof AccountsCustomersIndexRoute
@@ -152,11 +196,16 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/revenue'
+    | '/trading'
     | '/items/expiry'
     | '/items/out-of-stock'
     | '/items/stock'
     | '/items/track'
     | '/settings/connection'
+    | '/trading/daily'
+    | '/trading/items'
+    | '/trading/profit'
+    | '/trading/'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
     | '/accounts/customers/'
@@ -173,6 +222,10 @@ export interface FileRouteTypes {
     | '/items/stock'
     | '/items/track'
     | '/settings/connection'
+    | '/trading/daily'
+    | '/trading/items'
+    | '/trading/profit'
+    | '/trading'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
     | '/accounts/customers'
@@ -184,11 +237,16 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/revenue'
+    | '/trading'
     | '/items/expiry'
     | '/items/out-of-stock'
     | '/items/stock'
     | '/items/track'
     | '/settings/connection'
+    | '/trading/daily'
+    | '/trading/items'
+    | '/trading/profit'
+    | '/trading/'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
     | '/accounts/customers/'
@@ -201,6 +259,7 @@ export interface RootRouteChildren {
   ItemsRoute: typeof ItemsRouteWithChildren
   MoreRoute: typeof MoreRoute
   RevenueRoute: typeof RevenueRoute
+  TradingRoute: typeof TradingRouteWithChildren
   SettingsConnectionRoute: typeof SettingsConnectionRoute
 }
 
@@ -241,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RevenueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trading': {
+      id: '/trading'
+      path: '/trading'
+      fullPath: '/trading'
+      preLoaderRoute: typeof TradingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/items/expiry': {
       id: '/items/expiry'
       path: '/expiry'
@@ -275,6 +341,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/connection'
       preLoaderRoute: typeof SettingsConnectionRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/trading/': {
+      id: '/trading/'
+      path: '/'
+      fullPath: '/trading/'
+      preLoaderRoute: typeof TradingIndexRouteImport
+      parentRoute: typeof TradingRoute
+    }
+    '/trading/daily': {
+      id: '/trading/daily'
+      path: '/daily'
+      fullPath: '/trading/daily'
+      preLoaderRoute: typeof TradingDailyRouteImport
+      parentRoute: typeof TradingRoute
+    }
+    '/trading/items': {
+      id: '/trading/items'
+      path: '/items'
+      fullPath: '/trading/items'
+      preLoaderRoute: typeof TradingItemsRouteImport
+      parentRoute: typeof TradingRoute
+    }
+    '/trading/profit': {
+      id: '/trading/profit'
+      path: '/profit'
+      fullPath: '/trading/profit'
+      preLoaderRoute: typeof TradingProfitRouteImport
+      parentRoute: typeof TradingRoute
     }
     '/accounts/customers/': {
       id: '/accounts/customers/'
@@ -341,12 +435,30 @@ const ItemsRouteChildren: ItemsRouteChildren = {
 
 const ItemsRouteWithChildren = ItemsRoute._addFileChildren(ItemsRouteChildren)
 
+interface TradingRouteChildren {
+  TradingDailyRoute: typeof TradingDailyRoute
+  TradingItemsRoute: typeof TradingItemsRoute
+  TradingProfitRoute: typeof TradingProfitRoute
+  TradingIndexRoute: typeof TradingIndexRoute
+}
+
+const TradingRouteChildren: TradingRouteChildren = {
+  TradingDailyRoute: TradingDailyRoute,
+  TradingItemsRoute: TradingItemsRoute,
+  TradingProfitRoute: TradingProfitRoute,
+  TradingIndexRoute: TradingIndexRoute,
+}
+
+const TradingRouteWithChildren =
+  TradingRoute._addFileChildren(TradingRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountsRoute: AccountsRouteWithChildren,
   ItemsRoute: ItemsRouteWithChildren,
   MoreRoute: MoreRoute,
   RevenueRoute: RevenueRoute,
+  TradingRoute: TradingRouteWithChildren,
   SettingsConnectionRoute: SettingsConnectionRoute,
 }
 export const routeTree = rootRouteImport
