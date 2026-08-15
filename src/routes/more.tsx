@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SectionHeader } from "@/components/teryaq/SectionHeader";
 import { StatusBadge } from "@/components/teryaq/StatusBadge";
 import { TradingNav } from "@/components/teryaq/trading/TradingNav";
+import { AnalyticsNav } from "@/components/teryaq/analytics/AnalyticsNav";
 import { getSystemStatus } from "@/lib/api";
 
 export const Route = createFileRoute("/more")({
@@ -40,6 +41,7 @@ function MorePage() {
       />
 
       <div className="space-y-8">
+        <AnalyticsNav />
         <TradingNav />
 
         <div>
