@@ -58,11 +58,20 @@ export function AnalyticsNav() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <SectionHeader title="مركز التحليلات" />
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {analyticsLinks.map((item) => (
+        <div className="mb-4">
+          <CompactListCard
+            title={analyticsLinks[0].title}
+            subtitle={analyticsLinks[0].subtitle}
+            icon={analyticsLinks[0].icon}
+            to={analyticsLinks[0].to}
+            variant="primary"
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-2">
+          {analyticsLinks.slice(1).map((item) => (
             <CompactListCard
               key={item.to}
               title={item.title}
@@ -75,8 +84,8 @@ export function AnalyticsNav() {
       </div>
 
       <div>
-        <SectionHeader title="أدوات التشغيل المساعدة" />
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <SectionHeader title="أدوات مساعدة" />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {operationalLinks.map((item) => (
             <CompactListCard
               key={item.to}
