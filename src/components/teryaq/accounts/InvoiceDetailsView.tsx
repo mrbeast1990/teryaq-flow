@@ -211,7 +211,7 @@ export function InvoiceDetailsView({ type, movementNo, onBack, displayMovementNo
         <div className="flex items-center justify-between max-w-2xl mx-auto gap-4">
            <div className="min-w-0">
              <p className="text-[10px] font-bold text-muted-foreground leading-none">الإجمالي</p>
-             <p className="num text-[18px] font-black text-primary">{formatNumber(header.total)} د.ل</p>
+             <div className="text-[18px] font-black text-primary">{formatCurrency(header.total)}</div>
            </div>
            <ActionButton 
             label="طباعة" 
