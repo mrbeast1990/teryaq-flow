@@ -5,12 +5,6 @@ import { SectionHeader } from "../SectionHeader";
 export function AnalyticsNav() {
   const analyticsLinks = [
     {
-      title: "مركز التحليلات",
-      subtitle: "لوحة التحكم والتحليلات الرئيسية",
-      icon: BarChart3,
-      to: "/analytics",
-    },
-    {
       title: "البحث الشامل",
       subtitle: "بحث متقدم في الأصناف والزبائن والفواتير",
       icon: Search,
@@ -23,34 +17,22 @@ export function AnalyticsNav() {
       to: "/analytics/compare",
     },
     {
-      title: "تنبيهات الإدارة",
-      subtitle: "إشعارات هامة حول المخزون والأسعار",
-      icon: AlertCircle,
-      to: "/analytics/alerts",
-    },
-    {
       title: "تحليل ربحية الأصناف",
       subtitle: "أداء الأصناف المالي وتقدير الأرباح",
       icon: TrendingUp,
       to: "/analytics/item-profit",
     },
     {
-      title: "رأس المال والبضاعة",
-      subtitle: "تقدير قيمة المخزون ورأس المال",
-      icon: Wallet,
-      to: "/analytics/capital",
-    },
-    {
-      title: "لوحة المدير",
-      subtitle: "نظرة تنفيذية سريعة على الصيدلية",
-      icon: LayoutDashboard,
-      to: "/analytics/manager",
-    },
-    {
       title: "مراقبة أسعار الشراء",
       subtitle: "تتبع تغيرات أسعار التكلفة من الموردين",
       icon: History,
       to: "/analytics/prices",
+    },
+    {
+      title: "مركز التنبيهات",
+      subtitle: "إشعارات هامة حول المخزون والأسعار",
+      icon: AlertCircle,
+      to: "/analytics/alerts",
     },
   ];
 
@@ -76,11 +58,21 @@ export function AnalyticsNav() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <SectionHeader title="مركز التحليلات" />
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {analyticsLinks.map((item) => (
+        <div className="mb-4">
+          {analyticsLinks[0] && (
+            <CompactListCard
+              title={analyticsLinks[0].title}
+              subtitle={analyticsLinks[0].subtitle}
+              icon={analyticsLinks[0].icon}
+              to={analyticsLinks[0].to}
+            />
+          )}
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          {analyticsLinks.slice(1).map((item) => (
             <CompactListCard
               key={item.to}
               title={item.title}
@@ -93,8 +85,8 @@ export function AnalyticsNav() {
       </div>
 
       <div>
-        <SectionHeader title="أدوات التشغيل المساعدة" />
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <SectionHeader title="أدوات مساعدة" />
+        <div className="grid grid-cols-2 gap-2">
           {operationalLinks.map((item) => (
             <CompactListCard
               key={item.to}

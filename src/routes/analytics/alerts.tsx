@@ -19,29 +19,29 @@ function ManagementAlertsPage() {
   return (
     <AppShell>
       <PageHeader
-        title="تنبيهات الإدارة"
+        title="مركز التنبيهات"
         subtitle="إشعارات هامة حول العمليات والمخزون"
       />
 
       <div className="space-y-8 pb-8">
         <div>
           <SectionHeader title="تصنيفات التنبيهات" />
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2">
             <CompactListCard
-              title="النواقص"
-              subtitle="الأصناف التي قاربت على النفاد أو نفدت"
+              title="نواقص"
+              subtitle="الأصناف النافدة"
               icon={Package2}
               to="/items/out-of-stock"
             />
             <CompactListCard
-              title="الصلاحية"
-              subtitle="الأصناف القريبة من انتهاء الصلاحية"
+              title="صلاحية"
+              subtitle="الأصناف المنتهية"
               icon={ShieldAlert}
               to="/items/expiry"
             />
             <CompactListCard
               title="تغير أسعار الشراء"
-              subtitle="تنبيهات حول ارتفاع تكلفة الأصناف"
+              subtitle="مراقبة الأسعار"
               icon={History}
               to="/analytics/prices"
             />
