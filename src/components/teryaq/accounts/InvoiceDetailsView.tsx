@@ -200,8 +200,7 @@ export function InvoiceDetailsView({ type, movementNo, onBack, displayMovementNo
               {header.notes && <p className="text-[11px] text-muted-foreground">{header.notes}</p>}
             </div>
             <div className="text-left">
-              <span className="num text-2xl font-black text-primary">{formatNumber(header.total)}</span>
-              <span className="mr-1 text-[12px] font-bold text-primary/70">د.ل</span>
+              <span className="text-2xl font-black text-primary">{formatCurrency(header.total)}</span>
             </div>
           </div>
         </div>
