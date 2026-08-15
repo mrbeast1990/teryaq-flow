@@ -61,16 +61,17 @@ export function AnalyticsNav() {
     <div className="space-y-8">
       <div>
         <div className="mb-4">
-          <CompactListCard
-            title={analyticsLinks[0].title}
-            subtitle={analyticsLinks[0].subtitle}
-            icon={analyticsLinks[0].icon}
-            to={analyticsLinks[0].to}
-            variant="primary"
-          />
+          {analyticsLinks[0] && (
+            <CompactListCard
+              title={analyticsLinks[0].title}
+              subtitle={analyticsLinks[0].subtitle}
+              icon={analyticsLinks[0].icon}
+              to={analyticsLinks[0].to}
+            />
+          )}
         </div>
         
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3">
           {analyticsLinks.slice(1).map((item) => (
             <CompactListCard
               key={item.to}
@@ -85,7 +86,7 @@ export function AnalyticsNav() {
 
       <div>
         <SectionHeader title="أدوات مساعدة" />
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2">
           {operationalLinks.map((item) => (
             <CompactListCard
               key={item.to}
