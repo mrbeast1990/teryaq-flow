@@ -26,6 +26,17 @@ function invoiceTypeFor(row: StatementRow, type: Props["type"]) {
   return type === "customer" ? "sales" : "purchase";
 }
 
+function isInvoiceRow(row: StatementRow) {
+  return row.rowType === "sales-invoice" || row.rowType === "purchase-invoice";
+}
+
+function movementTypeLabel(row: StatementRow) {
+  if (row.rowType === "sales-invoice") return "فاتورة بيع";
+  if (row.rowType === "purchase-invoice") return "فاتورة شراء";
+  if (row.rowType === "payment") return "سداد";
+  return row.rowType || "حركة";
+}
+
 export function FinancialStatement({ type, id }: Props) {
   const [selectedInvoice, setSelectedInvoice] = useState<{ type: "sales" | "purchase"; movementNo: string } | null>(null);
   const query = useQuery({
@@ -58,7 +69,7 @@ export function FinancialStatement({ type, id }: Props) {
 
       <div className="space-y-2">
         {rows.map((row, index) => {
-          const clickable = row.rowType !== "payment" && row.refNo;
+          const clickable = isInvoiceRow(row) && row.refNo;
           return (
             <button
               key={`${row.date}-${row.refNo}-${index}`}
@@ -72,7 +83,10 @@ export function FinancialStatement({ type, id }: Props) {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[13px] font-extrabold">{row.description || "-"}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">{formatDate(row.date)}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    {formatDate(row.date)}
+                    {row.refNo ? ` · ${movementTypeLabel(row)} #${row.refNo}` : ` · ${movementTypeLabel(row)}`}
+                  </p>
                 </div>
                 <div className="shrink-0 text-left">
                   <p className="num text-[13px] font-extrabold">{formatNumber(row.runningBalance)}</p>

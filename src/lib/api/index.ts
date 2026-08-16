@@ -925,8 +925,13 @@ function formatMovementQuantity(rawQuantity: number | null, packSize?: number | 
 function formatBusinessMovementQuantity(row: BackendTrackMovement, fallbackQuantity: number | null, item?: ItemInfo | null) {
   const businessQuantity = numberOrNull(row.businessQuantity);
   const unitName = row.unitName || null;
-  if (businessQuantity != null && unitName) {
+  if (businessQuantity != null && businessQuantity > 0 && unitName) {
     return `${formatPlainNumber(businessQuantity)} ${unitName}`;
+  }
+  const unitOldQuantity = numberOrNull(row.unitOldQuantity);
+  const rawQuantity = numberOrNull(row.rawQuantity ?? fallbackQuantity);
+  if (unitName && rawQuantity != null && unitOldQuantity != null && unitOldQuantity > 0) {
+    return `${formatPlainNumber(Math.abs(rawQuantity) / unitOldQuantity)} ${unitName}`;
   }
   return formatMovementQuantity(fallbackQuantity, item?.packSize);
 }

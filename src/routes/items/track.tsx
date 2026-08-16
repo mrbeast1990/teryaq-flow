@@ -16,6 +16,7 @@ import { SalesMovementList } from "@/components/teryaq/items/SalesMovementList";
 import { ItemMovementList } from "@/components/teryaq/items/ItemMovementList";
 import { ItemSupplierList } from "@/components/teryaq/items/ItemSupplierList";
 import { ItemCustomerList } from "@/components/teryaq/items/ItemCustomerList";
+import { InvoiceDetailsView } from "@/components/teryaq/accounts/InvoiceDetailsView";
 
 export const Route = createFileRoute("/items/track")({
   head: () => ({
@@ -37,6 +38,11 @@ function ItemTrackingPage() {
   const [search, setSearch] = useState("");
   const [selectedItem, setSelectedItem] = useState<ItemInfo | null>(null);
   const [activeTab, setActiveTab] = useState("summary");
+  const [selectedInvoice, setSelectedInvoice] = useState<{
+    type: "sales" | "purchase";
+    movementNo: string;
+    displayMovementNo?: string;
+  } | null>(null);
 
   const searchResults = useQuery({
     queryKey: ["inventory-search", search],
@@ -52,8 +58,20 @@ function ItemTrackingPage() {
 
   const tracking = trackingQuery.data;
 
+  function invoiceSelectionFor(row: ItemMovement) {
+    if (!row.movementNo) return null;
+    if (row.movementGroup === "purchase") {
+      return { type: "purchase" as const, movementNo: String(row.movementNo), displayMovementNo: String(row.movementNo) };
+    }
+    if (row.movementGroup === "sale") {
+      return { type: "sales" as const, movementNo: String(row.movementNo), displayMovementNo: String(row.movementNo) };
+    }
+    return null;
+  }
+
   function movementToRow(row: ItemMovement, options: { showPrice?: boolean } = {}) {
     const showPrice = options.showPrice !== false;
+    const invoiceSelection = invoiceSelectionFor(row);
     return {
       date: formatDate(row.date),
       title: row.type || "-",
@@ -65,6 +83,7 @@ function ItemTrackingPage() {
       ].filter(Boolean).join(" · "),
       quantity: row.formattedQuantity || "",
       amount: row.total,
+      onClick: invoiceSelection ? () => setSelectedInvoice(invoiceSelection) : undefined,
     };
   }
 
@@ -87,6 +106,19 @@ function ItemTrackingPage() {
   }
 
   if (selectedItem) {
+    if (selectedInvoice) {
+      return (
+        <AppShell>
+          <InvoiceDetailsView
+            type={selectedInvoice.type}
+            movementNo={selectedInvoice.movementNo}
+            displayMovementNo={selectedInvoice.displayMovementNo}
+            onBack={() => setSelectedInvoice(null)}
+          />
+        </AppShell>
+      );
+    }
+
     return (
       <AppShell>
         <div className="sticky top-0 z-20 -mx-4 mb-2 bg-background/80 px-4 pb-2 pt-1 backdrop-blur-md">
