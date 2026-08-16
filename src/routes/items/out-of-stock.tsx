@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FileDown, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
@@ -7,6 +8,8 @@ import { ActionButton } from "@/components/teryaq/ActionButton";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 import { getInventory, ApiError, type ItemInfo } from "@/lib/api";
 import { OutOfStockRow } from "@/components/teryaq/items/OutOfStockRow";
+
+const PAGE_SIZE = 100;
 
 export const Route = createFileRoute("/items/out-of-stock")({
   head: () => ({
@@ -44,12 +47,27 @@ function exportOutOfStock(rows: ItemInfo[]) {
 }
 
 function OutOfStockPage() {
+  const [page, setPage] = useState(1);
+  const [loadedItems, setLoadedItems] = useState<ItemInfo[]>([]);
+
   const query = useQuery({
-    queryKey: ["inventory-out-of-stock"],
-    queryFn: () => getInventory({ filter: "out-of-stock" }),
+    queryKey: ["inventory-out-of-stock", page, PAGE_SIZE],
+    queryFn: () => getInventory({ filter: "out-of-stock", page, pageSize: PAGE_SIZE }),
   });
 
-  const items = query.data?.rows || [];
+  useEffect(() => {
+    if (!query.data?.rows) return;
+    setLoadedItems((current) => {
+      if (page === 1) return query.data.rows;
+      const existingIds = new Set(current.map((item) => item.id));
+      const nextRows = query.data.rows.filter((item) => !existingIds.has(item.id));
+      return nextRows.length ? [...current, ...nextRows] : current;
+    });
+  }, [query.data, page]);
+
+  const items = loadedItems;
+  const totalCount = query.data?.totalCount ?? items.length;
+  const hasMore = Boolean(query.data?.hasMore);
   const errorMessage = query.error instanceof ApiError || query.error instanceof Error ? query.error.message : undefined;
 
   return (
@@ -77,6 +95,9 @@ function OutOfStockPage() {
           />
         ) : (
           <div className="flex flex-col gap-2">
+            <p className="px-1 text-[12px] text-muted-foreground">
+              يعرض {items.length} من {totalCount} صنف
+            </p>
             {items.map((item) => (
               <OutOfStockRow
                 key={item.id}
@@ -88,6 +109,14 @@ function OutOfStockPage() {
                 salePrice={item.salePrice}
               />
             ))}
+            {hasMore ? (
+              <ActionButton
+                label={query.isFetching ? "جاري التحميل..." : "تحميل المزيد"}
+                variant="outline"
+                disabled={query.isFetching}
+                onClick={() => setPage((current) => current + 1)}
+              />
+            ) : null}
           </div>
         )}
       </div>

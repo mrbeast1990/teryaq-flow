@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FileDown, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
@@ -10,6 +10,8 @@ import { InventoryFilters } from "@/components/teryaq/items/InventoryFilters";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 import { getInventory, ApiError, type ItemInfo } from "@/lib/api";
 import { InventoryItemRow } from "@/components/teryaq/items/InventoryItemRow";
+
+const PAGE_SIZE = 100;
 
 export const Route = createFileRoute("/items/stock")({
   head: () => ({
@@ -48,13 +50,32 @@ function exportInventory(rows: ItemInfo[]) {
 function InventoryPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [loadedItems, setLoadedItems] = useState<ItemInfo[]>([]);
 
   const query = useQuery({
-    queryKey: ["inventory", search, filter],
-    queryFn: () => getInventory({ search, filter }),
+    queryKey: ["inventory", search, filter, page, PAGE_SIZE],
+    queryFn: () => getInventory({ search, filter, page, pageSize: PAGE_SIZE }),
   });
 
-  const items = query.data?.rows || [];
+  useEffect(() => {
+    setPage(1);
+    setLoadedItems([]);
+  }, [search, filter]);
+
+  useEffect(() => {
+    if (!query.data?.rows) return;
+    setLoadedItems((current) => {
+      if (page === 1) return query.data.rows;
+      const existingIds = new Set(current.map((item) => item.id));
+      const nextRows = query.data.rows.filter((item) => !existingIds.has(item.id));
+      return nextRows.length ? [...current, ...nextRows] : current;
+    });
+  }, [query.data, page]);
+
+  const items = loadedItems;
+  const totalCount = query.data?.totalCount ?? items.length;
+  const hasMore = Boolean(query.data?.hasMore);
   const errorMessage = query.error instanceof ApiError || query.error instanceof Error ? query.error.message : undefined;
 
   return (
@@ -100,6 +121,9 @@ function InventoryPage() {
           />
         ) : (
           <div className="flex flex-col gap-2">
+            <p className="px-1 text-[12px] text-muted-foreground">
+              يعرض {items.length} من {totalCount} صنف
+            </p>
             {items.map((item) => (
               <InventoryItemRow
                 key={item.id}
@@ -113,6 +137,14 @@ function InventoryPage() {
                 expiryDate={item.expiryDate}
               />
             ))}
+            {hasMore ? (
+              <ActionButton
+                label={query.isFetching ? "جاري التحميل..." : "تحميل المزيد"}
+                variant="outline"
+                disabled={query.isFetching}
+                onClick={() => setPage((current) => current + 1)}
+              />
+            ) : null}
           </div>
         )}
       </div>

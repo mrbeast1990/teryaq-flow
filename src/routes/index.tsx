@@ -27,9 +27,7 @@ import {
   getTradingProfit, 
   getCustomerBalances, 
   getSupplierPayables, 
-  getOutOfStock, 
-  getLowStock, 
-  getExpiryItems,
+  getInventorySummary,
   ApiError
 } from "@/lib/api";
 import { useState, useMemo } from "react";
@@ -85,19 +83,9 @@ function Index() {
     queryFn: () => getSupplierPayables(),
   });
 
-  const { data: outOfStock, isLoading: loadingOut } = useQuery({
-    queryKey: ["outOfStock"],
-    queryFn: () => getOutOfStock(),
-  });
-
-  const { data: lowStock, isLoading: loadingLow } = useQuery({
-    queryKey: ["lowStock"],
-    queryFn: () => getLowStock(),
-  });
-
-  const { data: expiry, isLoading: loadingExpiry } = useQuery({
-    queryKey: ["expiryItems"],
-    queryFn: () => getExpiryItems(),
+  const { data: inventorySummary, isLoading: loadingInventorySummary } = useQuery({
+    queryKey: ["inventorySummary"],
+    queryFn: () => getInventorySummary(),
   });
 
   const handleRefresh = () => {
@@ -185,21 +173,21 @@ function Index() {
           />
           <KPICard
             label="مخزون منخفض"
-            value={isLoadingAll(loadingLow) ? "جاري التحميل..." : (lowStock?.count !== undefined ? String(lowStock.count) : "غير متاح حاليًا")}
+            value={isLoadingAll(loadingInventorySummary) ? "جاري التحميل..." : (inventorySummary?.lowStockCount !== undefined ? String(inventorySummary.lowStockCount) : "غير متاح حاليًا")}
             hint="صنف"
             tone="warning"
             icon={PackageSearch}
           />
           <KPICard
             label="أصناف نفدت"
-            value={isLoadingAll(loadingOut) ? "جاري التحميل..." : (outOfStock?.count !== undefined ? String(outOfStock.count) : "غير متاح حاليًا")}
+            value={isLoadingAll(loadingInventorySummary) ? "جاري التحميل..." : (inventorySummary?.outOfStockCount !== undefined ? String(inventorySummary.outOfStockCount) : "غير متاح حاليًا")}
             hint="صنف"
             tone="danger"
             icon={PackageX}
           />
           <KPICard
             label="قرب الانتهاء"
-            value={isLoadingAll(loadingExpiry) ? "جاري التحميل..." : (expiry?.count !== undefined ? String(expiry.count) : "غير متاح حاليًا")}
+            value={isLoadingAll(loadingInventorySummary) ? "جاري التحميل..." : (inventorySummary?.expiryCount !== undefined ? String(inventorySummary.expiryCount) : "غير متاح حاليًا")}
             hint="صنف"
             tone="danger"
             icon={CalendarClock}

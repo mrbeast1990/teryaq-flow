@@ -62,6 +62,7 @@ export const API_ENDPOINTS = {
   supplierLedger: (id: string | number) => `/api/supplier/${encodeURIComponent(String(id))}/ledger`,
   supplierInvoices: (id: string | number) => `/api/supplier/${encodeURIComponent(String(id))}/invoices`,
   supplierPayments: (id: string | number) => `/api/supplier/${encodeURIComponent(String(id))}/payments`,
+  itemsSummary: () => "/api/items/summary",
   itemsStock: () => "/api/items/stock",
   itemsTrack: () => "/api/items/track",
   itemsOutOfStock: () => "/api/items/out-of-stock",

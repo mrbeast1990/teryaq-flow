@@ -385,6 +385,13 @@ export interface StockInfoResponse {
   count: number;
 }
 
+export interface InventorySummaryResponse {
+  success: boolean;
+  outOfStockCount: number;
+  lowStockCount: number;
+  expiryCount: number;
+}
+
 export interface AccountPerson {
   id: number | string;
   name: string;
@@ -646,18 +653,22 @@ export function getPurchaseInvoice(movementNo: string | number): Promise<Invoice
 }
 
 export function getOutOfStock(): Promise<StockInfoResponse> {
-  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsOutOfStock())
-    .then((response) => ({ success: response.success, count: response.rows?.length || 0 }));
+  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsOutOfStock(), { query: { page: 1, pageSize: 1 } })
+    .then((response) => ({ success: response.success, count: response.totalCount ?? response.rows?.length ?? 0 }));
 }
 
 export function getLowStock(): Promise<StockInfoResponse> {
-  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsStock(), { query: { availableOnly: true, limit: 500 } })
-    .then((response) => ({ success: response.success, count: response.rows?.length || 0 }));
+  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsStock(), { query: { availableOnly: true, page: 1, pageSize: 1 } })
+    .then((response) => ({ success: response.success, count: response.totalCount ?? response.rows?.length ?? 0 }));
 }
 
 export function getExpiryItems(): Promise<StockInfoResponse> {
-  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsExpiry(), { query: { days: 90 } })
-    .then((response) => ({ success: response.success, count: response.rows?.length || 0 }));
+  return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsExpiry(), { query: { days: 90, page: 1, pageSize: 1 } })
+    .then((response) => ({ success: response.success, count: response.totalCount ?? response.rows?.length ?? 0 }));
+}
+
+export function getInventorySummary(): Promise<InventorySummaryResponse> {
+  return apiRequest<InventorySummaryResponse>(API_ENDPOINTS.itemsSummary());
 }
 
 export interface ItemInfo {
@@ -688,6 +699,9 @@ export interface InventoryResponse {
   profile?: string | null | undefined;
   rows: ItemInfo[];
   totalCount?: number | null;
+  page?: number | null;
+  pageSize?: number | null;
+  hasMore?: boolean;
 }
 
 export interface ItemMovement {
@@ -782,6 +796,9 @@ type BackendRowsResponse<T> = {
   profile?: string;
   rows?: T[];
   totalCount?: number | null;
+  page?: number | null;
+  pageSize?: number | null;
+  hasMore?: boolean;
   bucket?: string | null;
   days?: number | null;
 };
@@ -984,6 +1001,9 @@ function mapInventoryRows(response: BackendRowsResponse<BackendItemRow>, quantit
     profile: response.profile || undefined,
     rows: (response.rows || []).map((row) => mapItem(row, quantityKey || "currentQuantity")),
     totalCount: numberOrNull(response.totalCount),
+    page: numberOrNull(response.page),
+    pageSize: numberOrNull(response.pageSize),
+    hasMore: Boolean(response.hasMore),
   };
 }
 
@@ -991,18 +1011,21 @@ export function getInventory(params: {
   search?: string;
   filter?: string;
   sortBy?: string;
+  page?: number;
+  pageSize?: number;
+  limit?: string | number;
 }): Promise<InventoryResponse> {
   if (params.filter === "out-of-stock") {
     return apiRequest<BackendRowsResponse<BackendItemRow>>(API_ENDPOINTS.itemsOutOfStock(), {
-      query: { search: params.search, sort: params.sortBy },
+      query: { search: params.search, sort: params.sortBy, page: params.page, pageSize: params.pageSize, limit: params.limit },
     }).then((response) => mapInventoryRows(response));
   }
 
   if (params.filter?.startsWith("expiry-")) {
     const expiryFilter = params.filter.replace("expiry-", "");
     const query = /^\d+$/.test(expiryFilter)
-      ? { search: params.search, days: expiryFilter }
-      : { search: params.search, bucket: expiryFilter };
+      ? { search: params.search, days: expiryFilter, page: params.page, pageSize: params.pageSize, limit: params.limit }
+      : { search: params.search, bucket: expiryFilter, page: params.page, pageSize: params.pageSize, limit: params.limit };
     return apiRequest<BackendRowsResponse<BackendItemRow> & { days?: number }>(API_ENDPOINTS.itemsExpiry(), {
       query,
     }).then((response) => mapInventoryRows(response, "quantity"));
@@ -1011,13 +1034,15 @@ export function getInventory(params: {
   const query: Record<string, string | number | boolean | undefined> = {
     search: params.search,
     sort: params.sortBy,
-    limit: "all",
+    page: params.page,
+    pageSize: params.pageSize,
+    limit: params.limit,
   };
 
   if (params.filter === "available") query["availableOnly"] = true;
   if (params.filter === "near-expiry") {
     return apiRequest<BackendRowsResponse<BackendItemRow> & { days?: number }>(API_ENDPOINTS.itemsExpiry(), {
-      query: { search: params.search, days: 90 },
+      query: { search: params.search, days: 90, page: params.page, pageSize: params.pageSize, limit: params.limit },
     }).then((response) => mapInventoryRows(response, "quantity"));
   }
 
