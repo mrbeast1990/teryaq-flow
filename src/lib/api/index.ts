@@ -282,13 +282,54 @@ export interface AnalyticsPriceChangeRow {
   percentChange?: number | null;
   previousPriceDate?: string | null;
   latestPriceDate?: string | null;
+  previousDate?: string | null;
+  latestDate?: string | null;
+  previousMovementNo?: number | string | null;
+  latestMovementNo?: number | string | null;
+  previousInvoiceNo?: number | string | null;
+  latestInvoiceNo?: number | string | null;
+  previousSupplierId?: number | string | null;
+  previousSupplierName?: string | null;
+  latestSupplierId?: number | string | null;
+  latestSupplierName?: string | null;
   supplierName?: string | null;
+  previousBarcode?: string | null;
+  latestBarcode?: string | null;
+  unitName?: string | null;
+  previousUnitName?: string | null;
+  latestUnitName?: string | null;
+  previousUnitOldQuantity?: number | null;
+  latestUnitOldQuantity?: number | null;
+  previousRawQuantity?: number | null;
+  latestRawQuantity?: number | null;
+  previousBusinessQuantity?: number | null;
+  latestBusinessQuantity?: number | null;
+  previousItemCost?: number | null;
+  latestItemCost?: number | null;
+  previousLineTotal?: number | null;
+  latestLineTotal?: number | null;
+  status?: "valid" | "unit_mismatch_risk" | "opening_balance_risk" | "data_anomaly" | string;
+  statusReason?: string | null;
 }
 
 export interface AnalyticsPriceChangesResponse {
   success: boolean;
   profile?: string | null | undefined;
   rows: AnalyticsPriceChangeRow[];
+  totalCount?: number | null;
+  page?: number | null;
+  pageSize?: number | null;
+  sort?: string | null;
+  status?: string | null;
+  summary?: {
+    totalCandidateItems?: number | null;
+    trustedValidChanges?: number | null;
+    reviewRows?: number | null;
+    unitMismatchRisk?: number | null;
+    openingBalanceRisk?: number | null;
+    dataAnomaly?: number | null;
+    significantValidCount?: number | null;
+  };
 }
 
 export interface AnalyticsAlertRow {
@@ -513,8 +554,13 @@ export function getAnalyticsComparePeriods(params: {
   return apiRequest<AnalyticsComparePeriodsResponse>(API_ENDPOINTS.analyticsComparePeriods(), { query: params });
 }
 
-export function getAnalyticsPriceChanges(): Promise<AnalyticsPriceChangesResponse> {
-  return apiRequest<AnalyticsPriceChangesResponse>(API_ENDPOINTS.analyticsPriceChanges());
+export function getAnalyticsPriceChanges(params: {
+  page?: number;
+  pageSize?: number;
+  sort?: "latest" | "largest-increase" | "largest-decrease" | "largest-change";
+  status?: "valid" | "review" | "all" | "unit_mismatch_risk" | "opening_balance_risk" | "data_anomaly";
+} = {}): Promise<AnalyticsPriceChangesResponse> {
+  return apiRequest<AnalyticsPriceChangesResponse>(API_ENDPOINTS.analyticsPriceChanges(), { query: params });
 }
 
 export function getAnalyticsAlerts(): Promise<AnalyticsAlertsResponse> {
