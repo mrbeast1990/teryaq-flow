@@ -49,11 +49,11 @@ export const Route = createFileRoute("/")({
 
 const QUICK_ACTIONS = [
   { label: "إيراد اليوم", icon: Wallet, to: "/revenue" },
-  { label: "حسابات الزبائن", icon: Users, to: "/accounts" },
-  { label: "حسابات الموردين", icon: Truck, to: "/accounts" },
-  { label: "المخزون", icon: Boxes, to: "/items" },
-  { label: "تتبع صنف", icon: ScanSearch, to: "/items" },
-  { label: "المتاجرة والأرباح", icon: BarChart3, to: "/revenue" },
+  { label: "حسابات الزبائن", icon: Users, to: "/accounts/customers" },
+  { label: "حسابات الموردين", icon: Truck, to: "/accounts/suppliers" },
+  { label: "المخزون", icon: Boxes, to: "/items/stock" },
+  { label: "تتبع صنف", icon: ScanSearch, to: "/items/track" },
+  { label: "المتاجرة والأرباح", icon: BarChart3, to: "/trading" },
 ] as const;
 
 function Index() {
