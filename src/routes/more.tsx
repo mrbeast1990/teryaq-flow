@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Database, Info, SlidersHorizontal } from "lucide-react";
+import { Database, FileText, Info, SlidersHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
@@ -53,6 +53,7 @@ function MorePage() {
               icon={Database}
               to="/settings/connection"
             />
+            <CompactListCard title="مركز التقارير والطباعة" subtitle="تقارير مالية وتشغيلية قابلة للطباعة" icon={FileText} to="/reports" />
             <CompactListCard title="تفضيلات العرض" subtitle="الترتيب والفلاتر الافتراضية" icon={SlidersHorizontal} />
             <CompactListCard title="حول التطبيق" subtitle="Teryaq Flow · واجهة جديدة مرتبطة بـ Teryaq SQL Connector" icon={Info} />
           </div>

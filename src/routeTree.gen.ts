@@ -14,6 +14,7 @@ import { Route as AccountsRouteImport } from './routes/accounts'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as TradingRouteImport } from './routes/trading'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
@@ -59,6 +60,11 @@ const ItemsRoute = ItemsRouteImport.update({
 const MoreRoute = MoreRouteImport.update({
   id: '/more',
   path: '/more',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RevenueRoute = RevenueRouteImport.update({
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRouteWithChildren
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
+  '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
   '/analytics/alerts': typeof AnalyticsAlertsRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/accounts': typeof AccountsRouteWithChildren
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
+  '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/analytics/alerts': typeof AnalyticsAlertsRoute
   '/analytics/compare': typeof AnalyticsCompareRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRouteWithChildren
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
+  '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
   '/analytics/alerts': typeof AnalyticsAlertsRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/items'
     | '/more'
+    | '/reports'
     | '/revenue'
     | '/trading'
     | '/analytics/alerts'
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/accounts'
     | '/items'
     | '/more'
+    | '/reports'
     | '/revenue'
     | '/analytics/alerts'
     | '/analytics/compare'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/items'
     | '/more'
+    | '/reports'
     | '/revenue'
     | '/trading'
     | '/analytics/alerts'
@@ -341,6 +353,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRouteWithChildren
   ItemsRoute: typeof ItemsRouteWithChildren
   MoreRoute: typeof MoreRoute
+  ReportsRoute: typeof ReportsRoute
   RevenueRoute: typeof RevenueRoute
   TradingRoute: typeof TradingRouteWithChildren
   SettingsConnectionRoute: typeof SettingsConnectionRoute
@@ -381,6 +394,13 @@ declare module '@tanstack/react-router' {
       path: '/more'
       fullPath: '/more'
       preLoaderRoute: typeof MoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/revenue': {
@@ -612,6 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRouteWithChildren,
   ItemsRoute: ItemsRouteWithChildren,
   MoreRoute: MoreRoute,
+  ReportsRoute: ReportsRoute,
   RevenueRoute: RevenueRoute,
   TradingRoute: TradingRouteWithChildren,
   SettingsConnectionRoute: SettingsConnectionRoute,

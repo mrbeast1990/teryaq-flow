@@ -69,4 +69,6 @@ export const API_ENDPOINTS = {
   itemsExpiry: () => "/api/items/expiry",
   salesInvoice: (movementNo: string | number) => `/api/invoices/sales/${movementNo}`,
   purchaseInvoice: (movementNo: string | number) => `/api/invoices/purchases/${movementNo}`,
+  reportSales: () => "/api/reports/sales",
+  reportPurchases: () => "/api/reports/purchases",
 } as const;

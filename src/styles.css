@@ -177,3 +177,82 @@
   font-variant-numeric: tabular-nums lining-nums;
   letter-spacing: -0.01em;
 }
+
+.report-table {
+  border-collapse: collapse;
+}
+
+.report-table th,
+.report-table td {
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.625rem;
+  vertical-align: top;
+}
+
+.report-table th {
+  background-color: var(--color-secondary);
+  color: var(--color-muted-foreground);
+  font-weight: 900;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: #111 !important;
+  }
+
+  body {
+    font-size: 11px;
+  }
+
+  .no-print,
+  header,
+  nav,
+  [role="navigation"] {
+    display: none !important;
+  }
+
+  .report-print-area button:not(.card-surface) {
+    display: none !important;
+  }
+
+  .report-print-area {
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  .report-print-area,
+  .report-print-area * {
+    color: #111 !important;
+  }
+
+  .report-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    page-break-inside: auto;
+  }
+
+  .report-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .report-table th,
+  .report-table td {
+    border: 1px solid #d4d4d4 !important;
+    padding: 5px 6px;
+  }
+
+  .card-surface {
+    box-shadow: none !important;
+  }
+}

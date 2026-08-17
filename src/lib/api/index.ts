@@ -495,6 +495,33 @@ export interface InvoiceDetailsResponse {
   items: InvoiceItemRow[];
 }
 
+export interface ReportInvoiceRow {
+  rowNo?: number | null;
+  date: string;
+  movementNo: number | string;
+  invoiceNo?: number | string | null;
+  personName?: string | null;
+  movementType?: string | null;
+  itemCount?: number | null;
+  total: number;
+  accountNo?: number | string | null;
+}
+
+export interface ReportSummary {
+  movementCount: number;
+  totalAmount: number;
+  averageAmount?: number | null;
+}
+
+export interface PagedReportResponse<T> {
+  success: boolean;
+  profile?: string | null | undefined;
+  page?: number | null;
+  pageSize?: number | null;
+  rows: T[];
+  summary: ReportSummary;
+}
+
 export function getSystemStatus(): Promise<SystemStatus> {
   return apiRequest<SystemStatus>(API_ENDPOINTS.status());
 }
@@ -650,6 +677,26 @@ export function getSalesInvoice(movementNo: string | number): Promise<InvoiceDet
 
 export function getPurchaseInvoice(movementNo: string | number): Promise<InvoiceDetailsResponse> {
   return apiRequest<InvoiceDetailsResponse>(API_ENDPOINTS.purchaseInvoice(movementNo));
+}
+
+export function getSalesReport(params: {
+  dateFrom: string;
+  dateTo: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedReportResponse<ReportInvoiceRow>> {
+  return apiRequest<PagedReportResponse<ReportInvoiceRow>>(API_ENDPOINTS.reportSales(), { query: params });
+}
+
+export function getPurchasesReport(params: {
+  dateFrom: string;
+  dateTo: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedReportResponse<ReportInvoiceRow>> {
+  return apiRequest<PagedReportResponse<ReportInvoiceRow>>(API_ENDPOINTS.reportPurchases(), { query: params });
 }
 
 export function getOutOfStock(): Promise<StockInfoResponse> {
