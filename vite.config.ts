@@ -12,6 +12,10 @@ export default defineConfig({
       allowedHosts: ["flow.altiryaq-pharma.com"],
     },
   },
+  nitro: {
+    preset: "node-server",
+    serveStatic: true,
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

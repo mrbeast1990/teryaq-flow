@@ -7,6 +7,8 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "start": "node .output/server/index.mjs",
+    "start:prod": "set NITRO_HOST=127.0.0.1&& set NITRO_PORT=5180&& node .output/server/index.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."
