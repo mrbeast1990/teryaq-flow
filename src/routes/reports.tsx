@@ -73,6 +73,12 @@ const REPORTS: {
   { id: "trading", title: "تقرير المتاجرة والأرباح", subtitle: "أرقام رسمية من The_Profit فقط", icon: TrendingUp },
 ];
 
+const REPORT_GROUPS: { title: string; ids: ReportType[] }[] = [
+  { title: "المالية", ids: ["sales", "purchases", "trading"] },
+  { title: "الحسابات", ids: ["customer-statement", "supplier-statement"] },
+  { title: "المخزون", ids: ["inventory", "out-of-stock", "expiry"] },
+];
+
 const EXPIRY_BUCKETS = [
   { id: "expired", label: "منتهي" },
   { id: "0-30", label: "خلال 30 يوم" },
@@ -118,40 +124,69 @@ function getErrorMessage(error: unknown) {
   return error instanceof ApiError || error instanceof Error ? error.message : undefined;
 }
 
+function reportGroupTitle(id: ReportType) {
+  if (id === "sales") return "المالية";
+  if (id === "customer-statement") return "الحسابات";
+  if (id === "inventory") return "المخزون";
+  return null;
+}
+
 function ReportsPage() {
   const [activeReport, setActiveReport] = useState<ReportType>("sales");
+  const activeReportMeta = REPORTS.find((report) => report.id === activeReport);
 
   return (
     <AppShell>
       <PageHeader title="مركز التقارير" />
 
       <div className="space-y-6">
-        <div className="no-print">
+        <div className="no-print space-y-4">
           <SectionHeader title="التقارير المتاحة" />
-          <div className="grid gap-2 sm:grid-cols-2">
+          <p className="text-[12px] font-medium leading-6 text-muted-foreground">
+            اختر التقرير ثم حمّل البيانات المطلوبة فقط. التقارير الكبيرة لا تُحمّل تلقائيًا.
+          </p>
+          <div className="space-y-2">
             {REPORTS.map((report) => {
               const Icon = report.icon;
               const active = activeReport === report.id;
+              const groupTitle = reportGroupTitle(report.id);
               return (
+                <div key={report.id} className="space-y-2">
+                  {groupTitle ? (
+                    <div className="flex items-center gap-2 pt-2 first:pt-0">
+                      <span className="h-px flex-1 bg-border" />
+                      <h2 className="text-[12px] font-black text-primary">{groupTitle}</h2>
+                      <span className="h-px flex-1 bg-border" />
+                    </div>
+                  ) : null}
                 <button
-                  key={report.id}
                   type="button"
                   onClick={() => setActiveReport(report.id)}
-                  className={`card-surface flex min-h-20 items-start gap-3 p-3 text-right transition-colors ${
-                    active ? "border-primary bg-primary-soft/50" : "hover:bg-secondary/50"
+                  aria-pressed={active}
+                  className={`flex min-h-[84px] w-full items-start gap-3 rounded-xl border bg-card p-3 text-right shadow-sm transition-all active:scale-[0.99] ${
+                    active ? "border-primary bg-primary-soft/60 ring-2 ring-primary/15" : "border-border hover:border-primary/30 hover:bg-secondary/50"
                   }`}
                 >
-                  <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${active ? "bg-primary text-primary-foreground" : "bg-secondary text-primary"}`}>
+                  <span className={`grid size-10 shrink-0 place-items-center rounded-lg ${active ? "bg-primary text-primary-foreground" : "bg-secondary text-primary"}`}>
                     <Icon className="size-4" />
                   </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13px] font-black">{report.title}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-start justify-between gap-2">
+                      <span className="block text-[13px] font-black leading-5">{report.title}</span>
+                      {active ? <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-primary-foreground">محدد</span> : null}
+                    </span>
                     <span className="mt-1 block text-[11px] leading-5 text-muted-foreground">{report.subtitle}</span>
                   </span>
                 </button>
+                </div>
               );
             })}
           </div>
+          {activeReportMeta ? (
+            <div className="rounded-xl border border-primary/20 bg-primary-soft/40 px-3 py-2 text-[12px] font-bold text-primary">
+              التقرير المحدد: {activeReportMeta.title}
+            </div>
+          ) : null}
         </div>
 
         {activeReport === "sales" && <InvoiceReport kind="sales" />}
@@ -182,7 +217,7 @@ function ReportPaper({
 
   return (
     <section className="report-print-area card-surface overflow-hidden">
-      <div className="border-b border-border bg-secondary/40 p-4">
+      <div className="report-paper-header border-b border-border bg-secondary/40 p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-[12px] font-black text-primary">صيدلية الترياق الشافي</p>
@@ -293,7 +328,7 @@ function InvoiceReport({ kind }: { kind: "sales" | "purchases" }) {
 
   return (
     <div className="space-y-4">
-      <div className="no-print card-surface space-y-3 p-3">
+      <div className="no-print report-config-panel space-y-3 p-3">
         <DateRangeControls dateFrom={dateFrom} dateTo={dateTo} onDateFrom={setDateFrom} onDateTo={setDateTo} />
         <SearchInput value={search} onChange={setSearch} placeholder={kind === "sales" ? "بحث برقم الفاتورة أو الزبون" : "بحث برقم الفاتورة أو المورد"} />
         <ActionButton label="إنشاء التقرير" icon={RefreshCw} onClick={runReport} disabled={query.isFetching} />
@@ -411,7 +446,7 @@ function StatementReport({ kind }: { kind: "customer" | "supplier" }) {
 
   return (
     <div className="space-y-4">
-      <div className="no-print card-surface space-y-3 p-3">
+      <div className="no-print report-config-panel space-y-3 p-3">
         <SearchInput value={search} onChange={setSearch} placeholder={kind === "customer" ? "ابحث عن زبون" : "ابحث عن مورد"} />
         {query.isLoading && <LoadingState rows={2} />}
         {query.isError && <ErrorState description={errorMessage} onRetry={() => query.refetch()} />}
@@ -472,7 +507,7 @@ function InventoryReport({ kind }: { kind: "inventory" | "out-of-stock" | "expir
 
   return (
     <div className="space-y-4">
-      <div className="no-print card-surface space-y-3 p-3">
+      <div className="no-print report-config-panel space-y-3 p-3">
         {kind === "expiry" && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {EXPIRY_BUCKETS.map((option) => (
@@ -566,7 +601,7 @@ function TradingReport() {
 
   return (
     <div className="space-y-4">
-      <div className="no-print card-surface space-y-3 p-3">
+      <div className="no-print report-config-panel space-y-3 p-3">
         <DateRangeControls dateFrom={dateFrom} dateTo={dateTo} onDateFrom={setDateFrom} onDateTo={setDateTo} />
         <ActionButton label="إنشاء التقرير الرسمي" icon={RefreshCw} onClick={() => setRequest({ dateFrom, dateTo })} disabled={query.isFetching} />
       </div>

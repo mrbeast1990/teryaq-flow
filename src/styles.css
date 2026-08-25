@@ -180,6 +180,7 @@
 
 .report-table {
   border-collapse: collapse;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .report-table th,
@@ -193,6 +194,23 @@
   background-color: var(--color-secondary);
   color: var(--color-muted-foreground);
   font-weight: 900;
+}
+
+.report-config-panel {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.report-paper-header {
+  background:
+    linear-gradient(180deg, oklch(0.95 0.03 190 / 0.65), transparent),
+    var(--color-card);
+}
+
+.report-print-area {
+  border-radius: var(--radius);
 }
 
 @media print {
@@ -228,6 +246,11 @@
     border-radius: 0 !important;
     background: white !important;
     overflow: visible !important;
+  }
+
+  .report-paper-header {
+    background: white !important;
+    border-bottom: 2px solid #111 !important;
   }
 
   .report-print-area,
