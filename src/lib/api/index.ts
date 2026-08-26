@@ -146,6 +146,7 @@ export interface RevenueMovementDetailsResponse {
     paymentMethod?: string | null;
     accountNo?: number | string | null;
     accountName?: string | null;
+    customerId?: number | string | null;
     customerName?: string | null;
     sellerName?: string | null;
   } | null;
@@ -507,6 +508,18 @@ export interface ReportInvoiceRow {
   accountNo?: number | string | null;
 }
 
+export interface ReportPaymentRow {
+  rowNo?: number | null;
+  date: string;
+  personName?: string | null;
+  amount: number;
+  paymentMethod?: string | null;
+  paymentNo: number | string;
+  movementNo?: number | string | null;
+  notes?: string | null;
+  personLabel?: string | null;
+}
+
 export interface ReportSummary {
   movementCount: number;
   totalAmount: number;
@@ -697,6 +710,37 @@ export function getPurchasesReport(params: {
   pageSize?: number;
 }): Promise<PagedReportResponse<ReportInvoiceRow>> {
   return apiRequest<PagedReportResponse<ReportInvoiceRow>>(API_ENDPOINTS.reportPurchases(), { query: params });
+}
+
+export function getReturnsReport(params: {
+  type: "sales" | "purchase";
+  dateFrom: string;
+  dateTo: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedReportResponse<ReportInvoiceRow>> {
+  return apiRequest<PagedReportResponse<ReportInvoiceRow>>(API_ENDPOINTS.reportReturns(), { query: params });
+}
+
+export function getCustomerReceiptsReport(params: {
+  dateFrom: string;
+  dateTo: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedReportResponse<ReportPaymentRow>> {
+  return apiRequest<PagedReportResponse<ReportPaymentRow>>(API_ENDPOINTS.reportCustomerReceipts(), { query: params });
+}
+
+export function getSupplierPaymentsReport(params: {
+  dateFrom: string;
+  dateTo: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedReportResponse<ReportPaymentRow>> {
+  return apiRequest<PagedReportResponse<ReportPaymentRow>>(API_ENDPOINTS.reportSupplierPayments(), { query: params });
 }
 
 export function getOutOfStock(): Promise<StockInfoResponse> {

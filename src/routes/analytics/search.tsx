@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, FileText, PackageSearch, Receipt, Users, Truck, WalletCards } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/teryaq/AppShell";
+import { InvoiceDetailsView } from "@/components/teryaq/accounts/InvoiceDetailsView";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SearchInput } from "@/components/teryaq/SearchInput";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
@@ -40,8 +41,21 @@ function targetIcon(type: string) {
   return FileText;
 }
 
-function ResultCard({ row }: { row: AnalyticsSearchRow }) {
+function invoiceType(row: AnalyticsSearchRow): "sales" | "purchase" | null {
+  if (row.targetType === "sales-invoice") return "sales";
+  if (row.targetType === "purchase-invoice") return "purchase";
+  return null;
+}
+
+function ResultCard({
+  row,
+  onOpenInvoice,
+}: {
+  row: AnalyticsSearchRow;
+  onOpenInvoice: (type: "sales" | "purchase", movementNo: string) => void;
+}) {
   const href = targetHref(row);
+  const invoice = invoiceType(row);
   const Icon = targetIcon(row.targetType);
   const content = (
     <div className="card-surface grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50">
@@ -54,10 +68,22 @@ function ResultCard({ row }: { row: AnalyticsSearchRow }) {
       </div>
       <div className="shrink-0 text-left">
         <p className="text-[11px] font-bold text-muted-foreground">{TYPE_LABELS[row.targetType] || row.resultType}</p>
-        {href ? <p className="text-[11px] font-bold text-primary">فتح</p> : null}
+        {href || invoice ? <p className="text-[11px] font-bold text-primary">فتح</p> : null}
       </div>
     </div>
   );
+
+  if (invoice) {
+    return (
+      <button
+        type="button"
+        onClick={() => onOpenInvoice(invoice, String(row.targetId))}
+        className="block w-full touch-manipulation text-right active:scale-[0.99]"
+      >
+        {content}
+      </button>
+    );
+  }
 
   if (!href) return content;
   return (
@@ -69,6 +95,7 @@ function ResultCard({ row }: { row: AnalyticsSearchRow }) {
 
 function GlobalSearchPage() {
   const [query, setQuery] = useState("");
+  const [selectedInvoice, setSelectedInvoice] = useState<{ type: "sales" | "purchase"; movementNo: string } | null>(null);
   const trimmed = query.trim();
 
   const searchQuery = useQuery({
@@ -87,6 +114,18 @@ function GlobalSearchPage() {
     }, {});
   }, [rows]);
   const errorMessage = searchQuery.error instanceof ApiError || searchQuery.error instanceof Error ? searchQuery.error.message : undefined;
+
+  if (selectedInvoice) {
+    return (
+      <AppShell>
+        <InvoiceDetailsView
+          type={selectedInvoice.type}
+          movementNo={selectedInvoice.movementNo}
+          onBack={() => setSelectedInvoice(null)}
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -125,7 +164,11 @@ function GlobalSearchPage() {
               </div>
               <div className="space-y-2">
                 {typeRows.map((row) => (
-                  <ResultCard key={`${row.targetType}-${row.targetId}-${row.title}`} row={row} />
+                  <ResultCard
+                    key={`${row.targetType}-${row.targetId}-${row.title}`}
+                    row={row}
+                    onOpenInvoice={(type, movementNo) => setSelectedInvoice({ type, movementNo })}
+                  />
                 ))}
               </div>
             </section>

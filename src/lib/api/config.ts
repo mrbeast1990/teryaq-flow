@@ -71,4 +71,7 @@ export const API_ENDPOINTS = {
   purchaseInvoice: (movementNo: string | number) => `/api/invoices/purchases/${movementNo}`,
   reportSales: () => "/api/reports/sales",
   reportPurchases: () => "/api/reports/purchases",
+  reportReturns: () => "/api/reports/returns",
+  reportCustomerReceipts: () => "/api/reports/customer-receipts",
+  reportSupplierPayments: () => "/api/reports/supplier-payments",
 } as const;

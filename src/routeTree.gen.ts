@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountsRouteImport } from './routes/accounts'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
+import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as TradingRouteImport } from './routes/trading'
@@ -52,6 +54,11 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvoicesRoute = InvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemsRoute = ItemsRouteImport.update({
   id: '/items',
   path: '/items',
@@ -60,6 +67,11 @@ const ItemsRoute = ItemsRouteImport.update({
 const MoreRoute = MoreRouteImport.update({
   id: '/more',
   path: '/more',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentsRoute = PaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -177,8 +189,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
   '/analytics': typeof AnalyticsRouteWithChildren
+  '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
+  '/payments': typeof PaymentsRoute
   '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
@@ -205,8 +219,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
+  '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
+  '/payments': typeof PaymentsRoute
   '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/analytics/alerts': typeof AnalyticsAlertsRoute
@@ -234,8 +250,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
   '/analytics': typeof AnalyticsRouteWithChildren
+  '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
+  '/payments': typeof PaymentsRoute
   '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
@@ -265,8 +283,10 @@ export interface FileRouteTypes {
     | '/'
     | '/accounts'
     | '/analytics'
+    | '/invoices'
     | '/items'
     | '/more'
+    | '/payments'
     | '/reports'
     | '/revenue'
     | '/trading'
@@ -293,8 +313,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/accounts'
+    | '/invoices'
     | '/items'
     | '/more'
+    | '/payments'
     | '/reports'
     | '/revenue'
     | '/analytics/alerts'
@@ -321,8 +343,10 @@ export interface FileRouteTypes {
     | '/'
     | '/accounts'
     | '/analytics'
+    | '/invoices'
     | '/items'
     | '/more'
+    | '/payments'
     | '/reports'
     | '/revenue'
     | '/trading'
@@ -351,8 +375,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountsRoute: typeof AccountsRouteWithChildren
   AnalyticsRoute: typeof AnalyticsRouteWithChildren
+  InvoicesRoute: typeof InvoicesRoute
   ItemsRoute: typeof ItemsRouteWithChildren
   MoreRoute: typeof MoreRoute
+  PaymentsRoute: typeof PaymentsRoute
   ReportsRoute: typeof ReportsRoute
   RevenueRoute: typeof RevenueRoute
   TradingRoute: typeof TradingRouteWithChildren
@@ -382,6 +408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invoices': {
+      id: '/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof InvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/items': {
       id: '/items'
       path: '/items'
@@ -394,6 +427,13 @@ declare module '@tanstack/react-router' {
       path: '/more'
       fullPath: '/more'
       preLoaderRoute: typeof MoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payments': {
+      id: '/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof PaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -630,8 +670,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountsRoute: AccountsRouteWithChildren,
   AnalyticsRoute: AnalyticsRouteWithChildren,
+  InvoicesRoute: InvoicesRoute,
   ItemsRoute: ItemsRouteWithChildren,
   MoreRoute: MoreRoute,
+  PaymentsRoute: PaymentsRoute,
   ReportsRoute: ReportsRoute,
   RevenueRoute: RevenueRoute,
   TradingRoute: TradingRouteWithChildren,
