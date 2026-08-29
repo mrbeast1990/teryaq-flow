@@ -13,13 +13,21 @@ import { PageHeader } from "@/components/teryaq/PageHeader";
 import { StatusBadge } from "@/components/teryaq/StatusBadge";
 import { ErrorState, LoadingState } from "@/components/teryaq/States";
 import { InvoiceDetailsView } from "@/components/teryaq/accounts/InvoiceDetailsView";
-import { API_BASE_URL, ApiError, getRevenueDetails, getRevenueMovementDetails, type RevenueMovementRow } from "@/lib/api";
+import {
+  API_BASE_URL,
+  ApiError,
+  getRevenueDetails,
+  getRevenueMovementDetails,
+  type RevenueMovementRow,
+  type RevenueSellerSourceTotal,
+} from "@/lib/api";
 
 export const Route = createFileRoute("/revenue")({
   component: RevenuePage,
 });
 
 type PeriodBreakdown = {
+  sellerId: number | string;
   periodName: string;
   total: number;
   movementCount: number;
@@ -36,6 +44,16 @@ type PeriodBreakdown = {
 function toNumber(value: unknown) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function sameSeller(
+  source: Pick<RevenueSellerSourceTotal, "sellerId" | "sellerName">,
+  period: Pick<PeriodBreakdown, "sellerId" | "periodName">,
+) {
+  const sourceSellerId = source.sellerId == null ? "" : String(source.sellerId);
+  const periodSellerId = period.sellerId == null ? "" : String(period.sellerId);
+  if (sourceSellerId && periodSellerId) return sourceSellerId === periodSellerId;
+  return source.sellerName === period.periodName;
 }
 
 function formatMoney(value: number) {
@@ -62,37 +80,55 @@ function isSalesInvoiceMovement(movement: RevenueMovementRow) {
   return true;
 }
 
-function buildPeriodBreakdowns(rows: RevenueMovementRow[], sellerTotals: Array<{ sellerName: string; total: number; movementCount: number }>) {
+function buildPeriodBreakdowns(
+  rows: RevenueMovementRow[],
+  sellerTotals: Array<{ sellerId: number | string; sellerName: string; total: number; movementCount: number }>,
+  sellerSourceTotals: RevenueSellerSourceTotal[] = [],
+) {
   return sellerTotals.map<PeriodBreakdown>((period) => {
     const periodRows = rows.filter((row) => (row.period || row.sellerName) === period.sellerName);
-    const sourceMap = new Map<string, RevenueMovementRow[]>();
+    const movementMap = new Map<string, RevenueMovementRow[]>();
 
     for (const row of periodRows) {
       const sourceName = row.revenueSource || row.paymentMethod || row.movementType || "غير محدد";
-      const list = sourceMap.get(sourceName) ?? [];
+      const list = movementMap.get(sourceName) ?? [];
       list.push(row);
-      sourceMap.set(sourceName, list);
+      movementMap.set(sourceName, list);
     }
 
-    const sources = Array.from(sourceMap.entries()).map(([name, movements]) => {
-      const total = movements.reduce((sum, row) => sum + toNumber(row.amount), 0);
+    const periodKey = { sellerId: period.sellerId, periodName: period.sellerName };
+    const sources = sellerSourceTotals
+      .filter((source) => sameSeller(source, periodKey))
+      .map((source) => {
+        const name = source.revenueSource || "غير محدد";
+        return {
+          name,
+          total: toNumber(source.total),
+          movementCount: toNumber(source.movementCount),
+          movements: movementMap.get(name) ?? [],
+        };
+      });
+
+    const fallbackSources = Array.from(movementMap.entries()).map(([name, movements]) => {
       return {
         name,
-        total,
+        total: movements.reduce((sum, row) => sum + toNumber(row.amount), 0),
         movementCount: movements.length,
         movements,
       };
     });
 
-    const sourceTotal = sources.reduce((sum, source) => sum + source.total, 0);
+    const fullSources = sources.length ? sources : fallbackSources;
+    const sourceTotal = fullSources.reduce((sum, source) => sum + source.total, 0);
 
     return {
+      sellerId: period.sellerId,
       periodName: period.sellerName,
       total: toNumber(period.total),
       movementCount: toNumber(period.movementCount),
       sourceTotal,
       difference: sourceTotal - toNumber(period.total),
-      sources,
+      sources: fullSources,
     };
   });
 }
@@ -117,7 +153,7 @@ function RevenuePage() {
   const isAuthRequired = apiError?.type === "AUTH_REQUIRED";
 
   const periodBreakdowns = useMemo(
-    () => (data ? buildPeriodBreakdowns(data.rows ?? [], data.sellerTotals ?? []) : []),
+    () => (data ? buildPeriodBreakdowns(data.rows ?? [], data.sellerTotals ?? [], data.sellerSourceTotals ?? []) : []),
     [data],
   );
 

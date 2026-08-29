@@ -83,6 +83,14 @@ export interface RevenueSellerTotal {
   movementCount: number;
 }
 
+export interface RevenueSellerSourceTotal {
+  sellerId: number | string;
+  sellerName: string;
+  revenueSource: string;
+  total: number;
+  movementCount: number;
+}
+
 export interface RevenueMovementRow {
   movementNo: number | string;
   invoiceNo: number | string;
@@ -124,6 +132,7 @@ export interface RevenueDetailsResponse {
   summary: RevenueSummary;
   sources: RevenueSourceTotal[];
   sellerTotals: RevenueSellerTotal[];
+  sellerSourceTotals?: RevenueSellerSourceTotal[];
   filterOptions?: RevenueFilterOption[];
   rows: RevenueMovementRow[];
 }
