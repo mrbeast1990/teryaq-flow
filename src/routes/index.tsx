@@ -141,9 +141,9 @@ function Index() {
             icon={Wallet}
           />
           <KPICard
-            label="أرباح اليوم"
-            value={renderValue(loadingProfit, profit?.profit)}
-            hint={profit?.margin ? `هامش ${profit.margin}٪` : undefined}
+            label="مجمل ربح اليوم"
+            value={renderValue(loadingProfit, profit?.summary?.grossProfit)}
+            hint="د.ل"
             tone="success"
             icon={TrendingUp}
           />

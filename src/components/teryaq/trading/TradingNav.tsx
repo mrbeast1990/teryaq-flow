@@ -1,4 +1,4 @@
-import { TrendingUp, BarChart3, Package, Calendar } from "lucide-react";
+import { TrendingUp, Package } from "lucide-react";
 import { CompactListCard } from "../CompactListCard";
 import { SectionHeader } from "../SectionHeader";
 
@@ -6,27 +6,15 @@ export function TradingNav() {
   const items = [
     {
       title: "المتاجرة والأرباح",
-      subtitle: "نظرة عامة على الأداء المالي",
+      subtitle: "المبيعات والتكلفة ومجمل الربح الرسمي",
       icon: TrendingUp,
       to: "/trading",
     },
     {
-      title: "أرباح الأيام",
-      subtitle: "النتائج المالية حسب التاريخ",
-      icon: Calendar,
-      to: "/trading/daily",
-    },
-    {
-      title: "أرباح الأصناف",
-      subtitle: "تحليل ربحية كل صنف على حدة",
+      title: "تحليل ربحية الأصناف",
+      subtitle: "تحليل تقديري منفصل عن الربح الرسمي",
       icon: Package,
       to: "/trading/items",
-    },
-    {
-      title: "ملخص الأرباح",
-      subtitle: "تحليل هوامش الربح والتكاليف",
-      icon: BarChart3,
-      to: "/trading/profit",
     },
   ];
 

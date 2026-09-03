@@ -225,6 +225,9 @@ export interface TradingProfitMovement {
   sourceTable?: string | null;
   movementNo?: number | string | null;
   invoiceNo?: number | string | null;
+  movementCreatedAt?: string | null;
+  movementHasRealTime?: number | boolean | null;
+  movementDateTimeSource?: string | null;
   customerName?: string | null;
   sellerName?: string | null;
   paymentMethod?: string | null;
