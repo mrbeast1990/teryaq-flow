@@ -1,12 +1,12 @@
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, CreditCard, FileText, ReceiptText, Search, WalletCards } from "lucide-react";
+import { ChevronLeft, CreditCard, FileText, Printer, ReceiptText, Search, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { InvoiceDetailsView } from "@/components/teryaq/accounts/InvoiceDetailsView";
 import { PageHeader } from "@/components/teryaq/PageHeader";
+import { PrintFooter, PrintHeader } from "@/components/teryaq/print/PrintHeader";
 import { SearchInput } from "@/components/teryaq/SearchInput";
 import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
@@ -267,7 +267,7 @@ function PaymentRowCard({ row, label, onOpen }: { row: ReportPaymentRow; label: 
           <span className="num text-[11px] font-bold text-muted-foreground">حركة {row.paymentNo}</span>
           {row.movementNo ? <span className="num text-[11px] font-bold text-muted-foreground">مرتبطة بحركة {row.movementNo}</span> : null}
         </div>
-        <p className="truncate text-[13px] font-black">{row.personName || "حساب غير محدد"}</p>
+        <p className="text-[13px] font-black leading-snug">{row.personName || "حساب غير محدد"}</p>
         <p className="text-[11px] text-muted-foreground">
           {formatDate(row.date)}
           {row.paymentMethod ? ` · ${row.paymentMethod}` : ""}
@@ -306,15 +306,23 @@ function PaymentDetailsView({
   const partyRoute = partyId ? (isCustomer ? `/accounts/customers/${partyId}` : `/accounts/suppliers/${partyId}`) : null;
   const realTime = movement?.movementHasRealTime ? formatTime(movement.movementCreatedAt) : null;
   const errorMessage = getErrorMessage(query.error);
+  const receiptTitle = isCustomer ? "إيصال قبض" : "إيصال سداد";
+  const amount = Math.abs(Number(movement?.amount ?? row.amount ?? 0));
+  const partyName = movement?.customerName || row.personName || "-";
+  const movementDate = movement?.movementDate || row.date;
+  const paymentMethod = movement?.paymentMethod || row.paymentMethod || "-";
 
   return (
-    <div className="space-y-4 pb-8">
-      <div className="sticky top-0 z-20 -mx-4 flex items-center justify-between border-b bg-background/95 px-4 py-2 backdrop-blur-md">
+    <div className="receipt-print-area space-y-4 pb-8">
+      <div className="no-print sticky top-0 z-20 flex items-center justify-between border-b bg-background/95 px-1 py-2 backdrop-blur-md">
         <button type="button" onClick={onBack} className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12px] font-bold hover:bg-secondary">
           <ChevronLeft className="size-4 rotate-180" />
           رجوع
         </button>
         <span className="text-[12px] font-black">{isCustomer ? "تفاصيل المقبوض" : "تفاصيل السداد"}</span>
+        <button type="button" onClick={() => window.print()} className="grid size-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary" title="طباعة إيصال">
+          <Printer className="size-4" />
+        </button>
       </div>
 
       {query.isLoading ? (
@@ -322,46 +330,64 @@ function PaymentDetailsView({
       ) : query.isError ? (
         <ErrorState description={errorMessage} onRetry={() => query.refetch()} />
       ) : (
-        <section className="card-surface space-y-4 p-4">
-          <div>
-            <p className="text-[11px] font-bold text-muted-foreground">رقم حركة الدفع</p>
-            <h1 className="num text-xl font-black text-primary">{movement?.movementNo || row.paymentNo}</h1>
+        <>
+          <div className="print-only">
+            <PrintHeader title={receiptTitle} subtitle={formatDate(movementDate)} />
+            <section className="print-meta-grid">
+              <div><span>رقم الحركة</span><strong>{movement?.movementNo || row.paymentNo}</strong></div>
+              <div><span>التاريخ</span><strong>{formatDate(movementDate)}</strong></div>
+              {realTime ? <div><span>الوقت</span><strong>{realTime}</strong></div> : null}
+              <div><span>{isCustomer ? "الزبون" : "المورد"}</span><strong>{partyName}</strong></div>
+              <div><span>المبلغ</span><strong>{formatCurrency(amount)}</strong></div>
+              <div><span>طريقة الدفع</span><strong>{paymentMethod}</strong></div>
+              {linkedMovementNo ? <div><span>الفاتورة المرتبطة</span><strong>{linkedMovementNo}</strong></div> : null}
+              {row.notes ? <div><span>ملاحظات</span><strong>{row.notes}</strong></div> : null}
+            </section>
+            <PrintFooter />
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <InfoBlock label={isCustomer ? "الزبون" : "المورد"} value={movement?.customerName || row.personName || "-"} />
-            <InfoBlock label="المبلغ" value={formatCurrency(Math.abs(Number(movement?.amount ?? row.amount ?? 0)))} />
-            <InfoBlock label="التاريخ" value={formatDate(movement?.movementDate || row.date)} />
-            <InfoBlock label="الوقت" value={realTime || "غير متوفر"} />
-            <InfoBlock label="طريقة الدفع" value={movement?.paymentMethod || row.paymentMethod || "-"} />
-            <InfoBlock label="الحساب" value={movement?.accountName || row.personLabel || "-"} />
-          </div>
-
-          {row.notes ? (
-            <div className="rounded-lg bg-secondary/60 p-3 text-[12px] font-bold text-muted-foreground">
-              {row.notes}
+          <section className="card-surface space-y-4 p-4">
+            <div>
+              <p className="text-[11px] font-bold text-muted-foreground">رقم حركة الدفع</p>
+              <h1 className="num text-xl font-black text-primary">{movement?.movementNo || row.paymentNo}</h1>
             </div>
-          ) : null}
 
-          <div className="flex flex-wrap gap-2">
-            {linkedMovementNo ? (
-              <ActionButton
-                label={isCustomer ? "فتح فاتورة البيع المرتبطة" : "فتح فاتورة الشراء المرتبطة"}
-                icon={FileText}
-                onClick={() => onOpenInvoice(String(linkedMovementNo))}
-              />
-            ) : (
-              <span className="rounded-lg bg-secondary px-3 py-2 text-[12px] font-bold text-muted-foreground">
-                لا توجد فاتورة مرتبطة بعلاقة مؤكدة من قاعدة البيانات.
-              </span>
-            )}
-            {partyRoute ? (
-              <Link to={partyRoute} className="inline-flex h-9 items-center rounded-lg border border-border bg-card px-3 text-[12px] font-bold hover:bg-secondary">
-                فتح الحساب
-              </Link>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <InfoBlock label={isCustomer ? "الزبون" : "المورد"} value={partyName} />
+              <InfoBlock label="المبلغ" value={formatCurrency(amount)} />
+              <InfoBlock label="التاريخ" value={formatDate(movementDate)} />
+              <InfoBlock label="الوقت" value={realTime || "غير متوفر"} />
+              <InfoBlock label="طريقة الدفع" value={paymentMethod} />
+              <InfoBlock label="الحساب" value={movement?.accountName || row.personLabel || "-"} />
+            </div>
+
+            {row.notes ? (
+              <div className="rounded-lg bg-secondary/60 p-3 text-[12px] font-bold text-muted-foreground">
+                {row.notes}
+              </div>
             ) : null}
-          </div>
-        </section>
+
+            <div className="flex flex-wrap gap-2">
+              <ActionButton label="طباعة إيصال" icon={Printer} onClick={() => window.print()} variant="outline" />
+              {linkedMovementNo ? (
+                <ActionButton
+                  label={isCustomer ? "فتح فاتورة البيع المرتبطة" : "فتح فاتورة الشراء المرتبطة"}
+                  icon={FileText}
+                  onClick={() => onOpenInvoice(String(linkedMovementNo))}
+                />
+              ) : (
+                <span className="rounded-lg bg-secondary px-3 py-2 text-[12px] font-bold text-muted-foreground">
+                  لا توجد فاتورة مرتبطة بعلاقة مؤكدة من قاعدة البيانات.
+                </span>
+              )}
+              {partyRoute ? (
+                <Link to={partyRoute} className="inline-flex h-9 items-center rounded-lg border border-border bg-card px-3 text-[12px] font-bold hover:bg-secondary">
+                  فتح الحساب
+                </Link>
+              ) : null}
+            </div>
+          </section>
+        </>
       )}
     </div>
   );

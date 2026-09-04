@@ -1,6 +1,8 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { Printer } from "lucide-react";
 import { useState } from "react";
+import { ActionButton } from "@/components/teryaq/ActionButton";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
@@ -19,6 +21,13 @@ export const Route = createFileRoute("/accounts/customers/$id")({
 
 function formatNumber(value?: number | null) {
   return new Intl.NumberFormat("ar-LY", { maximumFractionDigits: 2 }).format(Number(value || 0));
+}
+
+function balanceClass(value?: number | null) {
+  const balance = Number(value || 0);
+  if (balance > 0) return "text-success";
+  if (balance < 0) return "text-destructive";
+  return "";
 }
 
 function CustomerDetailsPage() {
@@ -52,7 +61,7 @@ function CustomerDetailsPage() {
 
   return (
     <AppShell>
-      <div className="sticky top-0 z-20 -mx-4 mb-2 bg-background/80 px-4 pb-2 pt-1 backdrop-blur-md">
+      <div className="sticky top-0 z-20 mb-2 bg-background/80 px-1 pb-2 pt-1 backdrop-blur-md">
         <PageHeader title="تفاصيل الزبون" subtitle={`معرف: ${id}`} showBack />
 
         <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/10 bg-primary/5 p-3">
@@ -68,7 +77,7 @@ function CustomerDetailsPage() {
               </div>
               <div className="shrink-0 text-left">
                 <p className="text-[10px] text-muted-foreground">الرصيد الحالي</p>
-                <p className="num text-base font-extrabold">{formatNumber(balance)}</p>
+                <p className={`num text-base font-extrabold ${balanceClass(balance)}`}>{formatNumber(balance)}</p>
               </div>
             </>
           )}
@@ -80,7 +89,14 @@ function CustomerDetailsPage() {
       </div>
 
       <div className="mt-2 min-h-[40vh]">
-        {activeTab === "statement" && <FinancialStatement type="customer" id={id} />}
+        {activeTab === "statement" && (
+          <div className="space-y-2">
+            <div className="no-print flex justify-end">
+              <ActionButton label="طباعة كشف الحساب" icon={Printer} onClick={() => window.print()} variant="outline" />
+            </div>
+            <FinancialStatement type="customer" id={id} accountName={name} accountPhone={phone} currentBalance={balance} />
+          </div>
+        )}
         {activeTab === "invoices" && <InvoiceList type="sales" accountId={id} />}
         {activeTab === "payments" && <PaymentList type="customer" accountId={id} />}
       </div>

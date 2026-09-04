@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Database, FileText, Info, ReceiptText, SlidersHorizontal, WalletCards } from "lucide-react";
+import { Database, FileText, Info, Printer, ReceiptText, SlidersHorizontal, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
@@ -52,12 +52,14 @@ function MorePage() {
               subtitle={subtitle}
               icon={Database}
               to="/settings/connection"
+              wrapText
             />
-            <CompactListCard title="مركز التقارير والطباعة" subtitle="تقارير مالية وتشغيلية قابلة للطباعة" icon={FileText} to="/reports" />
-            <CompactListCard title="مركز الفواتير" subtitle="فواتير البيع والشراء والمردودات مع فتح تفاصيل الفاتورة" icon={ReceiptText} to="/invoices" />
-            <CompactListCard title="المقبوضات والسدادات" subtitle="مقبوضات الزبائن وسدادات الموردين بدون ربط تخميني" icon={WalletCards} to="/payments" />
-            <CompactListCard title="تفضيلات العرض" subtitle="الترتيب والفلاتر الافتراضية" icon={SlidersHorizontal} />
-            <CompactListCard title="حول التطبيق" subtitle="Teryaq Flow · واجهة جديدة مرتبطة بـ Teryaq SQL Connector" icon={Info} />
+            <CompactListCard title="مركز التقارير والطباعة" subtitle="تقارير مالية وتشغيلية قابلة للطباعة" icon={FileText} to="/reports" wrapText />
+            <CompactListCard title="إعدادات الطباعة" subtitle="اسم الصيدلية والشعار والعنوان المستخدم في الفواتير وكشوف الحساب" icon={Printer} to="/settings/print" wrapText />
+            <CompactListCard title="مركز الفواتير" subtitle="فواتير البيع والشراء والمردودات مع فتح تفاصيل الفاتورة" icon={ReceiptText} to="/invoices" wrapText />
+            <CompactListCard title="المقبوضات والسدادات" subtitle="مقبوضات الزبائن وسدادات الموردين بدون ربط تخميني" icon={WalletCards} to="/payments" wrapText />
+            <CompactListCard title="تفضيلات العرض" subtitle="الترتيب والفلاتر الافتراضية" icon={SlidersHorizontal} wrapText />
+            <CompactListCard title="حول التطبيق" subtitle="Teryaq Flow · واجهة جديدة مرتبطة بـ Teryaq SQL Connector" icon={Info} wrapText />
           </div>
         </div>
       </div>

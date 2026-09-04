@@ -45,6 +45,13 @@ function matchesSearch(account: AccountPerson, search: string) {
     .some((value) => String(value).toLowerCase().includes(term));
 }
 
+function balanceTone(value?: number | null): "positive" | "negative" | "neutral" {
+  const balance = Number(value || 0);
+  if (balance > 0) return "positive";
+  if (balance < 0) return "negative";
+  return "neutral";
+}
+
 function exportCustomers(rows: AccountPerson[]) {
   if (!rows.length) {
     window.alert("لا توجد بيانات للتصدير.");
@@ -72,7 +79,7 @@ function exportCustomers(rows: AccountPerson[]) {
 
 function CustomersPage() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<BalanceFilter>("all");
+  const [filter, setFilter] = useState<BalanceFilter>("hasBalance");
 
   const query = useQuery({
     queryKey: ["accounts", "customers"],
@@ -84,7 +91,7 @@ function CustomersPage() {
     return customers
       .filter((account) => matchesSearch(account, search))
       .filter((account) => {
-        if (filter === "hasBalance") return Number(account.currentBalance || 0) > 0;
+        if (filter === "hasBalance") return Number(account.currentBalance || 0) !== 0;
         if (filter === "zeroBalance") return Number(account.currentBalance || 0) === 0;
         return true;
       });
@@ -94,7 +101,7 @@ function CustomersPage() {
 
   return (
     <AppShell>
-      <div className="sticky top-0 z-20 -mx-4 mb-2 bg-background/80 px-4 pb-2 pt-1 backdrop-blur-md">
+      <div className="sticky top-0 z-20 mb-2 bg-background/80 px-1 pb-2 pt-1 backdrop-blur-md">
         <PageHeader
           title="الزبائن"
           showBack
@@ -137,6 +144,7 @@ function CustomersPage() {
                 meta="الرصيد"
                 icon={UserRound}
                 to={`/accounts/customers/${account.id}`}
+                valueTone={balanceTone(account.currentBalance)}
               />
             ))}
           </div>

@@ -213,6 +213,152 @@
   border-radius: var(--radius);
 }
 
+.print-only {
+  display: none;
+}
+
+.print-doc-header {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) minmax(110px, auto);
+  gap: 14px;
+  align-items: center;
+  border-bottom: 2px solid #111;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.print-logo-box {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border: 1px solid #cfcfcf;
+  border-radius: 10px;
+  background: white;
+  overflow: hidden;
+  font-weight: 900;
+  color: #2f8f8c;
+}
+
+.print-logo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.print-doc-heading h1 {
+  font-size: 20px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.print-doc-heading p,
+.print-doc-title span,
+.print-meta-grid span,
+.print-doc-footer {
+  color: #555;
+}
+
+.print-doc-heading p {
+  margin: 1px 0;
+  font-size: 10.5px;
+}
+
+.print-doc-title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.print-doc-title strong {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.print-doc-title span {
+  font-size: 10px;
+}
+
+.print-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.print-meta-grid div {
+  border: 1px solid #ddd;
+  padding: 5px 7px;
+  min-height: 36px;
+}
+
+.print-meta-grid span {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.print-meta-grid strong {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.print-table th,
+.print-table td {
+  border: 1px solid #d4d4d4;
+  padding: 5px 6px;
+  vertical-align: top;
+}
+
+.print-table th {
+  background: #f2f4f4;
+  font-weight: 900;
+}
+
+.print-totals {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.print-totals div {
+  min-width: 220px;
+  border: 1px solid #111;
+  padding: 8px 10px;
+}
+
+.print-totals span {
+  display: block;
+  font-size: 10px;
+  color: #555;
+}
+
+.print-totals strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.print-doc-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #bbb;
+  margin-top: 12px;
+  padding-top: 6px;
+  font-size: 9.5px;
+}
+
 @media print {
   @page {
     size: A4;
@@ -233,6 +379,14 @@
   header,
   nav,
   [role="navigation"] {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .invoice-screen-content {
     display: none !important;
   }
 
@@ -264,15 +418,40 @@
     page-break-inside: auto;
   }
 
+  .print-table {
+    page-break-inside: auto;
+  }
+
+  .print-table thead,
+  .report-table thead {
+    display: table-header-group;
+  }
+
+  .print-table tfoot,
+  .report-table tfoot {
+    display: table-footer-group;
+  }
+
+  .print-table tr,
   .report-table tr {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
+  .print-table th,
+  .print-table td,
   .report-table th,
   .report-table td {
     border: 1px solid #d4d4d4 !important;
     padding: 5px 6px;
+  }
+
+  .print-doc-header,
+  .print-meta-grid,
+  .print-totals,
+  .print-doc-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .card-surface {

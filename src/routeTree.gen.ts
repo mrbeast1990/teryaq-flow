@@ -30,6 +30,7 @@ import { Route as ItemsOutOfStockRouteImport } from './routes/items/out-of-stock
 import { Route as ItemsStockRouteImport } from './routes/items/stock'
 import { Route as ItemsTrackRouteImport } from './routes/items/track'
 import { Route as SettingsConnectionRouteImport } from './routes/settings/connection'
+import { Route as SettingsPrintRouteImport } from './routes/settings/print'
 import { Route as TradingIndexRouteImport } from './routes/trading/index'
 import { Route as TradingDailyRouteImport } from './routes/trading/daily'
 import { Route as TradingItemsRouteImport } from './routes/trading/items'
@@ -144,6 +145,11 @@ const SettingsConnectionRoute = SettingsConnectionRouteImport.update({
   path: '/settings/connection',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsPrintRoute = SettingsPrintRouteImport.update({
+  id: '/settings/print',
+  path: '/settings/print',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TradingIndexRoute = TradingIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
   '/trading/items': typeof TradingItemsRoute
   '/trading/profit': typeof TradingProfitRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
   '/trading/items': typeof TradingItemsRoute
   '/trading/profit': typeof TradingProfitRoute
@@ -267,6 +275,7 @@ export interface FileRoutesById {
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
   '/settings/connection': typeof SettingsConnectionRoute
+  '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
   '/trading/items': typeof TradingItemsRoute
   '/trading/profit': typeof TradingProfitRoute
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/items/stock'
     | '/items/track'
     | '/settings/connection'
+    | '/settings/print'
     | '/trading/daily'
     | '/trading/items'
     | '/trading/profit'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/items/stock'
     | '/items/track'
     | '/settings/connection'
+    | '/settings/print'
     | '/trading/daily'
     | '/trading/items'
     | '/trading/profit'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/items/stock'
     | '/items/track'
     | '/settings/connection'
+    | '/settings/print'
     | '/trading/daily'
     | '/trading/items'
     | '/trading/profit'
@@ -383,6 +395,7 @@ export interface RootRouteChildren {
   RevenueRoute: typeof RevenueRoute
   TradingRoute: typeof TradingRouteWithChildren
   SettingsConnectionRoute: typeof SettingsConnectionRoute
+  SettingsPrintRoute: typeof SettingsPrintRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -534,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsConnectionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/print': {
+      id: '/settings/print'
+      path: '/settings/print'
+      fullPath: '/settings/print'
+      preLoaderRoute: typeof SettingsPrintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trading/': {
       id: '/trading/'
       path: '/'
@@ -678,6 +698,7 @@ const rootRouteChildren: RootRouteChildren = {
   RevenueRoute: RevenueRoute,
   TradingRoute: TradingRouteWithChildren,
   SettingsConnectionRoute: SettingsConnectionRoute,
+  SettingsPrintRoute: SettingsPrintRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

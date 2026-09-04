@@ -2,11 +2,15 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ApiError, type StatementRow, getCustomerLedger, getSupplierLedger } from "@/lib/api";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
+import { PrintFooter, PrintHeader } from "@/components/teryaq/print/PrintHeader";
 import { InvoiceDetailsView } from "./InvoiceDetailsView";
 
 interface Props {
   type: "customer" | "supplier";
   id: string;
+  accountName?: string;
+  accountPhone?: string;
+  currentBalance?: number | null;
 }
 
 function formatNumber(value?: number | null) {
@@ -18,6 +22,13 @@ function formatDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("ar-LY");
+}
+
+function balanceClass(value?: number | null) {
+  const balance = Number(value || 0);
+  if (balance > 0) return "text-success";
+  if (balance < 0) return "text-destructive";
+  return "";
 }
 
 function invoiceTypeFor(row: StatementRow, type: Props["type"]) {
@@ -37,7 +48,7 @@ function movementTypeLabel(row: StatementRow) {
   return row.rowType || "حركة";
 }
 
-export function FinancialStatement({ type, id }: Props) {
+export function FinancialStatement({ type, id, accountName, accountPhone, currentBalance }: Props) {
   const [selectedInvoice, setSelectedInvoice] = useState<{ type: "sales" | "purchase"; movementNo: string } | null>(null);
   const query = useQuery({
     queryKey: ["accounts", type, id, "ledger"],
@@ -50,6 +61,12 @@ export function FinancialStatement({ type, id }: Props) {
 
   const errorMessage = query.error instanceof ApiError || query.error instanceof Error ? query.error.message : undefined;
   const rows = query.data?.rows || [];
+  const finalBalance = currentBalance ?? rows[0]?.runningBalance ?? 0;
+  const dateRange =
+    rows.length > 0
+      ? `${formatDate(rows[rows.length - 1]?.date)} - ${formatDate(rows[0]?.date)}`
+      : "-";
+  const title = type === "customer" ? "كشف حساب زبون" : "كشف حساب مورد";
 
   if (query.isLoading) return <LoadingState />;
   if (query.isError) return <ErrorState description={errorMessage} onRetry={() => query.refetch()} />;
@@ -58,7 +75,30 @@ export function FinancialStatement({ type, id }: Props) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="statement-print-area space-y-2">
+      <div className="print-only">
+        <PrintHeader title={title} subtitle={dateRange} />
+        <section className="print-meta-grid">
+          <div>
+            <span>{type === "customer" ? "الزبون" : "المورد"}</span>
+            <strong>{accountName || id}</strong>
+          </div>
+          <div>
+            <span>رقم الحساب</span>
+            <strong>{id}</strong>
+          </div>
+          {accountPhone ? (
+            <div>
+              <span>الهاتف</span>
+              <strong>{accountPhone}</strong>
+            </div>
+          ) : null}
+          <div>
+            <span>الرصيد الحالي</span>
+            <strong>{formatNumber(finalBalance)} د.ل</strong>
+          </div>
+        </section>
+      </div>
       <div className="hidden grid-cols-5 gap-2 border-b border-border px-3 py-2 text-[11px] font-bold text-muted-foreground sm:grid">
         <div>التاريخ</div>
         <div>البيان</div>
@@ -89,7 +129,7 @@ export function FinancialStatement({ type, id }: Props) {
                   </p>
                 </div>
                 <div className="shrink-0 text-left">
-                  <p className="num text-[13px] font-extrabold">{formatNumber(row.runningBalance)}</p>
+                  <p className={`num text-[13px] font-extrabold ${balanceClass(row.runningBalance)}`}>{formatNumber(row.runningBalance)}</p>
                   <p className="text-[11px] text-muted-foreground">الرصيد</p>
                 </div>
               </div>
@@ -106,6 +146,33 @@ export function FinancialStatement({ type, id }: Props) {
             </button>
           );
         })}
+      </div>
+      <table className="print-only print-table">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>البيان</th>
+            <th>المرجع</th>
+            <th>مدين</th>
+            <th>دائن / سداد</th>
+            <th>الرصيد</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <tr key={`print-${row.date}-${row.refNo}-${index}`}>
+              <td>{formatDate(row.date)}</td>
+              <td>{row.description || "-"}</td>
+              <td>{row.refNo ? `${movementTypeLabel(row)} #${row.refNo}` : movementTypeLabel(row)}</td>
+              <td className="num">{formatNumber(row.debit)}</td>
+              <td className="num">{formatNumber(row.credit)}</td>
+              <td className="num">{formatNumber(row.runningBalance)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="print-only">
+        <PrintFooter />
       </div>
     </div>
   );
