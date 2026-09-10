@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountsRouteImport } from './routes/accounts'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as CompanyPaymentsRouteImport } from './routes/company-payments'
 import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
@@ -53,6 +54,11 @@ const AccountsRoute = AccountsRouteImport.update({
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompanyPaymentsRoute = CompanyPaymentsRouteImport.update({
+  id: '/company-payments',
+  path: '/company-payments',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InvoicesRoute = InvoicesRouteImport.update({
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
   '/analytics': typeof AnalyticsRouteWithChildren
+  '/company-payments': typeof CompanyPaymentsRoute
   '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
+  '/company-payments': typeof CompanyPaymentsRoute
   '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
   '/analytics': typeof AnalyticsRouteWithChildren
+  '/company-payments': typeof CompanyPaymentsRoute
   '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accounts'
     | '/analytics'
+    | '/company-payments'
     | '/invoices'
     | '/items'
     | '/more'
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/accounts'
+    | '/company-payments'
     | '/invoices'
     | '/items'
     | '/more'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accounts'
     | '/analytics'
+    | '/company-payments'
     | '/invoices'
     | '/items'
     | '/more'
@@ -387,6 +399,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountsRoute: typeof AccountsRouteWithChildren
   AnalyticsRoute: typeof AnalyticsRouteWithChildren
+  CompanyPaymentsRoute: typeof CompanyPaymentsRoute
   InvoicesRoute: typeof InvoicesRoute
   ItemsRoute: typeof ItemsRouteWithChildren
   MoreRoute: typeof MoreRoute
@@ -419,6 +432,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/company-payments': {
+      id: '/company-payments'
+      path: '/company-payments'
+      fullPath: '/company-payments'
+      preLoaderRoute: typeof CompanyPaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invoices': {
@@ -690,6 +710,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountsRoute: AccountsRouteWithChildren,
   AnalyticsRoute: AnalyticsRouteWithChildren,
+  CompanyPaymentsRoute: CompanyPaymentsRoute,
   InvoicesRoute: InvoicesRoute,
   ItemsRoute: ItemsRouteWithChildren,
   MoreRoute: MoreRoute,

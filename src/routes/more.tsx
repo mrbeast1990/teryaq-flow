@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Database, FileText, Info, Printer, ReceiptText, SlidersHorizontal, WalletCards } from "lucide-react";
+import { Building2, Database, FileText, Info, Printer, ReceiptText, SlidersHorizontal, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
@@ -41,8 +41,8 @@ function MorePage() {
       />
 
       <div className="space-y-8">
-        <AnalyticsNav />
-        <TradingNav />
+        <AnalyticsNav wrapText />
+        <TradingNav wrapText />
 
         <div>
           <SectionHeader title="الإعدادات" />
@@ -58,6 +58,7 @@ function MorePage() {
             <CompactListCard title="إعدادات الطباعة" subtitle="اسم الصيدلية والشعار والعنوان المستخدم في الفواتير وكشوف الحساب" icon={Printer} to="/settings/print" wrapText />
             <CompactListCard title="مركز الفواتير" subtitle="فواتير البيع والشراء والمردودات مع فتح تفاصيل الفاتورة" icon={ReceiptText} to="/invoices" wrapText />
             <CompactListCard title="المقبوضات والسدادات" subtitle="مقبوضات الزبائن وسدادات الموردين بدون ربط تخميني" icon={WalletCards} to="/payments" wrapText />
+            <CompactListCard title="سدادات الشركات" subtitle="سجل مستقل لسدادات الشركات والمرفقات بدون أي ربط محاسبي" icon={Building2} to="/company-payments" wrapText />
             <CompactListCard title="تفضيلات العرض" subtitle="الترتيب والفلاتر الافتراضية" icon={SlidersHorizontal} wrapText />
             <CompactListCard title="حول التطبيق" subtitle="Teryaq Flow · واجهة جديدة مرتبطة بـ Teryaq SQL Connector" icon={Info} wrapText />
           </div>
