@@ -137,6 +137,9 @@ function CompanyPaymentsPage() {
   const queryClient = useQueryClient();
   const [companySearch, setCompanySearch] = useState("");
   const [companySheetOpen, setCompanySheetOpen] = useState(false);
+  const [companySheetSource, setCompanySheetSource] = useState<"companies" | "payment" | "details">("companies");
+  const [companyError, setCompanyError] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [companiesOpen, setCompaniesOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [editingCompany, setEditingCompany] = useState<Partial<Company> | null>(null);
@@ -212,11 +215,24 @@ function CompanyPaymentsPage() {
 
   const companyMutation = useMutation({
     mutationFn: saveCompany,
-    onSuccess: () => {
+    onMutate: () => {
+      setCompanyError(null);
+    },
+    onSuccess: (company) => {
       setCompanyForm({ name: "", representativeName: "", phone: "", bankAccount: "" });
       setEditingCompany(null);
       setCompanySheetOpen(false);
+      if (companySheetSource === "payment") {
+        setPaymentForm((form) => ({ ...form, companyId: company.id }));
+        setShowPaymentForm(true);
+      }
+      if (selectedCompany?.id === company.id) {
+        setSelectedCompany(company);
+      }
       invalidate();
+    },
+    onError: (error) => {
+      setCompanyError(error instanceof Error ? error.message : "تعذر حفظ الشركة.");
     },
   });
 
@@ -233,6 +249,9 @@ function CompanyPaymentsPage() {
       });
       if (attachmentFile) await uploadCompanyPaymentAttachment(saved.id, attachmentFile);
     },
+    onMutate: () => {
+      setPaymentError(null);
+    },
     onSuccess: () => {
       setPaymentForm({ companyId: "", amount: "", date: todayInput(), type: "cash", notes: "", referenceNo: "" });
       setAttachmentFile(null);
@@ -240,6 +259,9 @@ function CompanyPaymentsPage() {
       setShowPaymentForm(false);
       setShowMoreOptions(false);
       invalidate();
+    },
+    onError: (error) => {
+      setPaymentError(error instanceof Error ? error.message : "تعذر حفظ السداد.");
     },
   });
 
@@ -252,16 +274,30 @@ function CompanyPaymentsPage() {
 
   const submitCompany = (event: FormEvent) => {
     event.preventDefault();
-    companyMutation.mutate({ ...companyForm, id: editingCompany?.id });
+    const name = String(companyForm.name || "").trim();
+    if (!name) {
+      setCompanyError("اسم الشركة إلزامي.");
+      return;
+    }
+    companyMutation.mutate({ ...companyForm, name, id: editingCompany?.id });
   };
 
   const submitPayment = (event: FormEvent) => {
     event.preventDefault();
-    if (!paymentForm.companyId || Number(paymentForm.amount) <= 0) return;
+    if (!paymentForm.companyId) {
+      setPaymentError("اختر الشركة أولًا.");
+      return;
+    }
+    if (!Number.isFinite(Number(paymentForm.amount)) || Number(paymentForm.amount) <= 0) {
+      setPaymentError("المبلغ يجب أن يكون أكبر من صفر.");
+      return;
+    }
     paymentMutation.mutate();
   };
 
-  const openCompanySheet = (company?: Company) => {
+  const openCompanySheet = (company?: Company, source: "companies" | "payment" | "details" = "companies") => {
+    setCompanyError(null);
+    setCompanySheetSource(source);
     setEditingCompany(company || null);
     setCompanyForm(company || { name: "", representativeName: "", phone: "", bankAccount: "" });
     setCompanySheetOpen(true);
@@ -332,7 +368,7 @@ function CompanyPaymentsPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => openCompanySheet()}
+                  onClick={() => openCompanySheet(undefined, "companies")}
                   className="grid size-10 place-items-center rounded-2xl bg-emerald-600 text-white shadow-sm"
                   aria-label="إضافة شركة"
                 >
@@ -377,7 +413,7 @@ function CompanyPaymentsPage() {
                   <p className="text-[11px] font-semibold text-slate-500">{[selectedCompany.representativeName, selectedCompany.phone].filter(Boolean).join(" · ") || "بدون بيانات مندوب"}</p>
                 </div>
                 <div className="flex gap-1">
-                  <button type="button" onClick={() => openCompanySheet(selectedCompany)} className="rounded-xl border border-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-700">
+                  <button type="button" onClick={() => openCompanySheet(selectedCompany, "details")} className="rounded-xl border border-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-700">
                     تعديل
                   </button>
                   <button
@@ -420,7 +456,7 @@ function CompanyPaymentsPage() {
             </button>
 
             {showPaymentForm ? (
-              <form onSubmit={submitPayment} className="mt-3 space-y-3">
+              <form noValidate onSubmit={submitPayment} className="mt-3 space-y-3">
                 <div className="grid grid-cols-[1fr_auto] gap-2">
                   <label className="space-y-1 text-[11px] font-extrabold text-slate-600">
                     <span>الشركة</span>
@@ -441,7 +477,7 @@ function CompanyPaymentsPage() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => openCompanySheet()}
+                    onClick={() => openCompanySheet(undefined, "payment")}
                     className="mt-5 grid size-10 place-items-center rounded-2xl bg-emerald-600 text-white shadow-sm"
                     aria-label="إضافة شركة"
                   >
@@ -502,6 +538,10 @@ function CompanyPaymentsPage() {
                       />
                     </label>
                   </div>
+                ) : null}
+
+                {paymentError ? (
+                  <p className="rounded-2xl bg-red-50 px-3 py-2 text-[12px] font-bold text-red-700">{paymentError}</p>
                 ) : null}
 
                 <button
@@ -615,7 +655,7 @@ function CompanyPaymentsPage() {
 
       {companySheetOpen ? (
         <div className="fixed inset-0 z-50 flex items-end bg-slate-950/35 px-3 pb-3 sm:items-center sm:justify-center print:hidden">
-          <form onSubmit={submitCompany} className="w-full max-w-md rounded-3xl bg-white p-4 shadow-2xl">
+          <form noValidate onSubmit={submitCompany} className="w-full max-w-md rounded-3xl bg-white p-4 shadow-2xl">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-bold text-emerald-700">الشركات</p>
@@ -631,6 +671,9 @@ function CompanyPaymentsPage() {
               <Field label="الهاتف" value={companyForm.phone || ""} onChange={(phone) => setCompanyForm((form) => ({ ...form, phone }))} />
               <Field label="رقم الحساب البنكي" value={companyForm.bankAccount || ""} onChange={(bankAccount) => setCompanyForm((form) => ({ ...form, bankAccount }))} />
             </div>
+            {companyError ? (
+              <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-[12px] font-bold text-red-700">{companyError}</p>
+            ) : null}
             <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
               <button type="submit" disabled={companyMutation.isPending} className="h-10 rounded-2xl bg-emerald-600 text-[13px] font-extrabold text-white disabled:opacity-60">
                 {editingCompany ? "حفظ التعديل" : "إضافة"}
