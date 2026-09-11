@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard, LogIn, Receipt, RotateCcw, Users, Wallet } from "lucide-react";
@@ -139,6 +139,8 @@ function RevenuePage() {
   const [selectedPeriodName, setSelectedPeriodName] = useState<string | null>(null);
   const [selectedSourceName, setSelectedSourceName] = useState<string | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<{ invoiceNo: string; movementNo: string } | null>(null);
+  const [invoiceModal, setInvoiceModal] = useState<{ invoiceNo: string; movementNo: string } | null>(null);
+  const [highlightedInvoiceKey, setHighlightedInvoiceKey] = useState<string | null>(null);
 
   const { data, error, isLoading, isError, refetch } = useQuery({
     queryKey: ["revenue", { dateFrom, dateTo }],
@@ -161,14 +163,28 @@ function RevenuePage() {
   const selectedSource = selectedPeriod?.sources.find((source) => source.name === selectedSourceName) ?? null;
   const mismatchedPeriods = periodBreakdowns.filter((period) => Math.abs(period.difference) > 0.01);
   const selectedMovementDetails = useQuery({
-    queryKey: ["revenue", "movement", selectedInvoice?.movementNo],
-    queryFn: () => getRevenueMovementDetails(selectedInvoice?.movementNo || ""),
-    enabled: Boolean(selectedInvoice?.movementNo),
+    queryKey: ["revenue", "movement", invoiceModal?.movementNo],
+    queryFn: () => getRevenueMovementDetails(invoiceModal?.movementNo || ""),
+    enabled: Boolean(invoiceModal?.movementNo),
   });
 
   const handleLogin = () => {
     window.location.href = API_BASE_URL;
   };
+
+  useEffect(() => {
+    if (!highlightedInvoiceKey) return undefined;
+    const timeout = window.setTimeout(() => setHighlightedInvoiceKey(null), 3500);
+    return () => window.clearTimeout(timeout);
+  }, [highlightedInvoiceKey]);
+
+  const closeInvoiceModal = () => {
+    if (invoiceModal) setHighlightedInvoiceKey(`${invoiceModal.movementNo}-${invoiceModal.invoiceNo}`);
+    setInvoiceModal(null);
+  };
+
+  const selectedMovement = selectedMovementDetails.data?.movement;
+  const selectedTransactionDateTime = selectedMovement?.movementHasRealTime ? selectedMovement.movementCreatedAt : null;
 
   if (selectedInvoice) {
     const movement = selectedMovementDetails.data?.movement;
@@ -359,10 +375,11 @@ function RevenuePage() {
                           subtitle={`العميل: ${movement.customerName || "غير محدد"} | حركة #${movement.movementNo} | فاتورة #${movement.invoiceNo}`}
                           value={formatMoney(movement.amount)}
                           meta={movement.paymentMethod}
+                          className={highlightedInvoiceKey === `${movement.movementNo}-${movement.invoiceNo}` ? "bg-primary/10 ring-2 ring-primary/30" : ""}
                           actionLabel={canOpenInvoice ? "عرض الفاتورة" : undefined}
                           onClick={
                             canOpenInvoice
-                              ? () => setSelectedInvoice({ invoiceNo: String(movement.invoiceNo), movementNo: String(movement.movementNo) })
+                              ? () => setInvoiceModal({ invoiceNo: String(movement.invoiceNo), movementNo: String(movement.movementNo) })
                               : undefined
                           }
                           icon={Receipt}
@@ -376,6 +393,29 @@ function RevenuePage() {
           ) : null}
         </>
       )}
+      {invoiceModal ? (
+        <div className="fixed inset-0 z-50 bg-background/85 p-3 backdrop-blur-sm print:hidden">
+          <div className="mx-auto flex h-full max-w-3xl flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b p-3">
+              <div>
+                <h2 className="text-sm font-extrabold">تفاصيل الفاتورة</h2>
+                <p className="text-[11px] text-muted-foreground">تبقى صفحة الإيرادات والفلاتر كما هي بعد الإغلاق</p>
+              </div>
+              <ActionButton label="إغلاق" variant="outline" onClick={closeInvoiceModal} />
+            </div>
+            <div className="flex-1 overflow-auto p-3">
+              <InvoiceDetailsView
+                type="sales"
+                movementNo={invoiceModal.invoiceNo}
+                displayMovementNo={invoiceModal.movementNo}
+                transactionDateTime={selectedTransactionDateTime || null}
+                transactionDateTimeSource={selectedMovement?.movementDateTimeSource || undefined}
+                onBack={closeInvoiceModal}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </AppShell>
   );
 }

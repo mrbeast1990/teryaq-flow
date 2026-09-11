@@ -26,6 +26,7 @@ import { Route as AnalyticsCompareRouteImport } from './routes/analytics/compare
 import { Route as AnalyticsItemProfitRouteImport } from './routes/analytics/item-profit'
 import { Route as AnalyticsPricesRouteImport } from './routes/analytics/prices'
 import { Route as AnalyticsSearchRouteImport } from './routes/analytics/search'
+import { Route as CompanyPaymentsCompaniesRouteImport } from './routes/company-payments.companies'
 import { Route as ItemsExpiryRouteImport } from './routes/items/expiry'
 import { Route as ItemsOutOfStockRouteImport } from './routes/items/out-of-stock'
 import { Route as ItemsStockRouteImport } from './routes/items/stock'
@@ -126,6 +127,12 @@ const AnalyticsSearchRoute = AnalyticsSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => AnalyticsRoute,
 } as any)
+const CompanyPaymentsCompaniesRoute =
+  CompanyPaymentsCompaniesRouteImport.update({
+    id: '/companies',
+    path: '/companies',
+    getParentRoute: () => CompanyPaymentsRoute,
+  } as any)
 const ItemsExpiryRoute = ItemsExpiryRouteImport.update({
   id: '/expiry',
   path: '/expiry',
@@ -201,7 +208,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
   '/analytics': typeof AnalyticsRouteWithChildren
-  '/company-payments': typeof CompanyPaymentsRoute
+  '/company-payments': typeof CompanyPaymentsRouteWithChildren
   '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/analytics/item-profit': typeof AnalyticsItemProfitRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/search': typeof AnalyticsSearchRoute
+  '/company-payments/companies': typeof CompanyPaymentsCompaniesRoute
   '/items/expiry': typeof ItemsExpiryRoute
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
@@ -233,7 +241,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
-  '/company-payments': typeof CompanyPaymentsRoute
+  '/company-payments': typeof CompanyPaymentsRouteWithChildren
   '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
@@ -245,6 +253,7 @@ export interface FileRoutesByTo {
   '/analytics/item-profit': typeof AnalyticsItemProfitRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/search': typeof AnalyticsSearchRoute
+  '/company-payments/companies': typeof CompanyPaymentsCompaniesRoute
   '/items/expiry': typeof ItemsExpiryRoute
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
@@ -266,7 +275,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRouteWithChildren
   '/analytics': typeof AnalyticsRouteWithChildren
-  '/company-payments': typeof CompanyPaymentsRoute
+  '/company-payments': typeof CompanyPaymentsRouteWithChildren
   '/invoices': typeof InvoicesRoute
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
@@ -279,6 +288,7 @@ export interface FileRoutesById {
   '/analytics/item-profit': typeof AnalyticsItemProfitRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/search': typeof AnalyticsSearchRoute
+  '/company-payments/companies': typeof CompanyPaymentsCompaniesRoute
   '/items/expiry': typeof ItemsExpiryRoute
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
     | '/analytics/item-profit'
     | '/analytics/prices'
     | '/analytics/search'
+    | '/company-payments/companies'
     | '/items/expiry'
     | '/items/out-of-stock'
     | '/items/stock'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/analytics/item-profit'
     | '/analytics/prices'
     | '/analytics/search'
+    | '/company-payments/companies'
     | '/items/expiry'
     | '/items/out-of-stock'
     | '/items/stock'
@@ -378,6 +390,7 @@ export interface FileRouteTypes {
     | '/analytics/item-profit'
     | '/analytics/prices'
     | '/analytics/search'
+    | '/company-payments/companies'
     | '/items/expiry'
     | '/items/out-of-stock'
     | '/items/stock'
@@ -399,7 +412,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountsRoute: typeof AccountsRouteWithChildren
   AnalyticsRoute: typeof AnalyticsRouteWithChildren
-  CompanyPaymentsRoute: typeof CompanyPaymentsRoute
+  CompanyPaymentsRoute: typeof CompanyPaymentsRouteWithChildren
   InvoicesRoute: typeof InvoicesRoute
   ItemsRoute: typeof ItemsRouteWithChildren
   MoreRoute: typeof MoreRoute
@@ -531,6 +544,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/analytics/search'
       preLoaderRoute: typeof AnalyticsSearchRouteImport
       parentRoute: typeof AnalyticsRoute
+    }
+    '/company-payments/companies': {
+      id: '/company-payments/companies'
+      path: '/companies'
+      fullPath: '/company-payments/companies'
+      preLoaderRoute: typeof CompanyPaymentsCompaniesRouteImport
+      parentRoute: typeof CompanyPaymentsRoute
     }
     '/items/expiry': {
       id: '/items/expiry'
@@ -673,6 +693,18 @@ const AnalyticsRouteWithChildren = AnalyticsRoute._addFileChildren(
   AnalyticsRouteChildren,
 )
 
+interface CompanyPaymentsRouteChildren {
+  CompanyPaymentsCompaniesRoute: typeof CompanyPaymentsCompaniesRoute
+}
+
+const CompanyPaymentsRouteChildren: CompanyPaymentsRouteChildren = {
+  CompanyPaymentsCompaniesRoute: CompanyPaymentsCompaniesRoute,
+}
+
+const CompanyPaymentsRouteWithChildren = CompanyPaymentsRoute._addFileChildren(
+  CompanyPaymentsRouteChildren,
+)
+
 interface ItemsRouteChildren {
   ItemsExpiryRoute: typeof ItemsExpiryRoute
   ItemsOutOfStockRoute: typeof ItemsOutOfStockRoute
@@ -710,7 +742,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountsRoute: AccountsRouteWithChildren,
   AnalyticsRoute: AnalyticsRouteWithChildren,
-  CompanyPaymentsRoute: CompanyPaymentsRoute,
+  CompanyPaymentsRoute: CompanyPaymentsRouteWithChildren,
   InvoicesRoute: InvoicesRoute,
   ItemsRoute: ItemsRouteWithChildren,
   MoreRoute: MoreRoute,

@@ -2,7 +2,7 @@ import { TrendingUp, Package } from "lucide-react";
 import { CompactListCard } from "../CompactListCard";
 import { SectionHeader } from "../SectionHeader";
 
-export function TradingNav() {
+export function TradingNav({ wrapText = false }: { wrapText?: boolean } = {}) {
   const items = [
     {
       title: "المتاجرة والأرباح",
@@ -29,6 +29,7 @@ export function TradingNav() {
             subtitle={item.subtitle}
             icon={item.icon}
             to={item.to}
+            wrapText={wrapText}
           />
         ))}
       </div>

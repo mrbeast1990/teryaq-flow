@@ -338,15 +338,18 @@ function PaymentDetailsView({
               <div><span>التاريخ</span><strong>{formatDate(movementDate)}</strong></div>
               {realTime ? <div><span>الوقت</span><strong>{realTime}</strong></div> : null}
               <div><span>{isCustomer ? "الزبون" : "المورد"}</span><strong>{partyName}</strong></div>
-              <div><span>المبلغ</span><strong>{formatCurrency(amount)}</strong></div>
               <div><span>طريقة الدفع</span><strong>{paymentMethod}</strong></div>
               {linkedMovementNo ? <div><span>الفاتورة المرتبطة</span><strong>{linkedMovementNo}</strong></div> : null}
               {row.notes ? <div><span>ملاحظات</span><strong>{row.notes}</strong></div> : null}
             </section>
+            <section className="print-receipt-amount">
+              <span>المبلغ</span>
+              <strong>{formatCurrency(amount)}</strong>
+            </section>
             <PrintFooter />
           </div>
 
-          <section className="card-surface space-y-4 p-4">
+          <section className="receipt-screen-content card-surface space-y-4 p-4">
             <div>
               <p className="text-[11px] font-bold text-muted-foreground">رقم حركة الدفع</p>
               <h1 className="num text-xl font-black text-primary">{movement?.movementNo || row.paymentNo}</h1>

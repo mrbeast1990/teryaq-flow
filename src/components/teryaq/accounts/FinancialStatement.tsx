@@ -31,6 +31,13 @@ function balanceClass(value?: number | null) {
   return "";
 }
 
+function balancePrintClass(value?: number | null) {
+  const balance = Number(value || 0);
+  if (balance > 0) return "print-positive";
+  if (balance < 0) return "print-negative";
+  return "print-neutral";
+}
+
 function invoiceTypeFor(row: StatementRow, type: Props["type"]) {
   if (row.rowType === "sales-invoice") return "sales";
   if (row.rowType === "purchase-invoice") return "purchase";
@@ -95,57 +102,59 @@ export function FinancialStatement({ type, id, accountName, accountPhone, curren
           ) : null}
           <div>
             <span>الرصيد الحالي</span>
-            <strong>{formatNumber(finalBalance)} د.ل</strong>
+            <strong className={balancePrintClass(finalBalance)}>{formatNumber(finalBalance)} د.ل</strong>
           </div>
         </section>
       </div>
-      <div className="hidden grid-cols-5 gap-2 border-b border-border px-3 py-2 text-[11px] font-bold text-muted-foreground sm:grid">
-        <div>التاريخ</div>
-        <div>البيان</div>
-        <div className="text-left">مدين</div>
-        <div className="text-left">دائن</div>
-        <div className="text-left">الرصيد</div>
-      </div>
+      <div className="statement-screen-content space-y-2">
+        <div className="hidden grid-cols-5 gap-2 border-b border-border px-3 py-2 text-[11px] font-bold text-muted-foreground sm:grid">
+          <div>التاريخ</div>
+          <div>البيان</div>
+          <div className="text-left">مدين</div>
+          <div className="text-left">دائن</div>
+          <div className="text-left">الرصيد</div>
+        </div>
 
-      <div className="space-y-2">
-        {rows.map((row, index) => {
-          const clickable = isInvoiceRow(row) && row.refNo;
-          return (
-            <button
-              key={`${row.date}-${row.refNo}-${index}`}
-              type="button"
-              onClick={() => {
-                if (!clickable || !row.refNo) return;
-                setSelectedInvoice({ type: invoiceTypeFor(row, type), movementNo: String(row.refNo) });
-              }}
-              className={`card-surface w-full p-3 text-right ${clickable ? "transition-colors hover:bg-secondary/50" : "cursor-default"}`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[13px] font-extrabold">{row.description || "-"}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {formatDate(row.date)}
-                    {row.refNo ? ` · ${movementTypeLabel(row)} #${row.refNo}` : ` · ${movementTypeLabel(row)}`}
-                  </p>
+        <div className="space-y-2">
+          {rows.map((row, index) => {
+            const clickable = isInvoiceRow(row) && row.refNo;
+            return (
+              <button
+                key={`${row.date}-${row.refNo}-${index}`}
+                type="button"
+                onClick={() => {
+                  if (!clickable || !row.refNo) return;
+                  setSelectedInvoice({ type: invoiceTypeFor(row, type), movementNo: String(row.refNo) });
+                }}
+                className={`card-surface w-full p-3 text-right ${clickable ? "transition-colors hover:bg-secondary/50" : "cursor-default"}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-extrabold">{row.description || "-"}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {formatDate(row.date)}
+                      {row.refNo ? ` · ${movementTypeLabel(row)} #${row.refNo}` : ` · ${movementTypeLabel(row)}`}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-left">
+                    <p className={`num text-[13px] font-extrabold ${balanceClass(row.runningBalance)}`}>{formatNumber(row.runningBalance)}</p>
+                    <p className="text-[11px] text-muted-foreground">الرصيد</p>
+                  </div>
                 </div>
-                <div className="shrink-0 text-left">
-                  <p className={`num text-[13px] font-extrabold ${balanceClass(row.runningBalance)}`}>{formatNumber(row.runningBalance)}</p>
-                  <p className="text-[11px] text-muted-foreground">الرصيد</p>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
+                  <div className="rounded-lg bg-secondary/50 px-2 py-1">
+                    <span className="text-muted-foreground">مدين: </span>
+                    <span className="num font-bold">{formatNumber(row.debit)}</span>
+                  </div>
+                  <div className="rounded-lg bg-secondary/50 px-2 py-1">
+                    <span className="text-muted-foreground">دائن: </span>
+                    <span className="num font-bold">{formatNumber(row.credit)}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
-                <div className="rounded-lg bg-secondary/50 px-2 py-1">
-                  <span className="text-muted-foreground">مدين: </span>
-                  <span className="num font-bold">{formatNumber(row.debit)}</span>
-                </div>
-                <div className="rounded-lg bg-secondary/50 px-2 py-1">
-                  <span className="text-muted-foreground">دائن: </span>
-                  <span className="num font-bold">{formatNumber(row.credit)}</span>
-                </div>
-              </div>
-            </button>
-          );
-        })}
+              </button>
+            );
+          })}
+        </div>
       </div>
       <table className="print-only print-table">
         <thead>
@@ -166,7 +175,7 @@ export function FinancialStatement({ type, id, accountName, accountPhone, curren
               <td>{row.refNo ? `${movementTypeLabel(row)} #${row.refNo}` : movementTypeLabel(row)}</td>
               <td className="num">{formatNumber(row.debit)}</td>
               <td className="num">{formatNumber(row.credit)}</td>
-              <td className="num">{formatNumber(row.runningBalance)}</td>
+              <td className={`num ${balancePrintClass(row.runningBalance)}`}>{formatNumber(row.runningBalance)}</td>
             </tr>
           ))}
         </tbody>

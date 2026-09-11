@@ -70,6 +70,7 @@ const COMPANIES_FILE = path.join(DATA_DIR, "companies.json");
 const PAYMENTS_FILE = path.join(DATA_DIR, "payments.json");
 const MAX_PAGE_SIZE = 100;
 const SIGNING_SECRET = randomBytes(32).toString("hex");
+const PAYMENT_OPERATORS = new Set(["المدير", "عبدالوهاب"]);
 let writeQueue = Promise.resolve();
 
 function now() {
@@ -98,6 +99,11 @@ function parseDate(value: unknown) {
     throw new Error("التاريخ غير صحيح.");
   }
   return text;
+}
+
+function paymentOperator(value: unknown, fallback: string) {
+  const text = normalizeText(value);
+  return PAYMENT_OPERATORS.has(text) ? text : fallback;
 }
 
 function safePage(value: unknown) {
@@ -277,7 +283,7 @@ export async function createPayment(input: Partial<CompanyPaymentRecord>, user: 
     notes: normalizeText(input.notes),
     referenceNo: normalizeText(input.referenceNo),
     status: "pending",
-    createdBy: user,
+    createdBy: paymentOperator(input.createdBy, user),
     createdAt: timestamp,
     updatedAt: timestamp,
     deductedBy: null,
@@ -299,7 +305,7 @@ export async function updatePayment(input: Partial<CompanyPaymentRecord>, user: 
   payment.notes = normalizeText(input.notes);
   payment.referenceNo = normalizeText(input.referenceNo);
   payment.updatedAt = now();
-  payment.createdBy = payment.createdBy || user;
+  payment.createdBy = paymentOperator(input.createdBy, payment.createdBy || user);
   await writeDb(db);
   return joinPayment(payment, db.companies);
 }
@@ -316,13 +322,13 @@ export async function deletePayment(id: string) {
   return { ok: true };
 }
 
-export async function setPaymentDeducted(id: string, deducted: boolean, user: string) {
+export async function setPaymentDeducted(id: string, deducted: boolean, user: string, deductedBy?: unknown) {
   const db = await readDb();
   const payment = db.payments.find((item) => item.id === id);
   if (!payment) throw new Error("السداد غير موجود.");
   payment.status = deducted ? "deducted" : "pending";
   payment.deductedAt = deducted ? now() : null;
-  payment.deductedBy = deducted ? user : null;
+  payment.deductedBy = deducted ? paymentOperator(deductedBy, user) : null;
   payment.updatedAt = now();
   await writeDb(db);
   return joinPayment(payment, db.companies);

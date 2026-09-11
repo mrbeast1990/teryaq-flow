@@ -1,10 +1,9 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Banknote,
   Building2,
-  Camera,
   CheckCircle2,
   ChevronLeft,
   Download,
@@ -56,6 +55,7 @@ export const Route = createFileRoute("/company-payments")({
 });
 
 const PAGE_SIZE = 25;
+export const PAYMENT_OPERATORS = ["المدير", "عبدالوهاب"] as const;
 
 function todayInput() {
   const date = new Date();
@@ -73,7 +73,7 @@ function monthEnd(month: string) {
   return `${year}-${String(monthNumber).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
 }
 
-function formatCurrency(value: number) {
+export function formatCompanyPaymentCurrency(value: number) {
   return (
     <span className="num whitespace-nowrap" dir="ltr">
       {new Intl.NumberFormat("en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(value)} د.ل
@@ -154,18 +154,20 @@ function CompanyPaymentsPage() {
     type: "cash" as CompanyPaymentType,
     notes: "",
     referenceNo: "",
+    createdBy: PAYMENT_OPERATORS[0],
   });
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const [filterMode, setFilterMode] = useState<"all" | "month" | "range">("month");
+  const [filterMode, setFilterMode] = useState<"all" | "month" | "range">("all");
   const [month, setMonth] = useState(monthValue());
   const [dateFrom, setDateFrom] = useState(`${monthValue()}-01`);
   const [dateTo, setDateTo] = useState(monthEnd(monthValue()));
-  const [status, setStatus] = useState<PaymentFilters["status"]>("pending");
+  const [status, setStatus] = useState<PaymentFilters["status"]>("all");
   const [companyId, setCompanyId] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [printPayment, setPrintPayment] = useState<CompanyPayment | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deductPromptPayment, setDeductPromptPayment] = useState<CompanyPayment | null>(null);
 
   const companiesQuery = useQuery({
     queryKey: ["company-payments-companies", companySearch],
@@ -246,6 +248,7 @@ function CompanyPaymentsPage() {
         type: paymentForm.type,
         notes: paymentForm.notes,
         referenceNo: paymentForm.referenceNo,
+        createdBy: paymentForm.createdBy,
       });
       if (attachmentFile) await uploadCompanyPaymentAttachment(saved.id, attachmentFile);
     },
@@ -253,7 +256,7 @@ function CompanyPaymentsPage() {
       setPaymentError(null);
     },
     onSuccess: () => {
-      setPaymentForm({ companyId: "", amount: "", date: todayInput(), type: "cash", notes: "", referenceNo: "" });
+      setPaymentForm({ companyId: "", amount: "", date: todayInput(), type: "cash", notes: "", referenceNo: "", createdBy: PAYMENT_OPERATORS[0] });
       setAttachmentFile(null);
       setEditingPayment(null);
       setShowPaymentForm(false);
@@ -267,8 +270,11 @@ function CompanyPaymentsPage() {
 
   const deleteMutation = useMutation({ mutationFn: deleteCompanyPayment, onSuccess: invalidate });
   const statusMutation = useMutation({
-    mutationFn: ({ id, deducted }: { id: string; deducted: boolean }) => setCompanyPaymentDeducted(id, deducted),
-    onSuccess: invalidate,
+    mutationFn: ({ id, deducted, deductedBy }: { id: string; deducted: boolean; deductedBy?: string }) => setCompanyPaymentDeducted(id, deducted, deductedBy),
+    onSuccess: () => {
+      setDeductPromptPayment(null);
+      invalidate();
+    },
   });
   const attachmentDeleteMutation = useMutation({ mutationFn: deleteCompanyPaymentAttachment, onSuccess: invalidate });
 
@@ -319,6 +325,7 @@ function CompanyPaymentsPage() {
       type: payment.type,
       notes: payment.notes,
       referenceNo: payment.referenceNo,
+      createdBy: PAYMENT_OPERATORS.includes(payment.createdBy as (typeof PAYMENT_OPERATORS)[number]) ? payment.createdBy : PAYMENT_OPERATORS[0],
     });
     setAttachmentFile(null);
     setShowMoreOptions(Boolean(payment.notes || payment.referenceNo || payment.attachment));
@@ -339,13 +346,12 @@ function CompanyPaymentsPage() {
       <div className="-mx-3 -mt-3 min-h-[calc(100vh-7rem)] bg-[#e9fbf6] px-3 pb-4 pt-3 sm:-mx-4 sm:px-4">
         <div className="mx-auto max-w-4xl space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <SummaryCard title="إجمالي السدادات" value={formatCurrency(summary?.totalAmount || 0)} icon={WalletCards} tone="green" />
-            <SummaryCard title="لم تُخصم بعد" value={formatCurrency(summary?.pendingAmount || 0)} icon={Banknote} tone="orange" />
+            <SummaryCard title="إجمالي السدادات" value={formatCompanyPaymentCurrency(summary?.totalAmount || 0)} icon={WalletCards} tone="green" />
+            <SummaryCard title="لم تُخصم بعد" value={formatCompanyPaymentCurrency(summary?.pendingAmount || 0)} icon={Banknote} tone="orange" />
           </div>
 
-          <button
-            type="button"
-            onClick={() => setCompaniesOpen((value) => !value)}
+          <Link
+            to="/company-payments/companies"
             className="flex w-full items-center justify-between rounded-2xl bg-white p-3 text-start shadow-sm ring-1 ring-emerald-100"
           >
             <div className="flex items-center gap-3">
@@ -357,8 +363,8 @@ function CompanyPaymentsPage() {
                 <p className="text-[11px] font-semibold text-slate-500">{companiesQuery.data?.totalCount || 0} شركة · بحث وإدارة</p>
               </div>
             </div>
-            <ChevronLeft className={`size-5 text-slate-400 transition-transform ${companiesOpen ? "-rotate-90" : ""}`} />
-          </button>
+            <ChevronLeft className="size-5 text-slate-400" />
+          </Link>
 
           {companiesOpen ? (
             <section className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-emerald-100">
@@ -393,7 +399,7 @@ function CompanyPaymentsPage() {
                       <div className="flex items-center gap-2">
                         <div className="text-end">
                           <p className="text-[10px] font-bold text-slate-400">ضمن الفلتر</p>
-                          <p className="text-[12px] font-extrabold text-emerald-700">{formatCurrency(stats?.total || 0)}</p>
+                          <p className="text-[12px] font-extrabold text-emerald-700">{formatCompanyPaymentCurrency(stats?.total || 0)}</p>
                         </div>
                         <ChevronLeft className="size-4 text-slate-400" />
                       </div>
@@ -431,8 +437,8 @@ function CompanyPaymentsPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <MiniMetric label="إجمالي الشركة" value={formatCurrency(summary?.totalAmount || 0)} tone="green" />
-                <MiniMetric label="غير مخصوم" value={formatCurrency(summary?.pendingAmount || 0)} tone="orange" />
+                <MiniMetric label="إجمالي الشركة" value={formatCompanyPaymentCurrency(summary?.totalAmount || 0)} tone="green" />
+                <MiniMetric label="غير مخصوم" value={formatCompanyPaymentCurrency(summary?.pendingAmount || 0)} tone="orange" />
               </div>
             </section>
           ) : null}
@@ -508,6 +514,21 @@ function CompanyPaymentsPage() {
                   </div>
                 </div>
 
+                <label className="space-y-1 text-[11px] font-extrabold text-slate-600">
+                  <span>تم التسجيل بواسطة</span>
+                  <select
+                    value={paymentForm.createdBy}
+                    onChange={(event) => setPaymentForm((form) => ({ ...form, createdBy: event.target.value }))}
+                    className="h-9 w-full rounded-xl border border-emerald-100 bg-white px-3 text-[12px] font-bold text-slate-900 shadow-sm outline-none"
+                  >
+                    {PAYMENT_OPERATORS.map((operator) => (
+                      <option key={operator} value={operator}>
+                        {operator}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
                 <button
                   type="button"
                   onClick={() => setShowMoreOptions((value) => !value)}
@@ -555,15 +576,15 @@ function CompanyPaymentsPage() {
             ) : null}
           </section>
 
-          <section className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-emerald-100 print:hidden">
-            <div className="mb-3 flex items-center gap-2">
+          <section className="rounded-2xl bg-white p-2.5 shadow-sm ring-1 ring-emerald-100 print:hidden">
+            <div className="mb-2 flex items-center gap-2">
               <Search className="size-4 text-emerald-700" />
               <h2 className="text-[14px] font-extrabold text-slate-900">الفلاتر</h2>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <SearchInput placeholder="بحث في السدادات" value={search} onChange={(value) => { setSearch(value); setPage(1); }} />
               <div className="grid grid-cols-2 gap-2">
-                <select value={companyId} onChange={(event) => { setCompanyId(event.target.value); setPage(1); }} className="h-10 rounded-xl border border-emerald-100 bg-white px-3 text-[12px] font-bold">
+                <select value={companyId} onChange={(event) => { setCompanyId(event.target.value); setPage(1); }} className="h-9 rounded-xl border border-emerald-100 bg-white px-2 text-[11px] font-bold">
                   <option value="">كل الشركات</option>
                   {companies.map((company) => (
                     <option key={company.id} value={company.id}>
@@ -571,14 +592,14 @@ function CompanyPaymentsPage() {
                     </option>
                   ))}
                 </select>
-                <select value={status} onChange={(event) => { setStatus(event.target.value as PaymentFilters["status"]); setPage(1); }} className="h-10 rounded-xl border border-emerald-100 bg-white px-3 text-[12px] font-bold">
+                <select value={status} onChange={(event) => { setStatus(event.target.value as PaymentFilters["status"]); setPage(1); }} className="h-9 rounded-xl border border-emerald-100 bg-white px-2 text-[11px] font-bold">
                   <option value="pending">غير المخصومة فقط</option>
                   <option value="all">الكل</option>
                   <option value="deducted">المخصومة فقط</option>
                 </select>
               </div>
 
-              <div className="grid grid-cols-3 gap-1 rounded-2xl bg-emerald-50 p-1">
+              <div className="grid grid-cols-3 gap-1 rounded-xl bg-emerald-50 p-1">
                 {[
                   ["all", "الكل"],
                   ["month", "شهر محدد"],
@@ -591,7 +612,7 @@ function CompanyPaymentsPage() {
                       setFilterMode(id as "all" | "month" | "range");
                       setPage(1);
                     }}
-                    className={`h-8 rounded-xl text-[11px] font-extrabold ${filterMode === id ? "bg-white text-emerald-800 shadow-sm" : "text-emerald-700"}`}
+                    className={`h-8 rounded-lg text-[10px] font-extrabold ${filterMode === id ? "bg-white text-emerald-800 shadow-sm" : "text-emerald-700"}`}
                   >
                     {label}
                   </button>
@@ -608,7 +629,7 @@ function CompanyPaymentsPage() {
                 </div>
               ) : null}
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               <a href={exportUrl} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-emerald-100 bg-white px-3 text-[12px] font-extrabold text-emerald-800 shadow-sm">
                 <Download className="size-4" /> Excel
               </a>
@@ -626,7 +647,7 @@ function CompanyPaymentsPage() {
             {!paymentsQuery.isLoading && !paymentsQuery.isError && payments.length === 0 ? <EmptyState title="لا توجد سدادات" description="غيّر الفلاتر أو أضف سدادًا جديدًا." /> : null}
             <div className="space-y-2">
               {payments.map((payment) => (
-                <PaymentCard
+                <CompanyPaymentCard
                   key={payment.id}
                   payment={payment}
                   menuOpen={openMenuId === payment.id}
@@ -635,7 +656,13 @@ function CompanyPaymentsPage() {
                   onDelete={() => {
                     if (confirm("هل تريد حذف هذا السداد؟")) deleteMutation.mutate(payment.id);
                   }}
-                  onDeduct={() => statusMutation.mutate({ id: payment.id, deducted: payment.status !== "deducted" })}
+                  onDeduct={() => {
+                    if (payment.status === "deducted") {
+                      statusMutation.mutate({ id: payment.id, deducted: false });
+                    } else {
+                      setDeductPromptPayment(payment);
+                    }
+                  }}
                   onPrint={() => {
                     setPrintPayment(payment);
                     requestAnimationFrame(() => window.print());
@@ -686,6 +713,36 @@ function CompanyPaymentsPage() {
         </div>
       ) : null}
 
+      {deductPromptPayment ? (
+        <div className="fixed inset-0 z-50 flex items-end bg-slate-950/35 px-3 pb-3 sm:items-center sm:justify-center print:hidden">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-4 shadow-2xl">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold text-emerald-700">تأكيد الخصم</p>
+                <h2 className="text-[16px] font-extrabold text-slate-900">تم الخصم بواسطة</h2>
+                <p className="mt-1 text-[12px] font-semibold text-slate-500">{deductPromptPayment.companyName}</p>
+              </div>
+              <button type="button" onClick={() => setDeductPromptPayment(null)} className="grid size-9 place-items-center rounded-2xl bg-slate-100 text-slate-500">
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {PAYMENT_OPERATORS.map((operator) => (
+                <button
+                  key={operator}
+                  type="button"
+                  disabled={statusMutation.isPending}
+                  onClick={() => statusMutation.mutate({ id: deductPromptPayment.id, deducted: true, deductedBy: operator })}
+                  className="h-11 rounded-2xl bg-emerald-600 text-[13px] font-extrabold text-white shadow-sm disabled:opacity-60"
+                >
+                  {operator}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="hidden print:block">
         <PrintHeader
           title={printPayment ? "إيصال سداد" : "تقرير سدادات الشركات"}
@@ -725,7 +782,7 @@ function MiniMetric({ label, value, tone }: { label: string; value: React.ReactN
   );
 }
 
-function PaymentCard({
+export function CompanyPaymentCard({
   payment,
   menuOpen,
   onToggleMenu,
@@ -738,11 +795,11 @@ function PaymentCard({
   payment: CompanyPayment;
   menuOpen: boolean;
   onToggleMenu: () => void;
-  onEdit: () => void;
+  onEdit?: () => void;
   onDelete: () => void;
   onDeduct: () => void;
   onPrint: () => void;
-  onDeleteAttachment: () => void;
+  onDeleteAttachment?: () => void;
 }) {
   const attachmentQuery = useQuery({
     queryKey: ["company-payment-attachment-url", payment.id, payment.attachment?.id],
@@ -754,14 +811,14 @@ function PaymentCard({
   const isDeducted = payment.status === "deducted";
 
   return (
-    <article className="relative rounded-3xl bg-white p-3 shadow-sm ring-1 ring-emerald-100">
+    <article className={`relative rounded-2xl p-2.5 shadow-sm ring-1 ${isDeducted ? "bg-emerald-50/55 ring-emerald-200" : "bg-white ring-emerald-100"}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate text-[14px] font-black text-slate-900">{payment.companyName}</h3>
-          <p className="mt-0.5 text-[11px] font-semibold text-slate-500">{formatDate(payment.date)}</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-slate-500">{formatDate(payment.date)}</p>
         </div>
-        <div className="flex items-start gap-2">
-          <div className="text-end text-[16px] font-black text-emerald-700">{formatCurrency(payment.amount)}</div>
+        <div className="flex items-start gap-1.5">
+          <div className="text-end text-[15px] font-black text-emerald-700">{formatCompanyPaymentCurrency(payment.amount)}</div>
           <button type="button" onClick={onToggleMenu} className="grid size-8 place-items-center rounded-2xl bg-slate-50 text-slate-500 print:hidden">
             <MoreVertical className="size-4" />
           </button>
@@ -770,7 +827,7 @@ function PaymentCard({
 
       {menuOpen ? (
         <div className="absolute end-3 top-12 z-10 w-36 rounded-2xl border border-slate-100 bg-white p-1 text-[12px] font-bold shadow-lg print:hidden">
-          <button type="button" onClick={onEdit} className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={onEdit} className={`${onEdit ? "flex" : "hidden"} w-full items-center gap-2 rounded-xl px-2 py-2 text-slate-700 hover:bg-slate-50`}>
             <Pencil className="size-4" /> تعديل
           </button>
           <button type="button" onClick={onPrint} className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-slate-700 hover:bg-slate-50">
@@ -782,8 +839,8 @@ function PaymentCard({
         </div>
       ) : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-extrabold text-slate-700">{typeLabel(payment.type)}</span>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold text-slate-700">{typeLabel(payment.type)}</span>
         {payment.attachment ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-extrabold text-emerald-700">
             <Paperclip className="size-3" /> مرفق
@@ -792,14 +849,14 @@ function PaymentCard({
         <StatusBadge label={statusLabel(payment.status)} tone={isDeducted ? "success" : "neutral"} />
       </div>
 
-      <div className="mt-3 grid gap-2 text-[12px]">
-        <InfoLine label="الملاحظات" value={payment.notes || "-"} />
-        <InfoLine label="مسجل السداد" value={payment.createdBy || "-"} />
-        {payment.deductedBy ? <InfoLine label="قام بالخصم" value={`${payment.deductedBy} · ${formatDateTime(payment.deductedAt)}`} /> : null}
+      <div className="mt-2 grid gap-1 text-[11px]">
+        {payment.notes ? <InfoLine label="الملاحظات" value={payment.notes} /> : null}
+        <InfoLine label="تم التسجيل بواسطة" value={payment.createdBy || "-"} />
+        {payment.deductedBy ? <InfoLine label="تم الخصم بواسطة" value={`${payment.deductedBy} · ${formatDateTime(payment.deductedAt)}`} /> : null}
       </div>
 
       {payment.attachment ? (
-        <div className="mt-3 rounded-2xl border border-emerald-50 bg-emerald-50/45 p-2">
+        <div className="mt-2 rounded-2xl border border-emerald-50 bg-emerald-50/45 p-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="inline-flex min-w-0 items-center gap-1 text-[11px] font-extrabold text-slate-700">
               {isImage ? <ImageIcon className="size-4" /> : <FileText className="size-4" />}
@@ -811,23 +868,19 @@ function PaymentCard({
                   فتح
                 </a>
               ) : null}
-              <button type="button" onClick={onDeleteAttachment} className="rounded-xl border border-red-100 bg-white px-2 py-1 text-[11px] font-bold text-red-600">
+              <button type="button" onClick={onDeleteAttachment} className={`${onDeleteAttachment ? "" : "hidden"} rounded-xl border border-red-100 bg-white px-2 py-1 text-[11px] font-bold text-red-600`}>
                 حذف
               </button>
             </div>
           </div>
-          {isImage && attachmentUrl ? <img src={attachmentUrl} alt="معاينة الإيصال" className="mt-2 max-h-32 rounded-2xl border border-emerald-100 object-contain" /> : null}
+          {isImage && attachmentUrl ? <img src={attachmentUrl} alt="معاينة الإيصال" className="mt-2 max-h-24 rounded-xl border border-emerald-100 object-contain" /> : null}
         </div>
-      ) : (
-        <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400">
-          <Camera className="size-3.5" /> لا يوجد مرفق
-        </p>
-      )}
+      ) : null}
 
       <button
         type="button"
         onClick={onDeduct}
-        className={`mt-3 flex h-9 w-full items-center justify-between rounded-2xl px-3 text-[12px] font-extrabold transition print:hidden ${
+        className={`mt-2 flex h-8 w-full items-center justify-between rounded-xl px-3 text-[11px] font-extrabold transition print:hidden ${
           isDeducted ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-700"
         }`}
       >
@@ -853,7 +906,7 @@ function ReceiptPrint({ payment }: { payment: CompanyPayment }) {
       <table className="print-report-table">
         <tbody>
           <tr><th>الشركة</th><td>{payment.companyName}</td></tr>
-          <tr><th>المبلغ</th><td>{formatCurrency(payment.amount)}</td></tr>
+          <tr><th>المبلغ</th><td>{formatCompanyPaymentCurrency(payment.amount)}</td></tr>
           <tr><th>التاريخ</th><td>{formatDate(payment.date)}</td></tr>
           <tr><th>النوع</th><td>{typeLabel(payment.type)}</td></tr>
           <tr><th>رقم العملية/الصك</th><td>{payment.referenceNo || "-"}</td></tr>
@@ -885,7 +938,7 @@ function ReportPrint({ rows }: { rows: CompanyPayment[] }) {
           {rows.map((row) => (
             <tr key={row.id}>
               <td>{row.companyName}</td>
-              <td>{formatCurrency(row.amount)}</td>
+              <td>{formatCompanyPaymentCurrency(row.amount)}</td>
               <td>{formatDate(row.date)}</td>
               <td>{typeLabel(row.type)}</td>
               <td>{statusLabel(row.status)}</td>

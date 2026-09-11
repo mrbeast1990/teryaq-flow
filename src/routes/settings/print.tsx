@@ -6,6 +6,11 @@ import { AppShell } from "@/components/teryaq/AppShell";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { DEFAULT_PRINT_SETTINGS, savePrintSettings, usePrintSettings, type PrintSettings } from "@/lib/printSettings";
 
+const MAX_LOGO_UPLOAD_BYTES = 5 * 1024 * 1024;
+const MAX_PROCESSED_LOGO_BYTES = 900 * 1024;
+const MAX_LOGO_SIDE = 1400;
+const SUPPORTED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
 export const Route = createFileRoute("/settings/print")({
   head: () => ({
     meta: [{ title: "إعدادات الطباعة — Teryaq" }],
@@ -29,21 +34,24 @@ function PrintSettingsPage() {
     setSaved(true);
   };
 
-  const handleLogo = (file?: File) => {
+  const handleLogo = async (file?: File) => {
     setLogoError("");
     setSaved(false);
     if (!file) return;
-    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+    if (!SUPPORTED_LOGO_TYPES.includes(file.type)) {
       setLogoError("الصيغ المدعومة: PNG أو JPG أو WebP.");
       return;
     }
-    if (file.size > 600 * 1024) {
-      setLogoError("حجم الشعار كبير. اختر صورة أقل من 600KB.");
+    if (file.size > MAX_LOGO_UPLOAD_BYTES) {
+      setLogoError("حجم الشعار كبير. الحد الأقصى للصورة الأصلية هو 5MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => update("logoDataUrl", String(reader.result || ""));
-    reader.readAsDataURL(file);
+    try {
+      const processedLogo = await processLogoFile(file);
+      update("logoDataUrl", processedLogo);
+    } catch (error) {
+      setLogoError(error instanceof Error ? error.message : "تعذر تجهيز الشعار للطباعة. جرّب صورة أخرى.");
+    }
   };
 
   return (
@@ -64,7 +72,7 @@ function PrintSettingsPage() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-black">الشعار</h2>
-              <p className="text-[11px] text-muted-foreground">يحفظ محليًا في هذا المتصفح ويستخدم في الطباعة فقط.</p>
+              <p className="text-[11px] text-muted-foreground">يحفظ محليًا في هذا المتصفح بعد ضغطه، ويستخدم في الطباعة فقط.</p>
             </div>
             <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 text-[12px] font-bold hover:bg-secondary">
               <ImageUp className="size-4" />
@@ -91,6 +99,57 @@ function PrintSettingsPage() {
       </div>
     </AppShell>
   );
+}
+
+function dataUrlByteSize(dataUrl: string) {
+  const base64 = dataUrl.split(",")[1] || "";
+  return Math.ceil((base64.length * 3) / 4);
+}
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("تعذر قراءة ملف الشعار."));
+    image.src = src;
+  });
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("تعذر قراءة ملف الشعار."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function processLogoFile(file: File) {
+  const source = await readFileAsDataUrl(file);
+  const image = await loadImage(source);
+  const ratio = Math.min(1, MAX_LOGO_SIDE / Math.max(image.width, image.height));
+  const width = Math.max(1, Math.round(image.width * ratio));
+  const height = Math.max(1, Math.round(image.height * ratio));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("تعذر تجهيز الشعار للطباعة.");
+  context.clearRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  const preferredType = file.type === "image/png" ? "image/png" : "image/webp";
+  let dataUrl = canvas.toDataURL(preferredType, 0.9);
+  if (dataUrlByteSize(dataUrl) > MAX_PROCESSED_LOGO_BYTES && preferredType === "image/png") {
+    dataUrl = canvas.toDataURL("image/webp", 0.92);
+  }
+  if (dataUrlByteSize(dataUrl) > MAX_PROCESSED_LOGO_BYTES) {
+    dataUrl = canvas.toDataURL("image/webp", 0.82);
+  }
+  if (dataUrlByteSize(dataUrl) > MAX_PROCESSED_LOGO_BYTES) {
+    throw new Error("تمت معالجة الشعار لكن حجمه لا يزال كبيرًا للحفظ المحلي. جرّب صورة أبسط أو أصغر.");
+  }
+  return dataUrl;
 }
 
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {

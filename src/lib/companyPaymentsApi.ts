@@ -117,10 +117,10 @@ export function deleteCompanyPayment(id: string) {
   });
 }
 
-export function setCompanyPaymentDeducted(id: string, deducted: boolean) {
+export function setCompanyPaymentDeducted(id: string, deducted: boolean, deductedBy?: string) {
   return request<CompanyPayment>("/api/company-payments?action=set-deducted", {
     method: "POST",
-    body: JSON.stringify({ id, deducted }),
+    body: JSON.stringify({ id, deducted, deductedBy }),
   });
 }
 

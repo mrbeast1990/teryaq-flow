@@ -2,7 +2,7 @@ import { BarChart3, Search, CalendarDays, AlertCircle, TrendingUp, Wallet, Layou
 import { CompactListCard } from "../CompactListCard";
 import { SectionHeader } from "../SectionHeader";
 
-export function AnalyticsNav() {
+export function AnalyticsNav({ wrapText = false }: { wrapText?: boolean } = {}) {
   const analyticsLinks = [
     {
       title: "البحث الشامل",
@@ -67,6 +67,7 @@ export function AnalyticsNav() {
               subtitle={analyticsLinks[0].subtitle}
               icon={analyticsLinks[0].icon}
               to={analyticsLinks[0].to}
+              wrapText={wrapText}
             />
           )}
         </div>
@@ -79,6 +80,7 @@ export function AnalyticsNav() {
               subtitle={item.subtitle}
               icon={item.icon}
               to={item.to}
+              wrapText={wrapText}
             />
           ))}
         </div>
@@ -94,6 +96,7 @@ export function AnalyticsNav() {
               subtitle={item.subtitle}
               icon={item.icon}
               to={item.to}
+              wrapText={wrapText}
             />
           ))}
         </div>

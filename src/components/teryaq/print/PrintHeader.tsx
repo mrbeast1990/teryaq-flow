@@ -12,7 +12,7 @@ export function PrintHeader({ title, subtitle }: PrintHeaderProps) {
   return (
     <header className="print-doc-header">
       <div className="print-logo-box">
-        {settings.logoDataUrl ? <img src={settings.logoDataUrl} alt="" /> : <span>TF</span>}
+        {settings.logoDataUrl ? <img src={settings.logoDataUrl} alt="شعار الصيدلية" /> : <span>TF</span>}
       </div>
       <div className="print-doc-heading">
         <h1>{settings.pharmacyName || "صيدلية الترياق الشافي"}</h1>

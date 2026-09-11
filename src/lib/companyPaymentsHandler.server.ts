@@ -144,7 +144,7 @@ export async function handleCompanyPaymentsRequest(request: Request) {
         case "delete-payment":
           return json(await deletePayment(String(body.id || "")));
         case "set-deducted":
-          return json(await setPaymentDeducted(String(body.id || ""), Boolean(body.deducted), currentUser(request)));
+          return json(await setPaymentDeducted(String(body.id || ""), Boolean(body.deducted), currentUser(request), body.deductedBy));
         case "delete-attachment":
           return json(await deleteAttachment(String(body.paymentId || "")));
       }
