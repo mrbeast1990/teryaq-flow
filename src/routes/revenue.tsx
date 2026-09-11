@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard, LogIn, Receipt, RotateCcw, Users, Wallet } from "lucide-react";
@@ -138,9 +138,9 @@ function RevenuePage() {
   const [dateTo, setDateTo] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedPeriodName, setSelectedPeriodName] = useState<string | null>(null);
   const [selectedSourceName, setSelectedSourceName] = useState<string | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<{ invoiceNo: string; movementNo: string } | null>(null);
   const [invoiceModal, setInvoiceModal] = useState<{ invoiceNo: string; movementNo: string } | null>(null);
   const [highlightedInvoiceKey, setHighlightedInvoiceKey] = useState<string | null>(null);
+  const invoiceModalHistoryPushed = useRef(false);
 
   const { data, error, isLoading, isError, refetch } = useQuery({
     queryKey: ["revenue", { dateFrom, dateTo }],
@@ -178,31 +178,40 @@ function RevenuePage() {
     return () => window.clearTimeout(timeout);
   }, [highlightedInvoiceKey]);
 
-  const closeInvoiceModal = () => {
+  const finishCloseInvoiceModal = () => {
     if (invoiceModal) setHighlightedInvoiceKey(`${invoiceModal.movementNo}-${invoiceModal.invoiceNo}`);
     setInvoiceModal(null);
   };
 
+  const closeInvoiceModal = () => {
+    if (invoiceModalHistoryPushed.current) {
+      invoiceModalHistoryPushed.current = false;
+      window.history.back();
+      return;
+    }
+    finishCloseInvoiceModal();
+  };
+
+  const openInvoiceModal = (invoice: { invoiceNo: string; movementNo: string }) => {
+    setInvoiceModal(invoice);
+    if (typeof window !== "undefined") {
+      window.history.pushState({ teryaqRevenueInvoiceModal: true }, "");
+      invoiceModalHistoryPushed.current = true;
+    }
+  };
+
+  useEffect(() => {
+    if (!invoiceModal) return undefined;
+    const handlePopState = () => {
+      invoiceModalHistoryPushed.current = false;
+      finishCloseInvoiceModal();
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [invoiceModal]);
+
   const selectedMovement = selectedMovementDetails.data?.movement;
   const selectedTransactionDateTime = selectedMovement?.movementHasRealTime ? selectedMovement.movementCreatedAt : null;
-
-  if (selectedInvoice) {
-    const movement = selectedMovementDetails.data?.movement;
-    const transactionDateTime = movement?.movementHasRealTime ? movement.movementCreatedAt : null;
-    return (
-      <AppShell>
-        <PageHeader title="تفاصيل الفاتورة" subtitle="بيانات الفاتورة الحقيقية من Teryaq SQL Connector" />
-        <InvoiceDetailsView
-          type="sales"
-          movementNo={selectedInvoice.invoiceNo}
-          displayMovementNo={selectedInvoice.movementNo}
-          transactionDateTime={transactionDateTime || null}
-          transactionDateTimeSource={movement?.movementDateTimeSource || undefined}
-          onBack={() => setSelectedInvoice(null)}
-        />
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell>
@@ -379,7 +388,7 @@ function RevenuePage() {
                           actionLabel={canOpenInvoice ? "عرض الفاتورة" : undefined}
                           onClick={
                             canOpenInvoice
-                              ? () => setInvoiceModal({ invoiceNo: String(movement.invoiceNo), movementNo: String(movement.movementNo) })
+                              ? () => openInvoiceModal({ invoiceNo: String(movement.invoiceNo), movementNo: String(movement.movementNo) })
                               : undefined
                           }
                           icon={Receipt}

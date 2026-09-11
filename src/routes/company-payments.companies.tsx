@@ -19,6 +19,7 @@ import {
 import {
   CompanyPaymentCard,
   PAYMENT_OPERATORS,
+  type CompanyPaymentAttachmentPreview,
   formatCompanyPaymentCurrency,
 } from "./company-payments";
 
@@ -38,6 +39,7 @@ function CompanyPaymentsCompaniesPage() {
   const [page, setPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deductPromptPayment, setDeductPromptPayment] = useState<CompanyPayment | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState<CompanyPaymentAttachmentPreview | null>(null);
 
   const companiesQuery = useQuery({
     queryKey: ["company-payments-companies-page", search],
@@ -205,6 +207,7 @@ function CompanyPaymentsCompaniesPage() {
                       else setDeductPromptPayment(payment);
                     }}
                     onPrint={() => window.print()}
+                    onOpenAttachment={setAttachmentPreview}
                   />
                 ))}
                 <div className="flex items-center justify-between gap-2 print:hidden">
@@ -274,6 +277,33 @@ function CompanyPaymentsCompaniesPage() {
                   {operator}
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {attachmentPreview ? (
+        <div className="fixed inset-0 z-50 flex flex-col bg-slate-950/80 p-3 print:hidden">
+          <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-3">
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold text-emerald-700">معاينة المرفق</p>
+                <h2 className="truncate text-[14px] font-extrabold text-slate-900">{attachmentPreview.fileName}</h2>
+              </div>
+              <button type="button" onClick={() => setAttachmentPreview(null)} className="grid size-10 place-items-center rounded-2xl bg-slate-100 text-slate-600">
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-slate-50 p-3">
+              {attachmentPreview.mimeType.startsWith("image/") ? (
+                <img src={attachmentPreview.url} alt={attachmentPreview.fileName} className="max-h-full max-w-full rounded-2xl object-contain shadow-sm" />
+              ) : attachmentPreview.mimeType === "application/pdf" || attachmentPreview.fileName.toLowerCase().endsWith(".pdf") ? (
+                <iframe title={attachmentPreview.fileName} src={attachmentPreview.url} className="h-full min-h-[70vh] w-full rounded-2xl border border-slate-200 bg-white" />
+              ) : (
+                <div className="rounded-2xl bg-white p-4 text-center text-sm font-bold text-slate-600">
+                  لا يمكن معاينة هذا النوع داخل التطبيق.
+                </div>
+              )}
             </div>
           </div>
         </div>

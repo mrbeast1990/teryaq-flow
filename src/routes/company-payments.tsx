@@ -103,6 +103,12 @@ function statusLabel(status: CompanyPayment["status"]) {
   return status === "deducted" ? "مخصوم" : "لم يُخصم";
 }
 
+export type CompanyPaymentAttachmentPreview = {
+  url: string;
+  fileName: string;
+  mimeType: string;
+};
+
 function Field({
   label,
   value,
@@ -168,6 +174,7 @@ function CompanyPaymentsPage() {
   const [printPayment, setPrintPayment] = useState<CompanyPayment | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deductPromptPayment, setDeductPromptPayment] = useState<CompanyPayment | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState<CompanyPaymentAttachmentPreview | null>(null);
 
   const companiesQuery = useQuery({
     queryKey: ["company-payments-companies", companySearch],
@@ -667,6 +674,7 @@ function CompanyPaymentsPage() {
                     setPrintPayment(payment);
                     requestAnimationFrame(() => window.print());
                   }}
+                  onOpenAttachment={setAttachmentPreview}
                   onDeleteAttachment={() => attachmentDeleteMutation.mutate(payment.id)}
                 />
               ))}
@@ -743,6 +751,8 @@ function CompanyPaymentsPage() {
         </div>
       ) : null}
 
+      {attachmentPreview ? <AttachmentPreviewModal preview={attachmentPreview} onClose={() => setAttachmentPreview(null)} /> : null}
+
       <div className="hidden print:block">
         <PrintHeader
           title={printPayment ? "إيصال سداد" : "تقرير سدادات الشركات"}
@@ -790,6 +800,7 @@ export function CompanyPaymentCard({
   onDelete,
   onDeduct,
   onPrint,
+  onOpenAttachment,
   onDeleteAttachment,
 }: {
   payment: CompanyPayment;
@@ -799,6 +810,7 @@ export function CompanyPaymentCard({
   onDelete: () => void;
   onDeduct: () => void;
   onPrint: () => void;
+  onOpenAttachment?: (preview: CompanyPaymentAttachmentPreview) => void;
   onDeleteAttachment?: () => void;
 }) {
   const attachmentQuery = useQuery({
@@ -864,9 +876,19 @@ export function CompanyPaymentCard({
             </span>
             <div className="flex gap-1">
               {attachmentUrl ? (
-                <a href={attachmentUrl} target="_blank" rel="noreferrer" className="rounded-xl border border-emerald-100 bg-white px-2 py-1 text-[11px] font-bold text-emerald-700">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onOpenAttachment?.({
+                      url: attachmentUrl,
+                      fileName: payment.attachment?.fileName || "مرفق",
+                      mimeType: payment.attachment?.mimeType || "application/octet-stream",
+                    })
+                  }
+                  className="rounded-xl border border-emerald-100 bg-white px-2 py-1 text-[11px] font-bold text-emerald-700"
+                >
                   فتح
-                </a>
+                </button>
               ) : null}
               <button type="button" onClick={onDeleteAttachment} className={`${onDeleteAttachment ? "" : "hidden"} rounded-xl border border-red-100 bg-white px-2 py-1 text-[11px] font-bold text-red-600`}>
                 حذف
@@ -896,6 +918,44 @@ function InfoLine({ label, value }: { label: string; value: React.ReactNode }) {
     <div className="flex items-start justify-between gap-3 rounded-2xl bg-slate-50 px-3 py-2">
       <span className="shrink-0 text-[11px] font-extrabold text-slate-400">{label}</span>
       <span className="min-w-0 break-words text-end text-[12px] font-bold text-slate-700">{value}</span>
+    </div>
+  );
+}
+
+function AttachmentPreviewModal({
+  preview,
+  onClose,
+}: {
+  preview: CompanyPaymentAttachmentPreview;
+  onClose: () => void;
+}) {
+  const isImage = preview.mimeType.startsWith("image/");
+  const isPdf = preview.mimeType === "application/pdf" || preview.fileName.toLowerCase().endsWith(".pdf");
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-slate-950/80 p-3 print:hidden">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold text-emerald-700">معاينة المرفق</p>
+            <h2 className="truncate text-[14px] font-extrabold text-slate-900">{preview.fileName}</h2>
+          </div>
+          <button type="button" onClick={onClose} className="grid size-10 place-items-center rounded-2xl bg-slate-100 text-slate-600">
+            <X className="size-5" />
+          </button>
+        </div>
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-slate-50 p-3">
+          {isImage ? (
+            <img src={preview.url} alt={preview.fileName} className="max-h-full max-w-full rounded-2xl object-contain shadow-sm" />
+          ) : isPdf ? (
+            <iframe title={preview.fileName} src={preview.url} className="h-full min-h-[70vh] w-full rounded-2xl border border-slate-200 bg-white" />
+          ) : (
+            <div className="rounded-2xl bg-white p-4 text-center text-sm font-bold text-slate-600">
+              لا يمكن معاينة هذا النوع داخل التطبيق.
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
