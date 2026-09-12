@@ -141,6 +141,122 @@ function Field({
   );
 }
 
+function CompanySelector({
+  companies,
+  value,
+  onChange,
+  placeholder,
+  allLabel,
+  disabled,
+  compact,
+}: {
+  companies: Company[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  allLabel?: string;
+  disabled?: boolean;
+  compact?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const selectedCompany = companies.find((company) => company.id === value);
+  const normalizedQuery = query.trim().toLocaleLowerCase("ar");
+  const filteredCompanies = normalizedQuery
+    ? companies.filter((company) => {
+        const name = company.name.toLocaleLowerCase("ar");
+        const representative = (company.representativeName || "").toLocaleLowerCase("ar");
+        return name.includes(normalizedQuery) || representative.includes(normalizedQuery);
+      })
+    : companies;
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
+
+  const pickCompany = (companyId: string) => {
+    onChange(companyId);
+    setOpen(false);
+    setQuery("");
+  };
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => {
+          if (!disabled) setOpen((current) => !current);
+        }}
+        className={`flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-100 bg-white px-3 text-start font-bold text-slate-900 shadow-sm outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100 disabled:opacity-70 ${
+          compact ? "h-9 text-[11px]" : "h-10 text-[13px]"
+        }`}
+        aria-expanded={open}
+      >
+        <span className={`min-w-0 truncate ${selectedCompany || (allLabel && !value) ? "" : "text-slate-400"}`}>
+          {selectedCompany?.name || (!value && allLabel) || placeholder}
+        </span>
+        <ChevronLeft className={`size-4 shrink-0 text-slate-400 transition-transform ${open ? "-rotate-90" : ""}`} />
+      </button>
+
+      {open ? (
+        <div className="absolute inset-x-0 top-full z-40 mt-1 overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-xl">
+          <div className="border-b border-emerald-50 p-2">
+            <div className="flex h-9 items-center gap-2 rounded-xl bg-slate-50 px-2">
+              <Search className="size-4 shrink-0 text-emerald-700" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                autoFocus
+                placeholder="ابحث عن شركة..."
+                className="min-w-0 flex-1 bg-transparent text-[12px] font-bold text-slate-900 outline-none placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+
+          <div className="max-h-64 overflow-y-auto overscroll-contain p-1">
+            {allLabel ? (
+              <button
+                type="button"
+                onClick={() => pickCompany("")}
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-start text-[12px] font-extrabold transition hover:bg-emerald-50 ${
+                  !value ? "bg-emerald-50 text-emerald-800" : "text-slate-700"
+                }`}
+              >
+                {allLabel}
+              </button>
+            ) : null}
+
+            {filteredCompanies.map((company) => (
+              <button
+                key={company.id}
+                type="button"
+                onClick={() => pickCompany(company.id)}
+                className={`block w-full rounded-xl px-3 py-2 text-start transition hover:bg-emerald-50 ${
+                  value === company.id ? "bg-emerald-50" : ""
+                }`}
+              >
+                <span className="block truncate text-[12px] font-extrabold text-slate-900">{company.name}</span>
+                {company.representativeName ? <span className="mt-0.5 block truncate text-[10px] font-bold text-slate-500">{company.representativeName}</span> : null}
+              </button>
+            ))}
+
+            {filteredCompanies.length === 0 ? (
+              <p className="px-3 py-4 text-center text-[12px] font-bold text-slate-500">لا توجد شركات مطابقة.</p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function CompanyPaymentsPage() {
   const queryClient = useQueryClient();
   const [companySearch, setCompanySearch] = useState("");
@@ -165,7 +281,7 @@ function CompanyPaymentsPage() {
     createdBy: PAYMENT_OPERATORS[0],
   });
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const [filterMode, setFilterMode] = useState<"all" | "month" | "range">("all");
+  const [filterMode, setFilterMode] = useState<"all" | "month" | "range">("month");
   const [month, setMonth] = useState(monthValue());
   const [dateFrom, setDateFrom] = useState(`${monthValue()}-01`);
   const [dateTo, setDateTo] = useState(monthEnd(monthValue()));
@@ -182,6 +298,11 @@ function CompanyPaymentsPage() {
   const companiesQuery = useQuery({
     queryKey: ["company-payments-companies", companySearch],
     queryFn: () => getCompanies(companySearch),
+  });
+
+  const allCompaniesQuery = useQuery({
+    queryKey: ["company-payments-companies", "selector-all"],
+    queryFn: () => getCompanies(""),
   });
 
   const effectiveFilters = useMemo<PaymentFilters>(() => {
@@ -204,6 +325,7 @@ function CompanyPaymentsPage() {
   });
 
   const companies = companiesQuery.data?.rows || [];
+  const selectorCompanies = allCompaniesQuery.data?.rows || companies;
   const payments = paymentsQuery.data?.rows || [];
   const summary = paymentsQuery.data?.summary;
   const totalCount = paymentsQuery.data?.totalCount || 0;
@@ -505,20 +627,13 @@ function CompanyPaymentsPage() {
                 <div className="grid grid-cols-[1fr_auto] gap-2">
                   <label className="space-y-1 text-[11px] font-extrabold text-slate-600">
                     <span>الشركة</span>
-                    <select
-                      required
-                      disabled={Boolean(editingPayment)}
+                    <CompanySelector
+                      companies={selectorCompanies}
                       value={paymentForm.companyId}
-                      onChange={(event) => setPaymentForm((form) => ({ ...form, companyId: event.target.value }))}
-                      className="h-10 w-full rounded-xl border border-emerald-100 bg-white px-3 text-[13px] font-bold text-slate-900 shadow-sm outline-none disabled:opacity-70"
-                    >
-                      <option value="">اختر الشركة</option>
-                      {companies.map((company) => (
-                        <option key={company.id} value={company.id}>
-                          {company.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => setPaymentForm((form) => ({ ...form, companyId: value }))}
+                      placeholder="اختر الشركة..."
+                      disabled={Boolean(editingPayment)}
+                    />
                   </label>
                   <button
                     type="button"
@@ -623,14 +738,17 @@ function CompanyPaymentsPage() {
             <div className="space-y-1.5">
               <SearchInput placeholder="بحث في السدادات" value={search} onChange={(value) => { setSearch(value); setPage(1); }} />
               <div className="grid grid-cols-2 gap-2">
-                <select value={companyId} onChange={(event) => { setCompanyId(event.target.value); setPage(1); }} className="h-9 rounded-xl border border-emerald-100 bg-white px-2 text-[11px] font-bold">
-                  <option value="">كل الشركات</option>
-                  {companies.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
+                <CompanySelector
+                  companies={selectorCompanies}
+                  value={companyId}
+                  onChange={(value) => {
+                    setCompanyId(value);
+                    setPage(1);
+                  }}
+                  placeholder="كل الشركات"
+                  allLabel="كل الشركات"
+                  compact
+                />
                 <select value={status} onChange={(event) => { setStatus(event.target.value as PaymentFilters["status"]); setPage(1); }} className="h-9 rounded-xl border border-emerald-100 bg-white px-2 text-[11px] font-bold">
                   <option value="pending">غير المخصومة فقط</option>
                   <option value="all">الكل</option>
