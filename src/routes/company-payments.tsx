@@ -1,14 +1,14 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.mjs?url";
 import {
   Banknote,
   Building2,
   CheckCircle2,
   ChevronLeft,
   Download,
-  FileText,
-  ImageIcon,
   MoreVertical,
   Paperclip,
   Pencil,
@@ -46,6 +46,8 @@ import {
   type CompanyPaymentType,
   type PaymentFilters,
 } from "@/lib/companyPaymentsApi";
+
+GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export const Route = createFileRoute("/company-payments")({
   head: () => ({
@@ -175,6 +177,7 @@ function CompanyPaymentsPage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deductPromptPayment, setDeductPromptPayment] = useState<CompanyPayment | null>(null);
   const [attachmentPreview, setAttachmentPreview] = useState<CompanyPaymentAttachmentPreview | null>(null);
+  const attachmentHistoryRef = useRef(false);
 
   const companiesQuery = useQuery({
     queryKey: ["company-payments-companies", companySearch],
@@ -284,6 +287,35 @@ function CompanyPaymentsPage() {
     },
   });
   const attachmentDeleteMutation = useMutation({ mutationFn: deleteCompanyPaymentAttachment, onSuccess: invalidate });
+
+  const finishAttachmentPreviewClose = () => {
+    attachmentHistoryRef.current = false;
+    setAttachmentPreview(null);
+  };
+
+  const openAttachmentPreview = (preview: CompanyPaymentAttachmentPreview) => {
+    setAttachmentPreview(preview);
+    if (typeof window !== "undefined") {
+      window.history.pushState({ teryaqCompanyPaymentAttachment: true }, "");
+      attachmentHistoryRef.current = true;
+    }
+  };
+
+  const closeAttachmentPreview = () => {
+    if (attachmentHistoryRef.current && typeof window !== "undefined") {
+      window.history.back();
+      return;
+    }
+    finishAttachmentPreviewClose();
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (attachmentHistoryRef.current) finishAttachmentPreviewClose();
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const submitCompany = (event: FormEvent) => {
     event.preventDefault();
@@ -674,7 +706,7 @@ function CompanyPaymentsPage() {
                     setPrintPayment(payment);
                     requestAnimationFrame(() => window.print());
                   }}
-                  onOpenAttachment={setAttachmentPreview}
+                  onOpenAttachment={openAttachmentPreview}
                   onDeleteAttachment={() => attachmentDeleteMutation.mutate(payment.id)}
                 />
               ))}
@@ -751,7 +783,7 @@ function CompanyPaymentsPage() {
         </div>
       ) : null}
 
-      {attachmentPreview ? <AttachmentPreviewModal preview={attachmentPreview} onClose={() => setAttachmentPreview(null)} /> : null}
+      {attachmentPreview ? <AttachmentPreviewModal preview={attachmentPreview} onClose={closeAttachmentPreview} /> : null}
 
       <div className="hidden print:block">
         <PrintHeader
@@ -819,7 +851,6 @@ export function CompanyPaymentCard({
     enabled: Boolean(payment.attachment),
   });
   const attachmentUrl = attachmentQuery.data?.url || "";
-  const isImage = payment.attachment?.mimeType.startsWith("image/");
   const isDeducted = payment.status === "deducted";
 
   return (
@@ -845,6 +876,11 @@ export function CompanyPaymentCard({
           <button type="button" onClick={onPrint} className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-slate-700 hover:bg-slate-50">
             <Printer className="size-4" /> طباعة
           </button>
+          {payment.attachment && onDeleteAttachment ? (
+            <button type="button" onClick={onDeleteAttachment} className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-red-600 hover:bg-red-50">
+              <Trash2 className="size-4" /> حذف المرفق
+            </button>
+          ) : null}
           <button type="button" onClick={onDelete} className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-red-600 hover:bg-red-50">
             <Trash2 className="size-4" /> حذف
           </button>
@@ -854,9 +890,21 @@ export function CompanyPaymentCard({
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold text-slate-700">{typeLabel(payment.type)}</span>
         {payment.attachment ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-extrabold text-emerald-700">
+          <button
+            type="button"
+            disabled={!attachmentUrl || attachmentQuery.isLoading}
+            onClick={() =>
+              attachmentUrl &&
+              onOpenAttachment?.({
+                url: attachmentUrl,
+                fileName: payment.attachment?.fileName || "مرفق",
+                mimeType: payment.attachment?.mimeType || "application/octet-stream",
+              })
+            }
+            className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-extrabold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-wait disabled:opacity-60 print:hidden"
+          >
             <Paperclip className="size-3" /> مرفق
-          </span>
+          </button>
         ) : null}
         <StatusBadge label={statusLabel(payment.status)} tone={isDeducted ? "success" : "neutral"} />
       </div>
@@ -866,38 +914,6 @@ export function CompanyPaymentCard({
         <InfoLine label="تم التسجيل بواسطة" value={payment.createdBy || "-"} />
         {payment.deductedBy ? <InfoLine label="تم الخصم بواسطة" value={`${payment.deductedBy} · ${formatDateTime(payment.deductedAt)}`} /> : null}
       </div>
-
-      {payment.attachment ? (
-        <div className="mt-2 rounded-2xl border border-emerald-50 bg-emerald-50/45 p-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="inline-flex min-w-0 items-center gap-1 text-[11px] font-extrabold text-slate-700">
-              {isImage ? <ImageIcon className="size-4" /> : <FileText className="size-4" />}
-              <span className="truncate">{payment.attachment.fileName}</span>
-            </span>
-            <div className="flex gap-1">
-              {attachmentUrl ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    onOpenAttachment?.({
-                      url: attachmentUrl,
-                      fileName: payment.attachment?.fileName || "مرفق",
-                      mimeType: payment.attachment?.mimeType || "application/octet-stream",
-                    })
-                  }
-                  className="rounded-xl border border-emerald-100 bg-white px-2 py-1 text-[11px] font-bold text-emerald-700"
-                >
-                  فتح
-                </button>
-              ) : null}
-              <button type="button" onClick={onDeleteAttachment} className={`${onDeleteAttachment ? "" : "hidden"} rounded-xl border border-red-100 bg-white px-2 py-1 text-[11px] font-bold text-red-600`}>
-                حذف
-              </button>
-            </div>
-          </div>
-          {isImage && attachmentUrl ? <img src={attachmentUrl} alt="معاينة الإيصال" className="mt-2 max-h-24 rounded-xl border border-emerald-100 object-contain" /> : null}
-        </div>
-      ) : null}
 
       <button
         type="button"
@@ -922,7 +938,7 @@ function InfoLine({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function AttachmentPreviewModal({
+export function AttachmentPreviewModal({
   preview,
   onClose,
 }: {
@@ -948,7 +964,7 @@ function AttachmentPreviewModal({
           {isImage ? (
             <img src={preview.url} alt={preview.fileName} className="max-h-full max-w-full rounded-2xl object-contain shadow-sm" />
           ) : isPdf ? (
-            <iframe title={preview.fileName} src={preview.url} className="h-full min-h-[70vh] w-full rounded-2xl border border-slate-200 bg-white" />
+            <PdfAttachmentViewer url={preview.url} />
           ) : (
             <div className="rounded-2xl bg-white p-4 text-center text-sm font-bold text-slate-600">
               لا يمكن معاينة هذا النوع داخل التطبيق.
@@ -956,6 +972,64 @@ function AttachmentPreviewModal({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function PdfAttachmentViewer({ url }: { url: string }) {
+  const [pages, setPages] = useState<Array<{ pageNumber: number; src: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const renderedPages: Array<{ pageNumber: number; src: string }> = [];
+
+    async function renderPdf() {
+      try {
+        setLoading(true);
+        setError(null);
+        setPages([]);
+        const pdf = await getDocument({ url }).promise;
+        const scale = Math.min(2, Math.max(1.35, window.devicePixelRatio || 1.5));
+
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+          const page = await pdf.getPage(pageNumber);
+          const viewport = page.getViewport({ scale });
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("Canvas is unavailable");
+
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+          await page.render({ canvasContext: context, viewport }).promise;
+
+          if (cancelled) return;
+          renderedPages.push({ pageNumber, src: canvas.toDataURL("image/png") });
+          setPages([...renderedPages]);
+        }
+      } catch {
+        if (!cancelled) setError("تعذر عرض ملف PDF داخل التطبيق.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    renderPdf();
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  if (loading && pages.length === 0) return <LoadingState label="جاري عرض ملف PDF..." />;
+  if (error) return <div className="rounded-2xl bg-white p-4 text-center text-sm font-bold text-red-600">{error}</div>;
+
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
+      {pages.map((page) => (
+        <img key={page.pageNumber} src={page.src} alt={`صفحة ${page.pageNumber}`} className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm" />
+      ))}
+      {loading ? <p className="text-center text-[12px] font-bold text-slate-500">جاري تحميل بقية الصفحات...</p> : null}
     </div>
   );
 }
