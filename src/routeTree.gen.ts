@@ -17,6 +17,7 @@ import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as PaymentsRouteImport } from './routes/payments'
+import { Route as ProfitReportsRouteImport } from './routes/profit-reports'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as TradingRouteImport } from './routes/trading'
@@ -31,6 +32,8 @@ import { Route as ItemsExpiryRouteImport } from './routes/items/expiry'
 import { Route as ItemsOutOfStockRouteImport } from './routes/items/out-of-stock'
 import { Route as ItemsStockRouteImport } from './routes/items/stock'
 import { Route as ItemsTrackRouteImport } from './routes/items/track'
+import { Route as ProfitReportsItemsRouteImport } from './routes/profit-reports.items'
+import { Route as ProfitReportsTradingRouteImport } from './routes/profit-reports.trading'
 import { Route as SettingsConnectionRouteImport } from './routes/settings/connection'
 import { Route as SettingsPrintRouteImport } from './routes/settings/print'
 import { Route as TradingIndexRouteImport } from './routes/trading/index'
@@ -41,6 +44,9 @@ import { Route as AccountsCustomersIndexRouteImport } from './routes/accounts/cu
 import { Route as AccountsCustomersIdRouteImport } from './routes/accounts/customers/$id'
 import { Route as AccountsSuppliersIndexRouteImport } from './routes/accounts/suppliers/index'
 import { Route as AccountsSuppliersIdRouteImport } from './routes/accounts/suppliers/$id'
+import { Route as ProfitReportsTradingAccountantRouteImport } from './routes/profit-reports.trading.accountant'
+import { Route as ProfitReportsTradingFlowRouteImport } from './routes/profit-reports.trading.flow'
+import { Route as ProfitReportsTradingFlowDateRouteImport } from './routes/profit-reports.trading.flow.$date'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -80,6 +86,11 @@ const MoreRoute = MoreRouteImport.update({
 const PaymentsRoute = PaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfitReportsRoute = ProfitReportsRouteImport.update({
+  id: '/profit-reports',
+  path: '/profit-reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -153,6 +164,16 @@ const ItemsTrackRoute = ItemsTrackRouteImport.update({
   path: '/track',
   getParentRoute: () => ItemsRoute,
 } as any)
+const ProfitReportsItemsRoute = ProfitReportsItemsRouteImport.update({
+  id: '/items',
+  path: '/items',
+  getParentRoute: () => ProfitReportsRoute,
+} as any)
+const ProfitReportsTradingRoute = ProfitReportsTradingRouteImport.update({
+  id: '/trading',
+  path: '/trading',
+  getParentRoute: () => ProfitReportsRoute,
+} as any)
 const SettingsConnectionRoute = SettingsConnectionRouteImport.update({
   id: '/settings/connection',
   path: '/settings/connection',
@@ -203,6 +224,24 @@ const AccountsSuppliersIdRoute = AccountsSuppliersIdRouteImport.update({
   path: '/suppliers/$id',
   getParentRoute: () => AccountsRoute,
 } as any)
+const ProfitReportsTradingAccountantRoute =
+  ProfitReportsTradingAccountantRouteImport.update({
+    id: '/accountant',
+    path: '/accountant',
+    getParentRoute: () => ProfitReportsTradingRoute,
+  } as any)
+const ProfitReportsTradingFlowRoute =
+  ProfitReportsTradingFlowRouteImport.update({
+    id: '/flow',
+    path: '/flow',
+    getParentRoute: () => ProfitReportsTradingRoute,
+  } as any)
+const ProfitReportsTradingFlowDateRoute =
+  ProfitReportsTradingFlowDateRouteImport.update({
+    id: '/$date',
+    path: '/$date',
+    getParentRoute: () => ProfitReportsTradingFlowRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -213,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/payments': typeof PaymentsRoute
+  '/profit-reports': typeof ProfitReportsRouteWithChildren
   '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
@@ -226,6 +266,8 @@ export interface FileRoutesByFullPath {
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
+  '/profit-reports/items': typeof ProfitReportsItemsRoute
+  '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -235,8 +277,11 @@ export interface FileRoutesByFullPath {
   '/trading/': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
+  '/profit-reports/trading/accountant': typeof ProfitReportsTradingAccountantRoute
+  '/profit-reports/trading/flow': typeof ProfitReportsTradingFlowRouteWithChildren
   '/accounts/customers/': typeof AccountsCustomersIndexRoute
   '/accounts/suppliers/': typeof AccountsSuppliersIndexRoute
+  '/profit-reports/trading/flow/$date': typeof ProfitReportsTradingFlowDateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -246,6 +291,7 @@ export interface FileRoutesByTo {
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/payments': typeof PaymentsRoute
+  '/profit-reports': typeof ProfitReportsRouteWithChildren
   '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/analytics/alerts': typeof AnalyticsAlertsRoute
@@ -258,6 +304,8 @@ export interface FileRoutesByTo {
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
+  '/profit-reports/items': typeof ProfitReportsItemsRoute
+  '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -267,8 +315,11 @@ export interface FileRoutesByTo {
   '/trading': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
+  '/profit-reports/trading/accountant': typeof ProfitReportsTradingAccountantRoute
+  '/profit-reports/trading/flow': typeof ProfitReportsTradingFlowRouteWithChildren
   '/accounts/customers': typeof AccountsCustomersIndexRoute
   '/accounts/suppliers': typeof AccountsSuppliersIndexRoute
+  '/profit-reports/trading/flow/$date': typeof ProfitReportsTradingFlowDateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -280,6 +331,7 @@ export interface FileRoutesById {
   '/items': typeof ItemsRouteWithChildren
   '/more': typeof MoreRoute
   '/payments': typeof PaymentsRoute
+  '/profit-reports': typeof ProfitReportsRouteWithChildren
   '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
@@ -293,6 +345,8 @@ export interface FileRoutesById {
   '/items/out-of-stock': typeof ItemsOutOfStockRoute
   '/items/stock': typeof ItemsStockRoute
   '/items/track': typeof ItemsTrackRoute
+  '/profit-reports/items': typeof ProfitReportsItemsRoute
+  '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -302,8 +356,11 @@ export interface FileRoutesById {
   '/trading/': typeof TradingIndexRoute
   '/accounts/customers/$id': typeof AccountsCustomersIdRoute
   '/accounts/suppliers/$id': typeof AccountsSuppliersIdRoute
+  '/profit-reports/trading/accountant': typeof ProfitReportsTradingAccountantRoute
+  '/profit-reports/trading/flow': typeof ProfitReportsTradingFlowRouteWithChildren
   '/accounts/customers/': typeof AccountsCustomersIndexRoute
   '/accounts/suppliers/': typeof AccountsSuppliersIndexRoute
+  '/profit-reports/trading/flow/$date': typeof ProfitReportsTradingFlowDateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -316,6 +373,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/payments'
+    | '/profit-reports'
     | '/reports'
     | '/revenue'
     | '/trading'
@@ -329,6 +387,8 @@ export interface FileRouteTypes {
     | '/items/out-of-stock'
     | '/items/stock'
     | '/items/track'
+    | '/profit-reports/items'
+    | '/profit-reports/trading'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -338,8 +398,11 @@ export interface FileRouteTypes {
     | '/trading/'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
+    | '/profit-reports/trading/accountant'
+    | '/profit-reports/trading/flow'
     | '/accounts/customers/'
     | '/accounts/suppliers/'
+    | '/profit-reports/trading/flow/$date'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -349,6 +412,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/payments'
+    | '/profit-reports'
     | '/reports'
     | '/revenue'
     | '/analytics/alerts'
@@ -361,6 +425,8 @@ export interface FileRouteTypes {
     | '/items/out-of-stock'
     | '/items/stock'
     | '/items/track'
+    | '/profit-reports/items'
+    | '/profit-reports/trading'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -370,8 +436,11 @@ export interface FileRouteTypes {
     | '/trading'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
+    | '/profit-reports/trading/accountant'
+    | '/profit-reports/trading/flow'
     | '/accounts/customers'
     | '/accounts/suppliers'
+    | '/profit-reports/trading/flow/$date'
   id:
     | '__root__'
     | '/'
@@ -382,6 +451,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/more'
     | '/payments'
+    | '/profit-reports'
     | '/reports'
     | '/revenue'
     | '/trading'
@@ -395,6 +465,8 @@ export interface FileRouteTypes {
     | '/items/out-of-stock'
     | '/items/stock'
     | '/items/track'
+    | '/profit-reports/items'
+    | '/profit-reports/trading'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -404,8 +476,11 @@ export interface FileRouteTypes {
     | '/trading/'
     | '/accounts/customers/$id'
     | '/accounts/suppliers/$id'
+    | '/profit-reports/trading/accountant'
+    | '/profit-reports/trading/flow'
     | '/accounts/customers/'
     | '/accounts/suppliers/'
+    | '/profit-reports/trading/flow/$date'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -417,6 +492,7 @@ export interface RootRouteChildren {
   ItemsRoute: typeof ItemsRouteWithChildren
   MoreRoute: typeof MoreRoute
   PaymentsRoute: typeof PaymentsRoute
+  ProfitReportsRoute: typeof ProfitReportsRouteWithChildren
   ReportsRoute: typeof ReportsRoute
   RevenueRoute: typeof RevenueRoute
   TradingRoute: typeof TradingRouteWithChildren
@@ -480,6 +556,13 @@ declare module '@tanstack/react-router' {
       path: '/payments'
       fullPath: '/payments'
       preLoaderRoute: typeof PaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profit-reports': {
+      id: '/profit-reports'
+      path: '/profit-reports'
+      fullPath: '/profit-reports'
+      preLoaderRoute: typeof ProfitReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -580,6 +663,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ItemsTrackRouteImport
       parentRoute: typeof ItemsRoute
     }
+    '/profit-reports/items': {
+      id: '/profit-reports/items'
+      path: '/items'
+      fullPath: '/profit-reports/items'
+      preLoaderRoute: typeof ProfitReportsItemsRouteImport
+      parentRoute: typeof ProfitReportsRoute
+    }
+    '/profit-reports/trading': {
+      id: '/profit-reports/trading'
+      path: '/trading'
+      fullPath: '/profit-reports/trading'
+      preLoaderRoute: typeof ProfitReportsTradingRouteImport
+      parentRoute: typeof ProfitReportsRoute
+    }
     '/settings/connection': {
       id: '/settings/connection'
       path: '/settings/connection'
@@ -649,6 +746,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/accounts/suppliers/$id'
       preLoaderRoute: typeof AccountsSuppliersIdRouteImport
       parentRoute: typeof AccountsRoute
+    }
+    '/profit-reports/trading/accountant': {
+      id: '/profit-reports/trading/accountant'
+      path: '/accountant'
+      fullPath: '/profit-reports/trading/accountant'
+      preLoaderRoute: typeof ProfitReportsTradingAccountantRouteImport
+      parentRoute: typeof ProfitReportsTradingRoute
+    }
+    '/profit-reports/trading/flow': {
+      id: '/profit-reports/trading/flow'
+      path: '/flow'
+      fullPath: '/profit-reports/trading/flow'
+      preLoaderRoute: typeof ProfitReportsTradingFlowRouteImport
+      parentRoute: typeof ProfitReportsTradingRoute
+    }
+    '/profit-reports/trading/flow/$date': {
+      id: '/profit-reports/trading/flow/$date'
+      path: '/$date'
+      fullPath: '/profit-reports/trading/flow/$date'
+      preLoaderRoute: typeof ProfitReportsTradingFlowDateRouteImport
+      parentRoute: typeof ProfitReportsTradingFlowRoute
     }
   }
 }
@@ -721,6 +839,47 @@ const ItemsRouteChildren: ItemsRouteChildren = {
 
 const ItemsRouteWithChildren = ItemsRoute._addFileChildren(ItemsRouteChildren)
 
+interface ProfitReportsTradingFlowRouteChildren {
+  ProfitReportsTradingFlowDateRoute: typeof ProfitReportsTradingFlowDateRoute
+}
+
+const ProfitReportsTradingFlowRouteChildren: ProfitReportsTradingFlowRouteChildren =
+  {
+    ProfitReportsTradingFlowDateRoute: ProfitReportsTradingFlowDateRoute,
+  }
+
+const ProfitReportsTradingFlowRouteWithChildren =
+  ProfitReportsTradingFlowRoute._addFileChildren(
+    ProfitReportsTradingFlowRouteChildren,
+  )
+
+interface ProfitReportsTradingRouteChildren {
+  ProfitReportsTradingAccountantRoute: typeof ProfitReportsTradingAccountantRoute
+  ProfitReportsTradingFlowRoute: typeof ProfitReportsTradingFlowRouteWithChildren
+}
+
+const ProfitReportsTradingRouteChildren: ProfitReportsTradingRouteChildren = {
+  ProfitReportsTradingAccountantRoute: ProfitReportsTradingAccountantRoute,
+  ProfitReportsTradingFlowRoute: ProfitReportsTradingFlowRouteWithChildren,
+}
+
+const ProfitReportsTradingRouteWithChildren =
+  ProfitReportsTradingRoute._addFileChildren(ProfitReportsTradingRouteChildren)
+
+interface ProfitReportsRouteChildren {
+  ProfitReportsItemsRoute: typeof ProfitReportsItemsRoute
+  ProfitReportsTradingRoute: typeof ProfitReportsTradingRouteWithChildren
+}
+
+const ProfitReportsRouteChildren: ProfitReportsRouteChildren = {
+  ProfitReportsItemsRoute: ProfitReportsItemsRoute,
+  ProfitReportsTradingRoute: ProfitReportsTradingRouteWithChildren,
+}
+
+const ProfitReportsRouteWithChildren = ProfitReportsRoute._addFileChildren(
+  ProfitReportsRouteChildren,
+)
+
 interface TradingRouteChildren {
   TradingDailyRoute: typeof TradingDailyRoute
   TradingItemsRoute: typeof TradingItemsRoute
@@ -747,6 +906,7 @@ const rootRouteChildren: RootRouteChildren = {
   ItemsRoute: ItemsRouteWithChildren,
   MoreRoute: MoreRoute,
   PaymentsRoute: PaymentsRoute,
+  ProfitReportsRoute: ProfitReportsRouteWithChildren,
   ReportsRoute: ReportsRoute,
   RevenueRoute: RevenueRoute,
   TradingRoute: TradingRouteWithChildren,

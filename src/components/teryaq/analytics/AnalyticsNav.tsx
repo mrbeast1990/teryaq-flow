@@ -2,7 +2,7 @@ import { BarChart3, Search, CalendarDays, AlertCircle, TrendingUp, Wallet, Layou
 import { CompactListCard } from "../CompactListCard";
 import { SectionHeader } from "../SectionHeader";
 
-export function AnalyticsNav({ wrapText = false }: { wrapText?: boolean } = {}) {
+export function AnalyticsNav({ wrapText = false, hideProfit = false }: { wrapText?: boolean; hideProfit?: boolean } = {}) {
   const analyticsLinks = [
     {
       title: "البحث الشامل",
@@ -34,7 +34,7 @@ export function AnalyticsNav({ wrapText = false }: { wrapText?: boolean } = {}) 
       icon: AlertCircle,
       to: "/analytics/alerts",
     },
-  ];
+  ].filter((item) => !hideProfit || item.to !== "/analytics/item-profit");
 
   const operationalLinks = [
     {

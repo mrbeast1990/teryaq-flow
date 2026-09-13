@@ -1,12 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Database, FileText, Info, Printer, ReceiptText, SlidersHorizontal, WalletCards } from "lucide-react";
+import { Building2, Database, FileText, Info, Printer, ReceiptText, SlidersHorizontal, TrendingUp, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SectionHeader } from "@/components/teryaq/SectionHeader";
 import { StatusBadge } from "@/components/teryaq/StatusBadge";
-import { TradingNav } from "@/components/teryaq/trading/TradingNav";
 import { AnalyticsNav } from "@/components/teryaq/analytics/AnalyticsNav";
 import { getSystemStatus } from "@/lib/api";
 
@@ -41,12 +40,12 @@ function MorePage() {
       />
 
       <div className="space-y-8">
-        <AnalyticsNav wrapText />
-        <TradingNav wrapText />
+        <AnalyticsNav wrapText hideProfit />
 
         <div>
           <SectionHeader title="الإعدادات" />
           <div className="space-y-2">
+            <CompactListCard title="تقارير الأرباح" subtitle="تحليل ربحية الأصناف والمتاجرة والأرباح من مدخل واحد" icon={TrendingUp} to="/profit-reports" wrapText />
             <CompactListCard
               title="إدارة الاتصال"
               subtitle={subtitle}

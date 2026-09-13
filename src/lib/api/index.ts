@@ -271,6 +271,52 @@ export interface AnalyticsDailyProfitResponse {
   mostSoldItems?: AnalyticsProfitItemRow[];
 }
 
+export interface AnalyticsProfitSummaryPeriod {
+  sellerId?: number | string | null;
+  sellerName?: string | null;
+  revenue?: number | null;
+  flowRevenue?: number | null;
+  cost?: number | null;
+  profit?: number | null;
+  movementCount?: number | null;
+  detailCount?: number | null;
+  revenueMovementCount?: number | null;
+  unitRiskCount?: number | null;
+}
+
+export interface AnalyticsProfitSummaryDay {
+  date: string;
+  revenue?: number | null;
+  flowRevenue?: number | null;
+  cost?: number | null;
+  profit?: number | null;
+  margin?: number | null;
+  movementCount?: number | null;
+  detailCount?: number | null;
+  revenueMovementCount?: number | null;
+  unitRiskCount?: number | null;
+  periods?: AnalyticsProfitSummaryPeriod[];
+}
+
+export interface AnalyticsProfitSummaryResponse {
+  success: boolean;
+  profile?: string | null | undefined;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  summary?: {
+    totalRevenue?: number | null;
+    flowRevenue?: number | null;
+    totalCost?: number | null;
+    totalProfit?: number | null;
+    margin?: number | null;
+    movementCount?: number | null;
+    detailCount?: number | null;
+    revenueMovementCount?: number | null;
+    unitRiskCount?: number | null;
+  };
+  days?: AnalyticsProfitSummaryDay[];
+}
+
 export interface AnalyticsSearchRow {
   resultType: string;
   id: string | number;
@@ -614,6 +660,13 @@ export function getAnalyticsDailyProfit(params: {
   dateTo: string;
 }): Promise<AnalyticsDailyProfitResponse> {
   return apiRequest<AnalyticsDailyProfitResponse>(API_ENDPOINTS.analyticsDailyProfit(), { query: params });
+}
+
+export function getAnalyticsProfitSummary(params: {
+  dateFrom: string;
+  dateTo: string;
+}): Promise<AnalyticsProfitSummaryResponse> {
+  return apiRequest<AnalyticsProfitSummaryResponse>(API_ENDPOINTS.analyticsProfitSummary(), { query: params });
 }
 
 export function getAnalyticsGlobalSearch(q: string): Promise<AnalyticsSearchResponse> {

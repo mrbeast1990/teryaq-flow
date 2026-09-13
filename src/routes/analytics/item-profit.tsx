@@ -9,7 +9,6 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States
 import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { CompactDateRange } from "@/components/teryaq/CompactDateRange";
-import { CompactListCard } from "@/components/teryaq/CompactListCard";
 import { getAnalyticsDailyProfit, ApiError, type AnalyticsProfitItemRow } from "@/lib/api";
 
 export const Route = createFileRoute("/analytics/item-profit")({
@@ -50,14 +49,27 @@ function ItemProfitRow({ row, rank }: { row: AnalyticsProfitItemRow; rank: numbe
   const riskText = row.unitRiskCount ? ` · يحتاج مراجعة: ${formatNumber(row.unitRiskCount)}` : "";
 
   return (
-    <Link to="/items/track" className="block touch-manipulation active:scale-[0.99]">
-      <CompactListCard
-        title={`${rank}. ${row.itemName || "صنف غير مسمى"}`}
-        subtitle={`الكمية: ${formatNumber(row.quantity)}${unitText} · المبيعات: ${formatMoney(row.salesValue)} · التكلفة: ${formatMoney(row.estimatedCost)}${riskText}`}
-        value={formatMoney(row.approximateProfit)}
-        meta="الربح التحليلي - Teryaq Flow"
-        icon={TrendingUp}
-      />
+    <Link to="/items/track" className="card-surface block touch-manipulation p-3 active:scale-[0.99]">
+      <div className="flex flex-wrap items-start gap-3">
+        <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-primary-soft text-accent-foreground">
+          <TrendingUp className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="break-words text-[13px] font-bold leading-snug text-foreground">
+            {rank}. {row.itemName || "صنف غير مسمى"}
+          </p>
+          <p className="mt-1 break-words text-[11px] leading-5 text-muted-foreground">
+            الكمية: {formatNumber(row.quantity)}{unitText} · المبيعات: {formatMoney(row.salesValue)}
+          </p>
+          <p className="break-words text-[11px] leading-5 text-muted-foreground">
+            التكلفة: {formatMoney(row.estimatedCost)}{riskText}
+          </p>
+        </div>
+        <div className="min-w-[6.6rem] shrink-0 text-left max-[390px]:min-w-0 max-[390px]:basis-full max-[390px]:pt-2">
+          <p className="num text-[13px] font-extrabold text-success">{formatMoney(row.approximateProfit)}</p>
+          <p className="text-[10px] leading-4 text-muted-foreground">الربح التحليلي - Flow</p>
+        </div>
+      </div>
     </Link>
   );
 }

@@ -8,13 +8,13 @@ export function TradingNav({ wrapText = false }: { wrapText?: boolean } = {}) {
       title: "المتاجرة والأرباح",
       subtitle: "المبيعات والتكلفة ومجمل الربح الرسمي",
       icon: TrendingUp,
-      to: "/trading",
+      to: "/profit-reports/trading",
     },
     {
       title: "تحليل ربحية الأصناف",
       subtitle: "تحليل تقديري منفصل عن الربح الرسمي",
       icon: Package,
-      to: "/trading/items",
+      to: "/profit-reports/items",
     },
   ];
 

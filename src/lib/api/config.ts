@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
   revenueMovementDetails: (movementNo: string | number) => `/api/revenue-movement/${movementNo}`,
   tradingProfit: () => "/api/trading-profit",
   analyticsDailyProfit: () => "/api/analytics/daily-profit",
+  analyticsProfitSummary: () => "/api/analytics/profit-summary",
   analyticsGlobalSearch: () => "/api/analytics/global-search",
   analyticsComparePeriods: () => "/api/analytics/compare-periods",
   analyticsPriceChanges: () => "/api/analytics/price-changes",

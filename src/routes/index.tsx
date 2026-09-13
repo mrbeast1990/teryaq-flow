@@ -51,7 +51,7 @@ const QUICK_ACTIONS = [
   { label: "حسابات الموردين", icon: Truck, to: "/accounts/suppliers" },
   { label: "المخزون", icon: Boxes, to: "/items/stock" },
   { label: "تتبع صنف", icon: ScanSearch, to: "/items/track" },
-  { label: "المتاجرة والأرباح", icon: BarChart3, to: "/trading" },
+  { label: "المتاجرة والأرباح", icon: BarChart3, to: "/profit-reports/trading" },
 ] as const;
 
 function Index() {
