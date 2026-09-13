@@ -9,7 +9,6 @@ import { CompactDateRange } from "@/components/teryaq/CompactDateRange";
 import { KPICard } from "@/components/teryaq/KPICard";
 import { KPIGrid } from "@/components/teryaq/KPIGrid";
 import { PageHeader } from "@/components/teryaq/PageHeader";
-import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
 import { StatusBadge } from "@/components/teryaq/StatusBadge";
 import { ApiError, getAnalyticsProfitSummary, type AnalyticsProfitSummaryDay } from "@/lib/api";
