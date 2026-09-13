@@ -14,15 +14,15 @@ import { getAnalyticsDailyProfit, ApiError, type AnalyticsProfitItemRow } from "
 
 export const Route = createFileRoute("/analytics/item-profit")({
   head: () => ({
-    meta: [{ title: "تحليل ربحية الأصناف — Teryaq" }],
+    meta: [{ title: "تحليل ربحية الأصناف - Teryaq" }],
   }),
   component: ItemProfitabilityPage,
 });
 
 const TABS = [
-  { id: "top-profit", label: "الأعلى ربحًا" },
-  { id: "low-profit", label: "الأقل ربحًا" },
-  { id: "top-sales", label: "الأعلى مبيعًا" },
+  { id: "top-profit", label: "الأعلى ربحا" },
+  { id: "low-profit", label: "الأقل ربحا" },
+  { id: "top-sales", label: "الأعلى مبيعا" },
 ];
 
 function today() {
@@ -46,13 +46,16 @@ function activeRows(data: Awaited<ReturnType<typeof getAnalyticsDailyProfit>> | 
 }
 
 function ItemProfitRow({ row, rank }: { row: AnalyticsProfitItemRow; rank: number }) {
+  const unitText = row.unitName ? ` · ${row.unitName}` : "";
+  const riskText = row.unitRiskCount ? ` · يحتاج مراجعة: ${formatNumber(row.unitRiskCount)}` : "";
+
   return (
     <Link to="/items/track" className="block touch-manipulation active:scale-[0.99]">
       <CompactListCard
         title={`${rank}. ${row.itemName || "صنف غير مسمى"}`}
-        subtitle={`الكمية: ${formatNumber(row.quantity)} · المبيعات: ${formatMoney(row.salesValue)}`}
+        subtitle={`الكمية: ${formatNumber(row.quantity)}${unitText} · المبيعات: ${formatMoney(row.salesValue)} · التكلفة: ${formatMoney(row.estimatedCost)}${riskText}`}
         value={formatMoney(row.approximateProfit)}
-        meta="ربح تحليلي تقديري"
+        meta="الربح التحليلي - Teryaq Flow"
         icon={TrendingUp}
       />
     </Link>
@@ -72,19 +75,23 @@ function ItemProfitabilityPage() {
 
   const rows = activeRows(profitQuery.data, activeTab);
   const errorMessage = profitQuery.error instanceof ApiError || profitQuery.error instanceof Error ? profitQuery.error.message : undefined;
+  const analyticalSummary = profitQuery.data?.summary;
 
   return (
     <AppShell>
       <PageHeader
         title="تحليل ربحية الأصناف"
-        subtitle="ترتيب تحليلي للأصناف حسب بيانات الحركات الفعلية."
+        subtitle="ترتيب تحليلي للأصناف حسب بيانات حركات البيع الفعلية."
         actions={<ActionButton label="تحديث" icon={RefreshCw} variant="outline" onClick={() => profitQuery.refetch()} />}
       />
 
       <div className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
         <div className="flex gap-2">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>تحليل تقديري مبني على تكلفة الصنف المسجلة بالحركات، ولا يمثل إجمالي الربح المحاسبي الرسمي.</p>
+          <p>
+            تحليل تقديري مبني على سعر البيع وتكلفة الصنف المسجلة في الحركات بعد تسوية وحدة البيع، ولا يمثل إجمالي الربح
+            المحاسبي الرسمي.
+          </p>
         </div>
       </div>
 
@@ -97,6 +104,26 @@ function ItemProfitabilityPage() {
           onRefresh={() => profitQuery.refetch()}
         />
       </div>
+
+      {analyticalSummary ? (
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+            <p className="text-xs text-emerald-700 dark:text-emerald-300">الربح التحليلي - Teryaq Flow</p>
+            <p className="mt-1 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
+              {formatMoney(analyticalSummary.analyticalProfit)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-xs text-slate-500 dark:text-slate-400">المبيعات / التكلفة التحليلية</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              {formatMoney(analyticalSummary.salesValue)} / {formatMoney(analyticalSummary.estimatedCost)}
+            </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {formatNumber(analyticalSummary.movementCount)} حركة · {formatNumber(analyticalSummary.itemCount)} صنف
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <SegmentedTabs options={TABS} value={activeTab} onChange={setActiveTab} />
 

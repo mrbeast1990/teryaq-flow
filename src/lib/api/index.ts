@@ -239,7 +239,13 @@ export interface AnalyticsProfitItemRow {
   itemId: number | string;
   itemName: string;
   quantity?: number | null;
+  businessQuantity?: number | null;
+  unitName?: string | null;
+  unitOldQuantity?: number | null;
+  movementCount?: number | null;
+  unitRiskCount?: number | null;
   salesValue?: number | null;
+  estimatedCost?: number | null;
   approximateProfit?: number | null;
 }
 
@@ -250,6 +256,16 @@ export interface AnalyticsDailyProfitResponse {
   dateTo?: string | null;
   revenue?: RevenueSummary;
   tradingProfit?: TradingProfitSummary;
+  summary?: {
+    movementCount?: number | null;
+    itemCount?: number | null;
+    quantity?: number | null;
+    businessQuantity?: number | null;
+    unitRiskCount?: number | null;
+    salesValue?: number | null;
+    estimatedCost?: number | null;
+    analyticalProfit?: number | null;
+  };
   bestProfitItems?: AnalyticsProfitItemRow[];
   worstProfitItems?: AnalyticsProfitItemRow[];
   mostSoldItems?: AnalyticsProfitItemRow[];
