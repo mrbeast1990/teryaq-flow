@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { BarChart3, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
@@ -12,6 +12,12 @@ export const Route = createFileRoute("/profit-reports/trading")({
 });
 
 function TradingProfitChoicePage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  if (pathname !== "/profit-reports/trading") {
+    return <Outlet />;
+  }
+
   return (
     <AppShell>
       <PageHeader
