@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfMonth, subDays } from "date-fns";
 import { ArrowRight, CalendarDays, RefreshCw, TrendingUp } from "lucide-react";
@@ -124,6 +124,16 @@ function FlowProfitDayCard({ day }: { day: AnalyticsProfitSummaryDay }) {
 }
 
 function FlowProfitPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  if (pathname !== "/profit-reports/trading/flow") {
+    return <Outlet />;
+  }
+
+  return <FlowProfitList />;
+}
+
+function FlowProfitList() {
   const today = useMemo(() => localDate(new Date()), []);
   const [range, setRange] = useState("month");
   const [customFrom, setCustomFrom] = useState(today);
@@ -156,7 +166,11 @@ function FlowProfitPage() {
           <span className="grid size-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground">
             <CalendarDays className="size-4" />
           </span>
-          <SegmentedTabs options={RANGE_OPTIONS} value={range} onChange={setRange} />
+          <div className="min-w-0 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="min-w-max">
+              <SegmentedTabs options={RANGE_OPTIONS} value={range} onChange={setRange} />
+            </div>
+          </div>
         </div>
 
         {range === "custom" ? (
