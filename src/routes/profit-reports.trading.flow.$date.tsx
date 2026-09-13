@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, RefreshCw } from "lucide-react";
-import { ActionButton } from "@/components/teryaq/ActionButton";
+import { ArrowRight, Calculator, Percent, RefreshCw, TrendingUp, WalletCards } from "lucide-react";
 import { AppShell } from "@/components/teryaq/AppShell";
-import { CompactListCard } from "@/components/teryaq/CompactListCard";
 import { KPICard } from "@/components/teryaq/KPICard";
 import { KPIGrid } from "@/components/teryaq/KPIGrid";
 import { PageHeader } from "@/components/teryaq/PageHeader";
@@ -76,16 +74,22 @@ function FlowProfitDayPage() {
       <PageHeader
         title={`تفاصيل أرباح ${formatDateLabel(date)}`}
         subtitle="تقسيم الإيراد وربح Teryaq Flow حسب الفترات المسجلة في النظام."
-        actions={
-          <div className="flex gap-2">
-            <ActionButton label="تحديث" icon={RefreshCw} variant="outline" onClick={() => query.refetch()} />
-            <Link to="/profit-reports/trading/flow" className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold">
-              <ArrowRight className="size-4" />
-              رجوع
-            </Link>
-          </div>
-        }
       />
+
+      <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => query.refetch()}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[12px] font-bold transition-colors hover:bg-secondary"
+        >
+          <RefreshCw className="size-4" />
+          تحديث
+        </button>
+        <Link to="/profit-reports/trading/flow" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[12px] font-bold">
+          <ArrowRight className="size-4" />
+          رجوع
+        </Link>
+      </div>
 
       {query.isLoading ? (
         <LoadingState rows={6} />
@@ -96,10 +100,10 @@ function FlowProfitDayPage() {
       ) : (
         <div className="space-y-4 pb-8">
           <KPIGrid>
-            <KPICard label="الإيراد" value={formatMoney(day.revenue)} tone="info" />
-            <KPICard label="ربح Teryaq Flow" value={formatMoney(day.profit)} tone="success" />
-            <KPICard label="التكلفة" value={formatMoney(day.cost)} tone="default" />
-            <KPICard label="هامش الربح" value={formatPercent(day.margin)} tone="default" />
+            <KPICard label="الإيراد" value={formatMoney(day.revenue)} icon={TrendingUp} tone="info" />
+            <KPICard label="ربح Teryaq Flow" value={formatMoney(day.profit)} icon={WalletCards} tone="success" />
+            <KPICard label="التكلفة" value={formatMoney(day.cost)} icon={Calculator} tone="default" />
+            <KPICard label="هامش الربح" value={formatPercent(day.margin)} icon={Percent} tone="default" />
           </KPIGrid>
 
           <ReconciliationNote day={day} />
@@ -113,15 +117,25 @@ function FlowProfitDayPage() {
             {(day.periods || []).length ? (
               <div className="space-y-2">
                 {(day.periods || []).map((period, index) => (
-                  <CompactListCard
+                  <div
                     key={`${period.sellerId ?? "period"}-${index}`}
-                    title={period.sellerName || "غير محدد"}
-                    subtitle={`الإيراد: ${formatMoney(period.revenue)} · التكلفة: ${formatMoney(period.cost)} · الحركات: ${Number(period.movementCount || 0).toLocaleString("ar-LY")}`}
-                    value={formatMoney(period.profit)}
-                    meta="ربح Teryaq Flow"
-                    valueTone={Number(period.profit || 0) >= 0 ? "positive" : "negative"}
-                    wrapText
-                  />
+                    className="card-surface p-3"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="break-words text-sm font-black text-foreground">{period.sellerName || "غير محدد"}</h3>
+                        <p className="mt-1 break-words text-[11px] leading-5 text-muted-foreground">
+                          الإيراد: {formatMoney(period.revenue)} · التكلفة: {formatMoney(period.cost)} · الحركات: {Number(period.movementCount || 0).toLocaleString("ar-LY")}
+                        </p>
+                      </div>
+                      <div className="min-w-0 text-left">
+                        <p className={`num text-[13px] font-extrabold ${Number(period.profit || 0) >= 0 ? "text-success" : "text-destructive"}`}>
+                          {formatMoney(period.profit)}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">ربح Teryaq Flow</p>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (

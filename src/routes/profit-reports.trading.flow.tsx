@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { format, startOfMonth, subDays } from "date-fns";
 import { ArrowRight, CalendarDays, RefreshCw, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
-import { ActionButton } from "@/components/teryaq/ActionButton";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactDateRange } from "@/components/teryaq/CompactDateRange";
 import { KPICard } from "@/components/teryaq/KPICard";
@@ -157,19 +156,38 @@ function FlowProfitList() {
       <PageHeader
         title="أرباح حسب Teryaq Flow"
         subtitle="ربح تحليلي من حركات البيع وتكلفة وحدة البيع، وليس بديلا عن الربح الرسمي في المحاسب."
-        actions={<ActionButton label="تحديث" icon={RefreshCw} variant="outline" onClick={() => query.refetch()} />}
       />
 
       <div className="mb-4 space-y-3">
-        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
           <span className="grid size-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground">
             <CalendarDays className="size-4" />
           </span>
-          <div className="min-w-0 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="min-w-max">
-              <SegmentedTabs options={RANGE_OPTIONS} value={range} onChange={setRange} />
+          <div className="min-w-0">
+            <div className="grid grid-cols-2 gap-1 rounded-lg border border-border bg-secondary p-0.5 min-[520px]:grid-cols-5">
+              {RANGE_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setRange(option.id)}
+                  className={`rounded-md px-2 py-1.5 text-[12px] font-bold transition-colors ${
+                    range === option.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => query.refetch()}
+            className="grid size-9 place-items-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-secondary"
+            aria-label="تحديث"
+            title="تحديث"
+          >
+            <RefreshCw className="size-4" />
+          </button>
         </div>
 
         {range === "custom" ? (
