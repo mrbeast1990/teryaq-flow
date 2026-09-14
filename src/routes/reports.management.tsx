@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Banknote, CalendarDays, CreditCard, Package, ReceiptText, RefreshCw, Users } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -34,6 +34,11 @@ const METRIC_ICONS: Record<string, typeof Package> = {
   creditors: CreditCard,
   cash: Banknote,
   expenses: ReceiptText,
+};
+
+const METRIC_DESTINATIONS: Partial<Record<string, "/accounts/customers" | "/accounts/suppliers">> = {
+  debtors: "/accounts/customers",
+  creditors: "/accounts/suppliers",
 };
 
 function inputDate(date: Date) {
@@ -148,8 +153,9 @@ function ManagementReportPage() {
 function MetricCard({ metric }: { metric: ManagementReportMetric }) {
   const Icon = METRIC_ICONS[metric.key] || Package;
   const available = metric.status === "available";
-  return (
-    <article className="card-surface p-3">
+  const destination = available ? METRIC_DESTINATIONS[metric.key] : undefined;
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[12px] font-bold text-muted-foreground">{metric.title}</p>
@@ -166,6 +172,23 @@ function MetricCard({ metric }: { metric: ManagementReportMetric }) {
         {metric.source ? <span>{metric.source}</span> : null}
         {!available && metric.reason ? <span>{metric.reason}</span> : null}
       </div>
+    </>
+  );
+
+  if (destination) {
+    return (
+      <Link
+        to={destination}
+        className="card-surface block p-3 transition-colors hover:bg-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <article className="card-surface p-3">
+      {content}
     </article>
   );
 }

@@ -1,11 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Wallet,
-  TrendingUp,
-  Receipt,
   Users,
   Truck,
-  PackageSearch,
   PackageX,
   CalendarClock,
   Boxes,
@@ -18,19 +15,13 @@ import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SectionHeader } from "@/components/teryaq/SectionHeader";
 import { KPIGrid } from "@/components/teryaq/KPIGrid";
 import { KPICard } from "@/components/teryaq/KPICard";
-import { ActionButton } from "@/components/teryaq/ActionButton";
-import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
 import { EmptyState } from "@/components/teryaq/States";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   getRevenueDetails, 
-  getTradingProfit, 
-  getCustomerBalances, 
-  getSupplierPayables, 
   getInventorySummary,
-  ApiError
 } from "@/lib/api";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/")({
@@ -55,7 +46,6 @@ const QUICK_ACTIONS = [
 ] as const;
 
 function Index() {
-  const [range, setRange] = useState("today");
   const queryClient = useQueryClient();
   
   const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
@@ -64,23 +54,6 @@ function Index() {
   const { data: revenue, isLoading: loadingRev } = useQuery({
     queryKey: ["revenue", todayStr, todayStr],
     queryFn: () => getRevenueDetails({ dateFrom: todayStr, dateTo: todayStr }),
-    enabled: range === "today",
-  });
-
-  const { data: profit, isLoading: loadingProfit } = useQuery({
-    queryKey: ["profit", todayStr, todayStr],
-    queryFn: () => getTradingProfit({ dateFrom: todayStr, dateTo: todayStr }),
-    enabled: range === "today",
-  });
-
-  const { data: customers, isLoading: loadingCustomers } = useQuery({
-    queryKey: ["customers"],
-    queryFn: () => getCustomerBalances(),
-  });
-
-  const { data: suppliers, isLoading: loadingSuppliers } = useQuery({
-    queryKey: ["suppliers"],
-    queryFn: () => getSupplierPayables(),
   });
 
   const { data: inventorySummary, isLoading: loadingInventorySummary } = useQuery({
@@ -92,15 +65,12 @@ function Index() {
     queryClient.invalidateQueries();
   };
 
-  const isUnavailable = range !== "today";
-
   const formatCurrency = (val: number | undefined) => {
     if (val === undefined) return "...";
     return new Intl.NumberFormat("ar-LY").format(val);
   };
 
   const renderValue = (isLoading: boolean, value: string | number | undefined, suffix = "") => {
-    if (isUnavailable) return "غير متاح حاليًا";
     if (isLoading) return "جاري التحميل...";
     if (value === undefined) return "غير متاح حاليًا";
     return `${typeof value === 'number' ? formatCurrency(value) : value} ${suffix}`;
@@ -119,20 +89,8 @@ function Index() {
         </button>
       </div>
 
-      <div className="mb-4">
-        <SegmentedTabs
-          options={[
-            { id: "today", label: "اليوم" },
-            { id: "week", label: "الأسبوع" },
-            { id: "month", label: "الشهر" },
-          ]}
-          value={range}
-          onChange={setRange}
-        />
-      </div>
-
       <section className="space-y-2.5">
-        <KPIGrid>
+        <Link to="/revenue" className="block">
           <KPICard
             label="إيراد اليوم"
             value={renderValue(loadingRev, revenue?.summary?.netRevenue)}
@@ -140,58 +98,27 @@ function Index() {
             tone="info"
             icon={Wallet}
           />
-          <KPICard
-            label="مجمل ربح اليوم"
-            value={renderValue(loadingProfit, profit?.summary?.grossProfit)}
-            hint="د.ل"
-            tone="success"
-            icon={TrendingUp}
-          />
-          <KPICard
-            label="عدد الحركات"
-            value={renderValue(loadingRev, revenue?.summary?.movementCount)}
-            hint={revenue?.summary?.movementCount !== undefined ? "حركة" : undefined}
-            tone="default"
-            icon={Receipt}
-          />
-          <KPICard
-            label="أرصدة الزبائن"
-            value={isLoadingAll(loadingCustomers) ? "جاري التحميل..." : (customers?.totalBalance !== undefined ? formatCurrency(customers.totalBalance) : "غير متاح حاليًا")}
-            hint={customers?.count ? `${customers.count} زبون مدين` : "د.ل"}
-            tone="default"
-            icon={Users}
-          />
-        </KPIGrid>
+        </Link>
         
         <KPIGrid>
-          <KPICard
-            label="مستحقات الموردين"
-            value={isLoadingAll(loadingSuppliers) ? "جاري التحميل..." : (suppliers?.totalBalance !== undefined ? formatCurrency(suppliers.totalBalance) : "غير متاح حاليًا")}
-            hint={suppliers?.count ? `${suppliers.count} مورد` : "د.ل"}
-            tone="warning"
-            icon={Truck}
-          />
-          <KPICard
-            label="مخزون منخفض"
-            value={isLoadingAll(loadingInventorySummary) ? "جاري التحميل..." : (inventorySummary?.lowStockCount !== undefined ? String(inventorySummary.lowStockCount) : "غير متاح حاليًا")}
-            hint="صنف"
-            tone="warning"
-            icon={PackageSearch}
-          />
-          <KPICard
-            label="أصناف نفدت"
-            value={isLoadingAll(loadingInventorySummary) ? "جاري التحميل..." : (inventorySummary?.outOfStockCount !== undefined ? String(inventorySummary.outOfStockCount) : "غير متاح حاليًا")}
-            hint="صنف"
-            tone="danger"
-            icon={PackageX}
-          />
-          <KPICard
-            label="قرب الانتهاء"
-            value={isLoadingAll(loadingInventorySummary) ? "جاري التحميل..." : (inventorySummary?.expiryCount !== undefined ? String(inventorySummary.expiryCount) : "غير متاح حاليًا")}
-            hint="صنف"
-            tone="danger"
-            icon={CalendarClock}
-          />
+          <Link to="/items/out-of-stock" className="block">
+            <KPICard
+              label="أصناف نفدت"
+              value={isLoadingAll(loadingInventorySummary) ? "جاري التحميل..." : (inventorySummary?.outOfStockCount !== undefined ? String(inventorySummary.outOfStockCount) : "غير متاح حاليًا")}
+              hint="صنف"
+              tone="danger"
+              icon={PackageX}
+            />
+          </Link>
+          <Link to="/items/expiry" className="block">
+            <KPICard
+              label="قرب الانتهاء"
+              value={isLoadingAll(loadingInventorySummary) ? "جاري التحميل..." : (inventorySummary?.expiryCount !== undefined ? String(inventorySummary.expiryCount) : "غير متاح حاليًا")}
+              hint="صنف"
+              tone="danger"
+              icon={CalendarClock}
+            />
+          </Link>
         </KPIGrid>
       </section>
 
