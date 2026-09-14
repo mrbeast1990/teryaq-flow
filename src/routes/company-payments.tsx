@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.mjs?url";
 import {
   Banknote,
   Building2,
@@ -46,8 +44,6 @@ import {
   type CompanyPaymentType,
   type PaymentFilters,
 } from "@/lib/companyPaymentsApi";
-
-GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export const Route = createFileRoute("/company-payments")({
   head: () => ({
@@ -1108,6 +1104,11 @@ function PdfAttachmentViewer({ url }: { url: string }) {
         setLoading(true);
         setError(null);
         setPages([]);
+        const [{ getDocument, GlobalWorkerOptions }, pdfWorker] = await Promise.all([
+          import("pdfjs-dist"),
+          import("pdfjs-dist/build/pdf.worker.mjs?url"),
+        ]);
+        GlobalWorkerOptions.workerSrc = pdfWorker.default;
         const pdf = await getDocument({ url }).promise;
         const scale = Math.min(2, Math.max(1.35, window.devicePixelRatio || 1.5));
 
@@ -1127,7 +1128,7 @@ function PdfAttachmentViewer({ url }: { url: string }) {
           setPages([...renderedPages]);
         }
       } catch {
-        if (!cancelled) setError("تعذر عرض ملف PDF داخل التطبيق.");
+        if (!cancelled) setError("تعذر تحميل معاينة PDF");
       } finally {
         if (!cancelled) setLoading(false);
       }
