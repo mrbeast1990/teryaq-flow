@@ -49,6 +49,7 @@ export const API_ENDPOINTS = {
   tradingProfit: () => "/api/trading-profit",
   analyticsDailyProfit: () => "/api/analytics/daily-profit",
   analyticsProfitSummary: () => "/api/analytics/profit-summary",
+  analyticsManagementReport: () => "/api/analytics/management-report",
   analyticsGlobalSearch: () => "/api/analytics/global-search",
   analyticsComparePeriods: () => "/api/analytics/compare-periods",
   analyticsPriceChanges: () => "/api/analytics/price-changes",

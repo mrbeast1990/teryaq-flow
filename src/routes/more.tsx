@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Database, FileText, Info, Printer, ReceiptText, SlidersHorizontal, TrendingUp, WalletCards } from "lucide-react";
+import { Building2, Database, FileText, Info, Printer, ReceiptText, SlidersHorizontal, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
@@ -12,9 +12,9 @@ import { getSystemStatus } from "@/lib/api";
 export const Route = createFileRoute("/more")({
   head: () => ({
     meta: [
-      { title: "المزيد — Teryaq" },
+      { title: "المزيد - Teryaq" },
       { name: "description", content: "إعدادات التطبيق وحالة الاتصال بقاعدة البيانات." },
-      { property: "og:title", content: "المزيد — Teryaq" },
+      { property: "og:title", content: "المزيد - Teryaq" },
       { property: "og:description", content: "إعدادات التطبيق وحالة الاتصال." },
     ],
   }),
@@ -28,9 +28,7 @@ function MorePage() {
   });
 
   const connected = Boolean(status?.connected);
-  const subtitle = status?.server
-    ? `${status.database || "AlmohasebSQL"} · ${status.server}`
-    : "/api/status";
+  const subtitle = status?.server ? `${status.database || "AlmohasebSQL"} · ${status.server}` : "/api/status";
 
   return (
     <AppShell>
@@ -45,7 +43,7 @@ function MorePage() {
         <div>
           <SectionHeader title="الإعدادات" />
           <div className="space-y-2">
-            <CompactListCard title="تقارير الأرباح" subtitle="تحليل ربحية الأصناف والمتاجرة والأرباح من مدخل واحد" icon={TrendingUp} to="/profit-reports" wrapText />
+            <CompactListCard title="التقارير" subtitle="تقارير الأرباح وتقرير الإدارة من مدخل واحد" icon={FileText} to="/reports" wrapText />
             <CompactListCard
               title="إدارة الاتصال"
               subtitle={subtitle}
@@ -53,7 +51,7 @@ function MorePage() {
               to="/settings/connection"
               wrapText
             />
-            <CompactListCard title="مركز التقارير والطباعة" subtitle="تقارير مالية وتشغيلية قابلة للطباعة" icon={FileText} to="/reports" wrapText />
+            <CompactListCard title="مركز التقارير والطباعة" subtitle="تقارير مالية وتشغيلية قابلة للطباعة" icon={Printer} to="/reports/printing" wrapText />
             <CompactListCard title="إعدادات الطباعة" subtitle="اسم الصيدلية والشعار والعنوان المستخدم في الفواتير وكشوف الحساب" icon={Printer} to="/settings/print" wrapText />
             <CompactListCard title="مركز الفواتير" subtitle="فواتير البيع والشراء والمردودات مع فتح تفاصيل الفاتورة" icon={ReceiptText} to="/invoices" wrapText />
             <CompactListCard title="المقبوضات والسدادات" subtitle="مقبوضات الزبائن وسدادات الموردين بدون ربط تخميني" icon={WalletCards} to="/payments" wrapText />

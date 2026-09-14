@@ -317,6 +317,25 @@ export interface AnalyticsProfitSummaryResponse {
   days?: AnalyticsProfitSummaryDay[];
 }
 
+export interface ManagementReportMetric {
+  key: "inventoryCost" | "debtors" | "creditors" | "cash" | "expenses" | string;
+  title: string;
+  value?: number | null;
+  count?: number | null;
+  status: "available" | "unavailable" | "error" | string;
+  source?: string | null;
+  reason?: string | null;
+}
+
+export interface ManagementReportResponse {
+  success: boolean;
+  profile?: string | null | undefined;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  generatedAt?: string | null;
+  metrics: ManagementReportMetric[];
+}
+
 export interface AnalyticsSearchRow {
   resultType: string;
   id: string | number;
@@ -667,6 +686,13 @@ export function getAnalyticsProfitSummary(params: {
   dateTo: string;
 }): Promise<AnalyticsProfitSummaryResponse> {
   return apiRequest<AnalyticsProfitSummaryResponse>(API_ENDPOINTS.analyticsProfitSummary(), { query: params });
+}
+
+export function getAnalyticsManagementReport(params: {
+  dateFrom?: string;
+  dateTo?: string;
+} = {}): Promise<ManagementReportResponse> {
+  return apiRequest<ManagementReportResponse>(API_ENDPOINTS.analyticsManagementReport(), { query: params });
 }
 
 export function getAnalyticsGlobalSearch(q: string): Promise<AnalyticsSearchResponse> {

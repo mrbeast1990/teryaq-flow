@@ -34,6 +34,8 @@ import { Route as ItemsStockRouteImport } from './routes/items/stock'
 import { Route as ItemsTrackRouteImport } from './routes/items/track'
 import { Route as ProfitReportsItemsRouteImport } from './routes/profit-reports.items'
 import { Route as ProfitReportsTradingRouteImport } from './routes/profit-reports.trading'
+import { Route as ReportsManagementRouteImport } from './routes/reports.management'
+import { Route as ReportsPrintingRouteImport } from './routes/reports.printing'
 import { Route as SettingsConnectionRouteImport } from './routes/settings/connection'
 import { Route as SettingsPrintRouteImport } from './routes/settings/print'
 import { Route as TradingIndexRouteImport } from './routes/trading/index'
@@ -174,6 +176,16 @@ const ProfitReportsTradingRoute = ProfitReportsTradingRouteImport.update({
   path: '/trading',
   getParentRoute: () => ProfitReportsRoute,
 } as any)
+const ReportsManagementRoute = ReportsManagementRouteImport.update({
+  id: '/management',
+  path: '/management',
+  getParentRoute: () => ReportsRoute,
+} as any)
+const ReportsPrintingRoute = ReportsPrintingRouteImport.update({
+  id: '/printing',
+  path: '/printing',
+  getParentRoute: () => ReportsRoute,
+} as any)
 const SettingsConnectionRoute = SettingsConnectionRouteImport.update({
   id: '/settings/connection',
   path: '/settings/connection',
@@ -253,7 +265,7 @@ export interface FileRoutesByFullPath {
   '/more': typeof MoreRoute
   '/payments': typeof PaymentsRoute
   '/profit-reports': typeof ProfitReportsRouteWithChildren
-  '/reports': typeof ReportsRoute
+  '/reports': typeof ReportsRouteWithChildren
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
   '/analytics/alerts': typeof AnalyticsAlertsRoute
@@ -268,6 +280,8 @@ export interface FileRoutesByFullPath {
   '/items/track': typeof ItemsTrackRoute
   '/profit-reports/items': typeof ProfitReportsItemsRoute
   '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
+  '/reports/management': typeof ReportsManagementRoute
+  '/reports/printing': typeof ReportsPrintingRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -292,7 +306,7 @@ export interface FileRoutesByTo {
   '/more': typeof MoreRoute
   '/payments': typeof PaymentsRoute
   '/profit-reports': typeof ProfitReportsRouteWithChildren
-  '/reports': typeof ReportsRoute
+  '/reports': typeof ReportsRouteWithChildren
   '/revenue': typeof RevenueRoute
   '/analytics/alerts': typeof AnalyticsAlertsRoute
   '/analytics/compare': typeof AnalyticsCompareRoute
@@ -306,6 +320,8 @@ export interface FileRoutesByTo {
   '/items/track': typeof ItemsTrackRoute
   '/profit-reports/items': typeof ProfitReportsItemsRoute
   '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
+  '/reports/management': typeof ReportsManagementRoute
+  '/reports/printing': typeof ReportsPrintingRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -332,7 +348,7 @@ export interface FileRoutesById {
   '/more': typeof MoreRoute
   '/payments': typeof PaymentsRoute
   '/profit-reports': typeof ProfitReportsRouteWithChildren
-  '/reports': typeof ReportsRoute
+  '/reports': typeof ReportsRouteWithChildren
   '/revenue': typeof RevenueRoute
   '/trading': typeof TradingRouteWithChildren
   '/analytics/alerts': typeof AnalyticsAlertsRoute
@@ -347,6 +363,8 @@ export interface FileRoutesById {
   '/items/track': typeof ItemsTrackRoute
   '/profit-reports/items': typeof ProfitReportsItemsRoute
   '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
+  '/reports/management': typeof ReportsManagementRoute
+  '/reports/printing': typeof ReportsPrintingRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -389,6 +407,8 @@ export interface FileRouteTypes {
     | '/items/track'
     | '/profit-reports/items'
     | '/profit-reports/trading'
+    | '/reports/management'
+    | '/reports/printing'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -427,6 +447,8 @@ export interface FileRouteTypes {
     | '/items/track'
     | '/profit-reports/items'
     | '/profit-reports/trading'
+    | '/reports/management'
+    | '/reports/printing'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -467,6 +489,8 @@ export interface FileRouteTypes {
     | '/items/track'
     | '/profit-reports/items'
     | '/profit-reports/trading'
+    | '/reports/management'
+    | '/reports/printing'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -493,7 +517,7 @@ export interface RootRouteChildren {
   MoreRoute: typeof MoreRoute
   PaymentsRoute: typeof PaymentsRoute
   ProfitReportsRoute: typeof ProfitReportsRouteWithChildren
-  ReportsRoute: typeof ReportsRoute
+  ReportsRoute: typeof ReportsRouteWithChildren
   RevenueRoute: typeof RevenueRoute
   TradingRoute: typeof TradingRouteWithChildren
   SettingsConnectionRoute: typeof SettingsConnectionRoute
@@ -676,6 +700,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/profit-reports/trading'
       preLoaderRoute: typeof ProfitReportsTradingRouteImport
       parentRoute: typeof ProfitReportsRoute
+    }
+    '/reports/management': {
+      id: '/reports/management'
+      path: '/management'
+      fullPath: '/reports/management'
+      preLoaderRoute: typeof ReportsManagementRouteImport
+      parentRoute: typeof ReportsRoute
+    }
+    '/reports/printing': {
+      id: '/reports/printing'
+      path: '/printing'
+      fullPath: '/reports/printing'
+      preLoaderRoute: typeof ReportsPrintingRouteImport
+      parentRoute: typeof ReportsRoute
     }
     '/settings/connection': {
       id: '/settings/connection'
@@ -880,6 +918,19 @@ const ProfitReportsRouteWithChildren = ProfitReportsRoute._addFileChildren(
   ProfitReportsRouteChildren,
 )
 
+interface ReportsRouteChildren {
+  ReportsManagementRoute: typeof ReportsManagementRoute
+  ReportsPrintingRoute: typeof ReportsPrintingRoute
+}
+
+const ReportsRouteChildren: ReportsRouteChildren = {
+  ReportsManagementRoute: ReportsManagementRoute,
+  ReportsPrintingRoute: ReportsPrintingRoute,
+}
+
+const ReportsRouteWithChildren =
+  ReportsRoute._addFileChildren(ReportsRouteChildren)
+
 interface TradingRouteChildren {
   TradingDailyRoute: typeof TradingDailyRoute
   TradingItemsRoute: typeof TradingItemsRoute
@@ -907,7 +958,7 @@ const rootRouteChildren: RootRouteChildren = {
   MoreRoute: MoreRoute,
   PaymentsRoute: PaymentsRoute,
   ProfitReportsRoute: ProfitReportsRouteWithChildren,
-  ReportsRoute: ReportsRoute,
+  ReportsRoute: ReportsRouteWithChildren,
   RevenueRoute: RevenueRoute,
   TradingRoute: TradingRouteWithChildren,
   SettingsConnectionRoute: SettingsConnectionRoute,
