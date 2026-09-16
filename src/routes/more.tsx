@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Database, FileText, Info, Printer, ReceiptText, SlidersHorizontal, WalletCards } from "lucide-react";
+import { Building2, Database, FileText, Info, Printer, SlidersHorizontal, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
@@ -53,7 +53,6 @@ function MorePage() {
             />
             <CompactListCard title="مركز التقارير والطباعة" subtitle="تقارير مالية وتشغيلية قابلة للطباعة" icon={Printer} to="/reports/printing" wrapText />
             <CompactListCard title="إعدادات الطباعة" subtitle="اسم الصيدلية والشعار والعنوان المستخدم في الفواتير وكشوف الحساب" icon={Printer} to="/settings/print" wrapText />
-            <CompactListCard title="مركز الفواتير" subtitle="فواتير البيع والشراء والمردودات مع فتح تفاصيل الفاتورة" icon={ReceiptText} to="/invoices" wrapText />
             <CompactListCard title="المقبوضات والسدادات" subtitle="مقبوضات الزبائن وسدادات الموردين بدون ربط تخميني" icon={WalletCards} to="/payments" wrapText />
             <CompactListCard title="سدادات الشركات" subtitle="سجل مستقل لسدادات الشركات والمرفقات بدون أي ربط محاسبي" icon={Building2} to="/company-payments" wrapText />
             <CompactListCard title="تفضيلات العرض" subtitle="الترتيب والفلاتر الافتراضية" icon={SlidersHorizontal} wrapText />

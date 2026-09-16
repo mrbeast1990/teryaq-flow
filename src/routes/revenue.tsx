@@ -69,6 +69,16 @@ function formatShortDate(value: string) {
   return date.toLocaleDateString("ar-LY");
 }
 
+function formatMovementDateTime(value: string) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return `${date.toLocaleDateString("ar-LY")} ${date.toLocaleTimeString("ar-LY", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+}
+
 function isSalesInvoiceMovement(movement: RevenueMovementRow) {
   const source = movement.revenueSource || "";
   const type = movement.movementType || "";
@@ -377,22 +387,53 @@ function RevenuePage() {
                   <div className="space-y-2">
                     {selectedSource.movements.map((movement) => {
                       const canOpenInvoice = isSalesInvoiceMovement(movement);
-                      return (
-                        <CompactListCard
+                      const isHighlighted = highlightedInvoiceKey === `${movement.movementNo}-${movement.invoiceNo}`;
+                      const cardContent = (
+                        <>
+                          <div className="flex min-w-0 flex-1 items-start gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                              <Receipt className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <div className="text-sm font-extrabold leading-6 text-foreground break-words">
+                                {movement.movementType} | {formatMovementDateTime(movement.movementDate)}
+                              </div>
+                              <div className="text-xs leading-5 text-muted-foreground break-words">
+                                العميل: {movement.customerName || "غير محدد"}
+                              </div>
+                              <div className="text-xs leading-5 text-muted-foreground break-words">
+                                رقم الحركة: {movement.movementNo} | رقم الفاتورة: {movement.invoiceNo || "-"}
+                              </div>
+                              <div className="text-[11px] leading-5 text-muted-foreground break-words">
+                                {movement.paymentMethod || "غير محدد"} · {formatShortDate(movement.movementDate)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 flex-col items-end gap-2">
+                            <span className="text-sm font-extrabold text-foreground">{formatMoney(movement.amount)}</span>
+                            {canOpenInvoice ? <span className="text-[11px] font-bold text-primary">عرض الفاتورة</span> : null}
+                          </div>
+                        </>
+                      );
+
+                      return canOpenInvoice ? (
+                        <button
                           key={`${movement.movementNo}-${movement.invoiceNo}-${movement.amount}`}
-                          title={`${movement.movementType} | ${formatShortDate(movement.movementDate)}`}
-                          subtitle={`العميل: ${movement.customerName || "غير محدد"} | حركة #${movement.movementNo} | فاتورة #${movement.invoiceNo}`}
-                          value={formatMoney(movement.amount)}
-                          meta={movement.paymentMethod}
-                          className={highlightedInvoiceKey === `${movement.movementNo}-${movement.invoiceNo}` ? "bg-primary/10 ring-2 ring-primary/30" : ""}
-                          actionLabel={canOpenInvoice ? "عرض الفاتورة" : undefined}
-                          onClick={
-                            canOpenInvoice
-                              ? () => openInvoiceModal({ invoiceNo: String(movement.invoiceNo), movementNo: String(movement.movementNo) })
-                              : undefined
-                          }
-                          icon={Receipt}
-                        />
+                          type="button"
+                          onClick={() => openInvoiceModal({ invoiceNo: String(movement.invoiceNo), movementNo: String(movement.movementNo) })}
+                          className={`card-surface flex w-full items-start justify-between gap-3 p-3 text-right transition active:scale-[0.99] ${
+                            isHighlighted ? "bg-primary/10 ring-2 ring-primary/30" : ""
+                          }`}
+                        >
+                          {cardContent}
+                        </button>
+                      ) : (
+                        <article
+                          key={`${movement.movementNo}-${movement.invoiceNo}-${movement.amount}`}
+                          className={`card-surface flex items-start justify-between gap-3 p-3 ${isHighlighted ? "bg-primary/10 ring-2 ring-primary/30" : ""}`}
+                        >
+                          {cardContent}
+                        </article>
                       );
                     })}
                   </div>

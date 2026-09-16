@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, CreditCard, FileText, Printer, ReceiptText, Search, WalletCards } from "lucide-react";
+import { ChevronLeft, CreditCard, FileText, Printer, ReceiptText, Search, ShoppingBag, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { AppShell } from "@/components/teryaq/AppShell";
@@ -13,8 +13,10 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States
 import {
   ApiError,
   getCustomerReceiptsReport,
+  getPurchasesReport,
   getRevenueMovementDetails,
   getSupplierPaymentsReport,
+  type ReportInvoiceRow,
   type ReportPaymentRow,
 } from "@/lib/api";
 
@@ -27,7 +29,7 @@ export const Route = createFileRoute("/payments")({
 
 const PAGE_SIZE = 50;
 
-type PaymentTab = "customer-receipts" | "supplier-payments";
+type PaymentTab = "customer-receipts" | "supplier-payments" | "purchase-invoices";
 type PaymentSelection = {
   row: ReportPaymentRow;
   tab: PaymentTab;
@@ -82,7 +84,11 @@ function getErrorMessage(error: unknown) {
 }
 
 function PaymentsCenterPage() {
-  const [tab, setTab] = useState<PaymentTab>("customer-receipts");
+  const initialTab: PaymentTab =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "purchase-invoices"
+      ? "purchase-invoices"
+      : "customer-receipts";
+  const [tab, setTab] = useState<PaymentTab>(initialTab);
   const [dateFrom, setDateFrom] = useState(localDateInput());
   const [dateTo, setDateTo] = useState(localDateInput());
   const [search, setSearch] = useState("");
@@ -105,6 +111,7 @@ function PaymentsCenterPage() {
         page,
         pageSize: PAGE_SIZE,
       };
+      if (tab === "purchase-invoices") return getPurchasesReport(params);
       return tab === "customer-receipts" ? getCustomerReceiptsReport(params) : getSupplierPaymentsReport(params);
     },
   });
@@ -113,7 +120,7 @@ function PaymentsCenterPage() {
   const totalCount = Number(query.data?.summary?.movementCount || 0);
   const pageSize = Number(query.data?.pageSize || PAGE_SIZE);
   const hasNext = page * pageSize < totalCount;
-  const title = tab === "customer-receipts" ? "مقبوضات الزبائن" : "سدادات الموردين";
+  const title = tab === "customer-receipts" ? "مقبوضات الزبائن" : tab === "supplier-payments" ? "سدادات الموردين" : "فواتير الشراء";
   const errorMessage = getErrorMessage(query.error);
 
   const applyFilters = () => {
@@ -169,6 +176,7 @@ function PaymentsCenterPage() {
             options={[
               { id: "customer-receipts", label: "مقبوضات الزبائن" },
               { id: "supplier-payments", label: "سدادات الموردين" },
+              { id: "purchase-invoices", label: "فواتير الشراء" },
             ]}
           />
           <div className="grid gap-2 sm:grid-cols-2">
@@ -208,7 +216,7 @@ function PaymentsCenterPage() {
               </p>
             </div>
             <span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary">
-              {tab === "customer-receipts" ? <WalletCards className="size-4" /> : <CreditCard className="size-4" />}
+              {tab === "customer-receipts" ? <WalletCards className="size-4" /> : tab === "supplier-payments" ? <CreditCard className="size-4" /> : <ShoppingBag className="size-4" />}
             </span>
           </div>
 
@@ -220,14 +228,22 @@ function PaymentsCenterPage() {
             <EmptyState title="لا توجد حركات" description="لا توجد نتائج مطابقة للفترة أو البحث الحالي." icon={ReceiptText} />
           ) : (
             <div className="space-y-2">
-              {rows.map((row) => (
-                <PaymentRowCard
-                  key={`${tab}-${row.paymentNo}-${row.movementNo || "none"}`}
-                  row={row}
-                  label={title}
-                  onOpen={() => setSelectedPayment({ row, tab })}
-                />
-              ))}
+              {tab === "purchase-invoices"
+                ? (rows as ReportInvoiceRow[]).map((row) => (
+                    <PurchaseInvoiceRowCard
+                      key={`purchase-${row.movementNo}-${row.invoiceNo || "none"}`}
+                      row={row}
+                      onOpen={() => setSelectedInvoice({ type: "purchase", movementNo: String(row.movementNo) })}
+                    />
+                  ))
+                : (rows as ReportPaymentRow[]).map((row) => (
+                    <PaymentRowCard
+                      key={`${tab}-${row.paymentNo}-${row.movementNo || "none"}`}
+                      row={row}
+                      label={title}
+                      onOpen={() => setSelectedPayment({ row, tab })}
+                    />
+                  ))}
             </div>
           )}
 
@@ -279,6 +295,35 @@ function PaymentRowCard({ row, label, onOpen }: { row: ReportPaymentRow; label: 
         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary">
           التفاصيل
           <ChevronLeft className="size-3.5" />
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function PurchaseInvoiceRowCard({ row, onOpen }: { row: ReportInvoiceRow; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="card-surface grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3 px-3 py-3 text-right transition-colors hover:bg-secondary/50 active:scale-[0.99]"
+    >
+      <div className="min-w-0 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[13px] font-black text-foreground">{row.personName || "مورد غير محدد"}</p>
+          <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">فاتورة شراء</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          {formatDate(row.date)} · حركة #{row.movementNo}
+          {row.invoiceNo ? ` · فاتورة #${row.invoiceNo}` : ""}
+        </p>
+        {row.movementType ? <p className="text-[11px] text-muted-foreground">{row.movementType}</p> : null}
+      </div>
+      <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+        <p className="text-[14px] font-black text-primary">{formatCurrency(row.total)}</p>
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground">
+          تفاصيل
+          <ChevronLeft className="size-3" />
         </span>
       </div>
     </button>

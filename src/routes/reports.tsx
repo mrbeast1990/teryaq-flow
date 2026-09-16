@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { BarChart3, ClipboardList } from "lucide-react";
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
+import { BarChart3, ClipboardList, Printer, ShoppingBag, WalletCards } from "lucide-react";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
 import { PageHeader } from "@/components/teryaq/PageHeader";
@@ -16,11 +16,17 @@ export const Route = createFileRoute("/reports")({
 });
 
 function ReportsHubPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  if (pathname !== "/reports") {
+    return <Outlet />;
+  }
+
   return (
     <AppShell>
       <PageHeader
         title="التقارير"
-        subtitle="مدخل واحد للتقارير الربحية وتقرير الإدارة."
+        subtitle="مدخل واحد للتقارير الربحية والإدارية والتشغيلية."
       />
 
       <div className="space-y-4">
@@ -38,6 +44,27 @@ function ReportsHubPage() {
             subtitle="ملخص إداري مختصر للبضاعة، المدين، الدائن، النقدية والمصاريف"
             icon={ClipboardList}
             to="/reports/management"
+            wrapText
+          />
+          <CompactListCard
+            title="المقبوضات والسدادات"
+            subtitle="مقبوضات الزبائن وسدادات الموردين بدون ربط تخميني بالفواتير"
+            icon={WalletCards}
+            to="/payments"
+            wrapText
+          />
+          <CompactListCard
+            title="تقرير المشتريات"
+            subtitle="تحليل المشتريات وسدادات الموردين حسب الفترة والمورد واليوم"
+            icon={ShoppingBag}
+            to="/reports/purchases"
+            wrapText
+          />
+          <CompactListCard
+            title="التقارير والطباعة"
+            subtitle="تقارير تشغيلية ومالية قابلة للطباعة مع إعدادات الطباعة الحالية"
+            icon={Printer}
+            to="/reports/printing"
             wrapText
           />
         </div>

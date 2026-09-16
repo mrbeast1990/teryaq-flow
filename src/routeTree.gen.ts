@@ -36,6 +36,7 @@ import { Route as ProfitReportsItemsRouteImport } from './routes/profit-reports.
 import { Route as ProfitReportsTradingRouteImport } from './routes/profit-reports.trading'
 import { Route as ReportsManagementRouteImport } from './routes/reports.management'
 import { Route as ReportsPrintingRouteImport } from './routes/reports.printing'
+import { Route as ReportsPurchasesRouteImport } from './routes/reports.purchases'
 import { Route as SettingsConnectionRouteImport } from './routes/settings/connection'
 import { Route as SettingsPrintRouteImport } from './routes/settings/print'
 import { Route as TradingIndexRouteImport } from './routes/trading/index'
@@ -186,6 +187,11 @@ const ReportsPrintingRoute = ReportsPrintingRouteImport.update({
   path: '/printing',
   getParentRoute: () => ReportsRoute,
 } as any)
+const ReportsPurchasesRoute = ReportsPurchasesRouteImport.update({
+  id: '/purchases',
+  path: '/purchases',
+  getParentRoute: () => ReportsRoute,
+} as any)
 const SettingsConnectionRoute = SettingsConnectionRouteImport.update({
   id: '/settings/connection',
   path: '/settings/connection',
@@ -282,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
   '/reports/management': typeof ReportsManagementRoute
   '/reports/printing': typeof ReportsPrintingRoute
+  '/reports/purchases': typeof ReportsPurchasesRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -322,6 +329,7 @@ export interface FileRoutesByTo {
   '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
   '/reports/management': typeof ReportsManagementRoute
   '/reports/printing': typeof ReportsPrintingRoute
+  '/reports/purchases': typeof ReportsPurchasesRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -365,6 +373,7 @@ export interface FileRoutesById {
   '/profit-reports/trading': typeof ProfitReportsTradingRouteWithChildren
   '/reports/management': typeof ReportsManagementRoute
   '/reports/printing': typeof ReportsPrintingRoute
+  '/reports/purchases': typeof ReportsPurchasesRoute
   '/settings/connection': typeof SettingsConnectionRoute
   '/settings/print': typeof SettingsPrintRoute
   '/trading/daily': typeof TradingDailyRoute
@@ -409,6 +418,7 @@ export interface FileRouteTypes {
     | '/profit-reports/trading'
     | '/reports/management'
     | '/reports/printing'
+    | '/reports/purchases'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -449,6 +459,7 @@ export interface FileRouteTypes {
     | '/profit-reports/trading'
     | '/reports/management'
     | '/reports/printing'
+    | '/reports/purchases'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -491,6 +502,7 @@ export interface FileRouteTypes {
     | '/profit-reports/trading'
     | '/reports/management'
     | '/reports/printing'
+    | '/reports/purchases'
     | '/settings/connection'
     | '/settings/print'
     | '/trading/daily'
@@ -715,6 +727,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsPrintingRouteImport
       parentRoute: typeof ReportsRoute
     }
+    '/reports/purchases': {
+      id: '/reports/purchases'
+      path: '/purchases'
+      fullPath: '/reports/purchases'
+      preLoaderRoute: typeof ReportsPurchasesRouteImport
+      parentRoute: typeof ReportsRoute
+    }
     '/settings/connection': {
       id: '/settings/connection'
       path: '/settings/connection'
@@ -921,11 +940,13 @@ const ProfitReportsRouteWithChildren = ProfitReportsRoute._addFileChildren(
 interface ReportsRouteChildren {
   ReportsManagementRoute: typeof ReportsManagementRoute
   ReportsPrintingRoute: typeof ReportsPrintingRoute
+  ReportsPurchasesRoute: typeof ReportsPurchasesRoute
 }
 
 const ReportsRouteChildren: ReportsRouteChildren = {
   ReportsManagementRoute: ReportsManagementRoute,
   ReportsPrintingRoute: ReportsPrintingRoute,
+  ReportsPurchasesRoute: ReportsPurchasesRoute,
 }
 
 const ReportsRouteWithChildren =

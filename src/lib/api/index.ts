@@ -617,6 +617,10 @@ export interface ReportSummary {
   movementCount: number;
   totalAmount: number;
   averageAmount?: number | null;
+  supplierCount?: number | null;
+  supplierPaymentTotal?: number | null;
+  supplierPaymentCount?: number | null;
+  periodDifference?: number | null;
 }
 
 export interface PagedReportResponse<T> {
@@ -626,6 +630,18 @@ export interface PagedReportResponse<T> {
   pageSize?: number | null;
   rows: T[];
   summary: ReportSummary;
+  topSuppliers?: {
+    supplierId?: number | string | null;
+    supplierName?: string | null;
+    movementCount?: number | null;
+    totalAmount?: number | null;
+  }[];
+  daily?: {
+    date: string;
+    movementCount?: number | null;
+    supplierCount?: number | null;
+    totalAmount?: number | null;
+  }[];
 }
 
 export function getSystemStatus(): Promise<SystemStatus> {
