@@ -52,6 +52,7 @@ function InventoryPage() {
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [loadedItems, setLoadedItems] = useState<ItemInfo[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
 
   const query = useQuery({
     queryKey: ["inventory", search, filter, page, PAGE_SIZE],
@@ -78,6 +79,19 @@ function InventoryPage() {
   const hasMore = Boolean(query.data?.hasMore);
   const errorMessage = query.error instanceof ApiError || query.error instanceof Error ? query.error.message : undefined;
 
+  async function handleExport() {
+    setIsExporting(true);
+    try {
+      const response = await getInventory({ search, filter, limit: "all" });
+      exportInventory(response.rows);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "تعذر تصدير المخزون.";
+      window.alert(message);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   return (
     <AppShell>
       <div className="sticky top-0 z-20 -mx-4 mb-2 bg-background/80 px-4 pb-2 pt-1 backdrop-blur-md">
@@ -86,7 +100,7 @@ function InventoryPage() {
           showBack
           actions={
             <div className="flex gap-1">
-              <ActionButton label="تصدير" icon={FileDown} variant="outline" disabled={!items.length} onClick={() => exportInventory(items)} />
+              <ActionButton label={isExporting ? "جاري التصدير..." : "تصدير"} icon={FileDown} variant="outline" disabled={isExporting || (!items.length && !totalCount)} onClick={handleExport} />
               <ActionButton label="تحديث" icon={RefreshCw} variant="outline" onClick={() => query.refetch()} />
             </div>
           }
