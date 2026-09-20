@@ -604,6 +604,7 @@ export interface ReportInvoiceRow {
 export interface ReportPaymentRow {
   rowNo?: number | null;
   date: string;
+  personNo?: number | string | null;
   personName?: string | null;
   amount: number;
   paymentMethod?: string | null;
@@ -617,6 +618,7 @@ export interface ReportSummary {
   movementCount: number;
   totalAmount: number;
   averageAmount?: number | null;
+  personCount?: number | null;
   supplierCount?: number | null;
   supplierPaymentTotal?: number | null;
   supplierPaymentCount?: number | null;
@@ -633,6 +635,12 @@ export interface PagedReportResponse<T> {
   topSuppliers?: {
     supplierId?: number | string | null;
     supplierName?: string | null;
+    movementCount?: number | null;
+    totalAmount?: number | null;
+  }[];
+  topParties?: {
+    personId?: number | string | null;
+    personName?: string | null;
     movementCount?: number | null;
     totalAmount?: number | null;
   }[];

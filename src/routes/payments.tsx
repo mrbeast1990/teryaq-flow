@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, CreditCard, FileText, Printer, ReceiptText, Search, ShoppingBag, WalletCards } from "lucide-react";
+import { CalendarDays, ChevronLeft, CreditCard, FileText, Printer, ReceiptText, Search, ShoppingBag, Trophy, Users, WalletCards } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { AppShell } from "@/components/teryaq/AppShell";
@@ -30,6 +30,7 @@ export const Route = createFileRoute("/payments")({
 const PAGE_SIZE = 50;
 
 type PaymentTab = "customer-receipts" | "supplier-payments" | "purchase-invoices";
+type PeriodMode = "current-month" | "previous-month" | "custom";
 type PaymentSelection = {
   row: ReportPaymentRow;
   tab: PaymentTab;
@@ -44,6 +45,22 @@ function localDateInput(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function monthRange(offset = 0) {
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth() + offset, 1);
+  const end =
+    offset === 0
+      ? today
+      : new Date(today.getFullYear(), today.getMonth() + offset + 1, 0);
+  return { dateFrom: localDateInput(start), dateTo: localDateInput(end) };
+}
+
+function periodLabel(mode: PeriodMode, dateFrom: string, dateTo: string) {
+  if (mode === "custom") return `${formatDate(dateFrom)} - ${formatDate(dateTo)}`;
+  const base = mode === "previous-month" ? new Date(dateFrom) : new Date();
+  return base.toLocaleDateString("ar-LY", { month: "long", year: "numeric" });
 }
 
 function formatDate(value?: string | null) {
@@ -88,13 +105,15 @@ function PaymentsCenterPage() {
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "purchase-invoices"
       ? "purchase-invoices"
       : "customer-receipts";
+  const initialRange = monthRange(0);
   const [tab, setTab] = useState<PaymentTab>(initialTab);
-  const [dateFrom, setDateFrom] = useState(localDateInput());
-  const [dateTo, setDateTo] = useState(localDateInput());
+  const [periodMode, setPeriodMode] = useState<PeriodMode>("current-month");
+  const [customRange, setCustomRange] = useState(initialRange);
   const [search, setSearch] = useState("");
   const [appliedFilters, setAppliedFilters] = useState({
-    dateFrom: localDateInput(),
-    dateTo: localDateInput(),
+    periodMode: "current-month" as PeriodMode,
+    dateFrom: initialRange.dateFrom,
+    dateTo: initialRange.dateTo,
     search: "",
   });
   const [page, setPage] = useState(1);
@@ -117,15 +136,61 @@ function PaymentsCenterPage() {
   });
 
   const rows = query.data?.rows || [];
+  const summary = query.data?.summary;
   const totalCount = Number(query.data?.summary?.movementCount || 0);
   const pageSize = Number(query.data?.pageSize || PAGE_SIZE);
   const hasNext = page * pageSize < totalCount;
   const title = tab === "customer-receipts" ? "مقبوضات الزبائن" : tab === "supplier-payments" ? "سدادات الموردين" : "فواتير الشراء";
   const errorMessage = getErrorMessage(query.error);
+  const activeRange = periodMode === "current-month" ? monthRange(0) : periodMode === "previous-month" ? monthRange(-1) : customRange;
+  const totalAmount = Number(summary?.totalAmount || 0);
+  const movementCount = Number(summary?.movementCount || 0);
+  const uniquePartyCount = Number(tab === "purchase-invoices" ? summary?.supplierCount || 0 : summary?.personCount || 0);
+  const averageAmount = movementCount > 0 ? totalAmount / movementCount : 0;
+  const topSupplier = query.data?.topSuppliers?.[0];
+  const topPaymentParty = query.data?.topParties?.[0];
+  const topPartyName = tab === "purchase-invoices" ? topSupplier?.supplierName : topPaymentParty?.personName;
+  const topPartyAmount = Number((tab === "purchase-invoices" ? topSupplier?.totalAmount : topPaymentParty?.totalAmount) || 0);
+  const topPartyLabel =
+    tab === "customer-receipts"
+      ? "أعلى زبون تحصيلًا"
+      : tab === "supplier-payments"
+        ? "أعلى مورد تم سداده"
+        : "أكبر مورد بالمشتريات";
+  const dashboardLabels =
+    tab === "customer-receipts"
+      ? {
+          total: "إجمالي المقبوضات",
+          count: "عدد عمليات القبض",
+          partyCount: "عدد الزبائن",
+          average: "متوسط عملية القبض",
+        }
+      : tab === "supplier-payments"
+        ? {
+            total: "إجمالي السدادات",
+            count: "عدد عمليات السداد",
+            partyCount: "عدد الموردين",
+            average: "متوسط عملية السداد",
+          }
+        : {
+            total: "إجمالي المشتريات",
+            count: "عدد فواتير الشراء",
+            partyCount: "عدد الموردين",
+            average: "متوسط قيمة الفاتورة",
+          };
 
   const applyFilters = () => {
     setPage(1);
-    setAppliedFilters({ dateFrom, dateTo, search: search.trim() });
+    setAppliedFilters({ periodMode, dateFrom: activeRange.dateFrom, dateTo: activeRange.dateTo, search: search.trim() });
+  };
+
+  const changePeriodMode = (nextMode: PeriodMode) => {
+    setPeriodMode(nextMode);
+    setPage(1);
+    if (nextMode !== "custom") {
+      const nextRange = nextMode === "current-month" ? monthRange(0) : monthRange(-1);
+      setAppliedFilters({ periodMode: nextMode, dateFrom: nextRange.dateFrom, dateTo: nextRange.dateTo, search: search.trim() });
+    }
   };
 
   const changeTab = (nextTab: string) => {
@@ -179,33 +244,75 @@ function PaymentsCenterPage() {
               { id: "purchase-invoices", label: "فواتير الشراء" },
             ]}
           />
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
             <label className="space-y-1 text-[11px] font-bold text-muted-foreground">
-              من تاريخ
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(event) => setDateFrom(event.target.value)}
-                className="h-10 w-full rounded-lg border border-border bg-card px-3 text-[13px] font-bold text-foreground"
-              />
+              الفترة
+              <div className="relative">
+                <CalendarDays className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <select
+                  value={periodMode}
+                  onChange={(event) => {
+                    changePeriodMode(event.target.value as PeriodMode);
+                  }}
+                  className="h-10 w-full appearance-none rounded-lg border border-border bg-card px-9 text-[13px] font-black text-foreground"
+                >
+                  <option value="current-month">{periodLabel("current-month", activeRange.dateFrom, activeRange.dateTo)}</option>
+                  <option value="previous-month">الشهر السابق</option>
+                  <option value="custom">نطاق مخصص</option>
+                </select>
+              </div>
             </label>
-            <label className="space-y-1 text-[11px] font-bold text-muted-foreground">
-              إلى تاريخ
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(event) => setDateTo(event.target.value)}
-                className="h-10 w-full rounded-lg border border-border bg-card px-3 text-[13px] font-bold text-foreground"
-              />
-            </label>
+            <p className="rounded-lg bg-secondary px-3 py-2 text-[11px] font-bold text-muted-foreground">
+              {formatDate(activeRange.dateFrom)} - {formatDate(activeRange.dateTo)}
+            </p>
           </div>
+          {periodMode === "custom" ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="space-y-1 text-[11px] font-bold text-muted-foreground">
+                من تاريخ
+                <input
+                  type="date"
+                  value={customRange.dateFrom}
+                  onChange={(event) => setCustomRange((current) => ({ ...current, dateFrom: event.target.value }))}
+                  className="h-10 w-full rounded-lg border border-border bg-card px-3 text-[13px] font-bold text-foreground"
+                />
+              </label>
+              <label className="space-y-1 text-[11px] font-bold text-muted-foreground">
+                إلى تاريخ
+                <input
+                  type="date"
+                  value={customRange.dateTo}
+                  onChange={(event) => setCustomRange((current) => ({ ...current, dateTo: event.target.value }))}
+                  className="h-10 w-full rounded-lg border border-border bg-card px-3 text-[13px] font-bold text-foreground"
+                />
+              </label>
+            </div>
+          ) : null}
           <SearchInput
             placeholder="بحث برقم الحركة أو اسم العميل/المورد أو طريقة الدفع..."
             value={search}
             onChange={setSearch}
           />
-          <ActionButton label="بحث" icon={Search} onClick={applyFilters} />
+          <ActionButton label="تحديث النتائج" icon={Search} onClick={applyFilters} />
         </div>
+
+        <section className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <PaymentMetricCard title={dashboardLabels.total} value={formatCurrency(totalAmount)} icon={tab === "customer-receipts" ? WalletCards : tab === "supplier-payments" ? CreditCard : ShoppingBag} />
+            <PaymentMetricCard title={dashboardLabels.count} value={movementCount.toLocaleString("ar-LY")} icon={ReceiptText} />
+            <PaymentMetricCard title={dashboardLabels.partyCount} value={uniquePartyCount.toLocaleString("ar-LY")} icon={Users} />
+            <PaymentMetricCard title={dashboardLabels.average} value={formatCurrency(averageAmount)} icon={Trophy} />
+          </div>
+          <div className="card-surface flex items-center justify-between gap-3 px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold text-muted-foreground">{topPartyLabel}</p>
+              <p className="mt-0.5 whitespace-normal break-words text-[13px] font-black">
+                {topPartyName || "لا توجد بيانات ضمن الفترة"}
+              </p>
+            </div>
+            <p className="shrink-0 text-[13px] font-black text-primary">{formatCurrency(topPartyAmount)}</p>
+          </div>
+        </section>
 
         <section className="space-y-3">
           <div className="flex items-center justify-between px-1">
@@ -267,6 +374,22 @@ function PaymentsCenterPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+function PaymentMetricCard({ title, value, icon: Icon }: { title: string; value: ReactNode; icon: typeof WalletCards }) {
+  return (
+    <div className="card-surface min-w-0 p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold leading-5 text-muted-foreground">{title}</p>
+          <div className="mt-1 whitespace-normal break-words text-[15px] font-black leading-6 text-foreground">{value}</div>
+        </div>
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
+          <Icon className="size-4" />
+        </span>
+      </div>
+    </div>
   );
 }
 
