@@ -501,6 +501,17 @@ export interface AccountsListResponse {
   profile?: string | null | undefined;
   customers?: AccountPerson[];
   suppliers?: AccountPerson[];
+  totalCount?: number | null;
+  page?: number | null;
+  pageSize?: number | null;
+  hasMore?: boolean | null;
+  balanceFilter?: string | null;
+  totalBalance?: number | null;
+  positiveCount?: number | null;
+  positiveBalance?: number | null;
+  negativeCount?: number | null;
+  negativeBalance?: number | null;
+  zeroCount?: number | null;
 }
 
 export interface CustomerDetailsResponse {
@@ -779,7 +790,12 @@ export function getSupplierPayables(): Promise<GenericBalanceResponse> {
   });
 }
 
-export function getCustomers(params: { search?: string } = {}): Promise<AccountsListResponse> {
+export function getCustomers(params: {
+  search?: string;
+  balanceFilter?: "all" | "nonzero" | "debtors" | "zero";
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<AccountsListResponse> {
   return apiRequest<AccountsListResponse>(API_ENDPOINTS.customers(), { query: params });
 }
 
