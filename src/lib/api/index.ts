@@ -769,23 +769,21 @@ export function getAnalyticsItemProfit(params: {
 // ranges for very high-movement items may be incomplete.
 
 export function getCustomerBalances(): Promise<GenericBalanceResponse> {
-  return getCustomers().then((response) => {
-    const customers = response.customers || [];
+  return getCustomers({ balanceFilter: "debtors", page: 1, pageSize: 10 }).then((response) => {
     return {
       success: response.success,
-      totalBalance: customers.reduce((sum, item) => sum + Number(item.currentBalance || 0), 0),
-      count: customers.length,
+      totalBalance: Number(response.positiveBalance || response.totalBalance || 0),
+      count: Number(response.positiveCount || response.totalCount || 0),
     };
   });
 }
 
 export function getSupplierPayables(): Promise<GenericBalanceResponse> {
-  return getSuppliers().then((response) => {
-    const suppliers = response.suppliers || [];
+  return getSuppliers({ balanceFilter: "creditors", page: 1, pageSize: 10 }).then((response) => {
     return {
       success: response.success,
-      totalBalance: suppliers.reduce((sum, item) => sum + Number(item.currentBalance || 0), 0),
-      count: suppliers.length,
+      totalBalance: Math.abs(Number(response.negativeBalance || response.totalBalance || 0)),
+      count: Number(response.negativeCount || response.totalCount || 0),
     };
   });
 }
@@ -799,7 +797,12 @@ export function getCustomers(params: {
   return apiRequest<AccountsListResponse>(API_ENDPOINTS.customers(), { query: params });
 }
 
-export function getSuppliers(params: { search?: string } = {}): Promise<AccountsListResponse> {
+export function getSuppliers(params: {
+  search?: string;
+  balanceFilter?: "all" | "nonzero" | "creditors" | "zero";
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<AccountsListResponse> {
   return apiRequest<AccountsListResponse>(API_ENDPOINTS.suppliers(), { query: params });
 }
 
