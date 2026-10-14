@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CreditCard, Printer, ReceiptText, WalletCards } from "lucide-react";
+import { CreditCard, Info, Printer, ReceiptText, WalletCards } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { AppShell } from "@/components/teryaq/AppShell";
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/accounts/suppliers/$id")({
 });
 
 function formatNumber(value?: number | null) {
-  return new Intl.NumberFormat("ar-LY", { maximumFractionDigits: 2 }).format(Number(value || 0));
+  return new Intl.NumberFormat("ar-LY", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(Number(value || 0));
 }
 
 function formatCurrency(value?: number | null) {
@@ -44,19 +44,40 @@ function balanceClass(value?: number | null) {
   return "";
 }
 
+function supplierBalanceLabel(value?: number | null) {
+  const balance = Number(value || 0);
+  if (balance < 0) return "مستحق للمورد";
+  if (balance > 0) return "رصيد لصالحنا";
+  return "لا توجد مديونية";
+}
+
 type AllocationRow = {
   invoiceNumber: string;
   amount: number;
 };
 
-function normalizeAmount(value: number) {
-  if (!Number.isFinite(value) || value <= 0) return 0;
-  return Math.round(value * 1000) / 1000;
+const MONEY_SCALE = 1000;
+
+function toMills(value: number | string | null | undefined) {
+  if (typeof value === "string") {
+    const normalized = value.replace(/[^\d.-]/g, "");
+    const parsed = Number(normalized);
+    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+    return Math.round(parsed * MONEY_SCALE);
+  }
+
+  const parsed = Number(value || 0);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+  return Math.round(parsed * MONEY_SCALE);
+}
+
+function fromMills(value: number) {
+  return value / MONEY_SCALE;
 }
 
 function unpaidInvoices(rows: SupplierInvoiceRow[]) {
   return rows
-    .filter((row) => Number(row.remaining || 0) > 0)
+    .filter((row) => toMills(row.remaining) > 0)
     .slice()
     .sort((a, b) => {
       const dateA = new Date(a.date || "").getTime();
@@ -69,14 +90,14 @@ function unpaidInvoices(rows: SupplierInvoiceRow[]) {
 }
 
 function buildDraftAllocations(invoices: SupplierInvoiceRow[], amount: number): AllocationRow[] {
-  let remainingPayment = normalizeAmount(amount);
+  let remainingPayment = toMills(amount);
   return invoices.map((invoice) => {
-    const invoiceRemaining = normalizeAmount(Number(invoice.remaining || 0));
+    const invoiceRemaining = toMills(invoice.remaining);
     const allocated = Math.min(invoiceRemaining, remainingPayment);
-    remainingPayment = normalizeAmount(remainingPayment - allocated);
+    remainingPayment = Math.max(remainingPayment - allocated, 0);
     return {
       invoiceNumber: String(invoice.invoiceNumber),
-      amount: normalizeAmount(allocated),
+      amount: fromMills(allocated),
     };
   });
 }
@@ -106,7 +127,7 @@ function SupplierDetailsPage() {
 
   return (
     <AppShell>
-      <div className="sticky top-0 z-20 mb-2 bg-background/80 px-1 pb-2 pt-1 backdrop-blur-md">
+      <div className="mb-2 bg-background/95 px-1 pb-2 pt-1 sm:sticky sm:top-0 sm:z-20 sm:backdrop-blur-md">
         <PageHeader title="تفاصيل المورد" subtitle={`معرف: ${id}`} showBack />
 
         <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/10 bg-primary/5 p-3">
@@ -117,6 +138,7 @@ function SupplierDetailsPage() {
           <div className="shrink-0 text-left">
             <p className="text-[10px] text-muted-foreground">الرصيد الحالي</p>
             <p className={`num text-base font-extrabold ${balanceClass(balance)}`}>{formatNumber(balance)}</p>
+            <p className="mt-0.5 text-[10px] font-bold text-muted-foreground">{supplierBalanceLabel(balance)}</p>
           </div>
         </div>
 
@@ -175,7 +197,6 @@ function SupplierPaymentDraft({
   const [paymentType, setPaymentType] = useState("نقداً");
   const [paymentDate, setPaymentDate] = useState(todayInputValue());
   const [note, setNote] = useState("");
-  const [accountingApproval, setAccountingApproval] = useState(false);
   const [allocations, setAllocations] = useState<AllocationRow[]>([]);
 
   const invoicesQuery = useQuery({
@@ -184,23 +205,27 @@ function SupplierPaymentDraft({
   });
 
   const invoices = useMemo(() => unpaidInvoices(invoicesQuery.data?.rows || []), [invoicesQuery.data?.rows]);
-  const paymentAmount = normalizeAmount(Number(amount || 0));
-  const totalDebt = normalizeAmount(invoices.reduce((sum, invoice) => sum + Number(invoice.remaining || 0), 0));
-  const allocatedTotal = normalizeAmount(allocations.reduce((sum, row) => sum + Number(row.amount || 0), 0));
-  const unallocated = normalizeAmount(paymentAmount - allocatedTotal);
-  const exceedsDebt = paymentAmount > totalDebt;
+  const paymentAmountMills = toMills(amount);
+  const paymentAmount = fromMills(paymentAmountMills);
+  const totalDebtMills = invoices.reduce((sum, invoice) => sum + toMills(invoice.remaining), 0);
+  const totalDebt = fromMills(totalDebtMills);
+  const allocatedTotalMills = allocations.reduce((sum, row) => sum + toMills(row.amount), 0);
+  const allocatedTotal = fromMills(allocatedTotalMills);
+  const unallocatedMills = paymentAmountMills - allocatedTotalMills;
+  const unallocated = fromMills(unallocatedMills);
+  const exceedsDebt = paymentAmountMills > totalDebtMills;
   const hasInvoiceOverAllocation = allocations.some((row) => {
     const invoice = invoices.find((item) => String(item.invoiceNumber) === row.invoiceNumber);
-    return Number(row.amount || 0) > Number(invoice?.remaining || 0);
+    return toMills(row.amount) > toMills(invoice?.remaining);
   });
-  const canPreviewReceipt = paymentAmount > 0 && allocatedTotal > 0 && !hasInvoiceOverAllocation && (!exceedsDebt || accountingApproval);
+  const canPreviewReceipt = paymentAmountMills > 0 && allocatedTotalMills > 0 && !hasInvoiceOverAllocation && !exceedsDebt;
 
   useEffect(() => {
     setAllocations(buildDraftAllocations(invoices, paymentAmount));
   }, [invoices, paymentAmount]);
 
   function updateAllocation(invoiceNumber: string, value: string) {
-    const nextAmount = normalizeAmount(Number(value || 0));
+    const nextAmount = fromMills(toMills(value));
     setAllocations((rows) => rows.map((row) => (row.invoiceNumber === invoiceNumber ? { ...row, amount: nextAmount } : row)));
   }
 
@@ -213,9 +238,7 @@ function SupplierPaymentDraft({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-black text-emerald-950">مسودة تسجيل سداد مورد</p>
-          <p className="mt-1 text-[11px] leading-5 text-emerald-800">
-            هذه الواجهة للمعاينة فقط. الحفظ الحقيقي في المحاسب 3 غير مفعّل حتى تثبيت حقول الكتابة وتوليد المعرفات والتزامن والصلاحيات.
-          </p>
+          <p className="mt-1 text-[11px] font-bold leading-5 text-emerald-800">معاينة فقط — لم يُسجّل أي سداد</p>
         </div>
         <ReceiptText className="mt-1 size-5 shrink-0 text-emerald-700" />
       </div>
@@ -224,6 +247,7 @@ function SupplierPaymentDraft({
         <div className="rounded-lg bg-white p-2 shadow-sm ring-1 ring-emerald-100">
           <p className="text-[10px] text-muted-foreground">رصيد المورد</p>
           <p className={`num mt-1 text-sm font-black ${balanceClass(currentBalance)}`}>{formatCurrency(currentBalance)}</p>
+          <p className="mt-0.5 text-[10px] font-bold text-muted-foreground">{supplierBalanceLabel(currentBalance)}</p>
         </div>
         <div className="rounded-lg bg-white p-2 shadow-sm ring-1 ring-emerald-100">
           <p className="text-[10px] text-muted-foreground">فواتير غير مسددة</p>
@@ -303,8 +327,8 @@ function SupplierPaymentDraft({
           {invoices.map((invoice) => {
             const allocation = allocations.find((row) => row.invoiceNumber === String(invoice.invoiceNumber));
             const allocated = Number(allocation?.amount || 0);
-            const invoiceRemaining = Number(invoice.remaining || 0);
-            const invalid = allocated > invoiceRemaining;
+            const invoiceRemainingMills = toMills(invoice.remaining);
+            const invalid = toMills(allocated) > invoiceRemainingMills;
             return (
               <article key={String(invoice.invoiceNumber)} className="rounded-lg border border-border bg-secondary/20 p-2">
                 <div className="flex items-start justify-between gap-2">
@@ -316,7 +340,7 @@ function SupplierPaymentDraft({
                     </p>
                   </div>
                   <div className="shrink-0 text-left">
-                    <p className="num text-[12px] font-black">{formatCurrency(invoiceRemaining)}</p>
+                    <p className="num text-[12px] font-black">{formatCurrency(fromMills(invoiceRemainingMills))}</p>
                     <p className="text-[10px] text-muted-foreground">المتبقي</p>
                   </div>
                 </div>
@@ -352,25 +376,25 @@ function SupplierPaymentDraft({
       </div>
 
       {exceedsDebt ? (
-        <label className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-[11px] font-bold text-amber-900 ring-1 ring-amber-200">
-          <input type="checkbox" checked={accountingApproval} onChange={(event) => setAccountingApproval(event.target.checked)} className="mt-1" />
-          <span>مبلغ السداد أكبر من إجمالي المديونية الظاهرة. يتطلب هذا موافقة محاسبية صريحة قبل تفعيل الحفظ الحقيقي.</span>
-        </label>
+        <p className="rounded-lg bg-destructive/10 p-3 text-[11px] font-bold text-destructive ring-1 ring-destructive/20">
+          مبلغ السداد أكبر من إجمالي المديونية الظاهرة. تم منع التجاوز مؤقتًا إلى حين اعتماد آلية الحفظ المحاسبي.
+        </p>
       ) : null}
-
-      <div className="rounded-lg bg-slate-50 p-3 text-[11px] leading-5 text-slate-700 ring-1 ring-slate-200">
-        <div className="flex gap-2">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
-          <p>
-            لم يتم إنشاء أي قيد في AlmohasebSQL. يلزم قبل التفعيل إثبات توليد `Outstandingvalues_No`، كل الحقول الإلزامية، transaction/idempotency، وصلاحية المستخدم.
-          </p>
-        </div>
-      </div>
 
       <div className="no-print grid gap-2 sm:grid-cols-2">
         <ActionButton label="طباعة مسودة إيصال" icon={Printer} onClick={printDraftReceipt} variant="outline" disabled={!canPreviewReceipt} />
         <ActionButton label="تأكيد السداد غير مفعّل" icon={ReceiptText} disabled />
       </div>
+
+      <details className="rounded-lg bg-slate-50 p-3 text-[11px] leading-5 text-slate-700 ring-1 ring-slate-200">
+        <summary className="flex cursor-pointer items-center gap-2 font-bold">
+          <Info className="size-4 text-slate-500" />
+          تفاصيل تقنية قبل تفعيل الحفظ
+        </summary>
+        <p className="mt-2">
+          يلزم قبل التفعيل إثبات توليد `Outstandingvalues_No`، كل الحقول الإلزامية، transaction/idempotency، وصلاحية المستخدم. لم يتم إنشاء أي قيد في AlmohasebSQL.
+        </p>
+      </details>
 
       <div className="hidden print:block">
         <div className="border-b pb-3 text-center">
