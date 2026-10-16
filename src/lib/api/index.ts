@@ -494,6 +494,10 @@ export interface AccountPerson {
   currentBalance: number;
   lastTransactionDate?: string | null;
   lastTransactionAmount?: number | null;
+  lastSaleDate?: string | null;
+  lastCollectionDate?: string | null;
+  lastPurchaseDate?: string | null;
+  lastPaymentDate?: string | null;
 }
 
 export interface AccountsListResponse {

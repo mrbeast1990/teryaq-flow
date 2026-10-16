@@ -1,10 +1,12 @@
 import { ChevronLeft } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 
 type Props = {
   title: string;
   subtitle?: string;
+  details?: ReactNode;
   value?: string;
   meta?: string;
   icon?: LucideIcon;
@@ -16,13 +18,13 @@ type Props = {
   className?: string | undefined;
 };
 
-export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to, onClick, actionLabel, wrapText, valueTone = "neutral", className = "" }: Props) {
-  const titleClass = wrapText ? "line-clamp-2 whitespace-normal break-words text-[13px] font-bold leading-snug" : "truncate text-[13px] font-bold";
+export function CompactListCard({ title, subtitle, details, value, meta, icon: Icon, to, onClick, actionLabel, wrapText, valueTone = "neutral", className = "" }: Props) {
+  const titleClass = details ? "whitespace-normal break-words text-[13px] font-bold leading-6" : wrapText ? "line-clamp-2 whitespace-normal break-words text-[13px] font-bold leading-snug" : "truncate text-[13px] font-bold";
   const subtitleClass = wrapText ? "mt-0.5 line-clamp-2 whitespace-normal break-words text-[11px] leading-snug text-muted-foreground" : "truncate text-[11px] text-muted-foreground";
   const valueToneClass =
     valueTone === "positive" ? "text-success" : valueTone === "negative" ? "text-destructive" : "";
   const content = (
-    <div className={`grid grid-cols-[auto_minmax(0,1fr)_auto] gap-3 px-3 py-2.5 ${wrapText ? "items-start" : "items-center"}`}>
+    <div className={`grid grid-cols-[auto_minmax(0,1fr)_auto] ${details ? "gap-x-3 gap-y-1" : "gap-3"} px-3 py-2.5 ${wrapText || details ? "items-start" : "items-center"}`}>
       {Icon ? (
         <span className={`grid size-8 shrink-0 place-items-center rounded-lg bg-primary-soft text-accent-foreground ${wrapText ? "mt-0.5" : ""}`}>
           <Icon className="size-4" />
@@ -42,6 +44,7 @@ export function CompactListCard({ title, subtitle, value, meta, icon: Icon, to, 
         {actionLabel ? <p className="text-[11px] font-bold text-primary">{actionLabel}</p> : null}
         {!value && !meta && (to || onClick) ? <ChevronLeft className="size-4 text-muted-foreground" /> : null}
       </div>
+      {details ? <div className="col-span-full min-w-0 ps-11">{details}</div> : null}
     </div>
   );
 

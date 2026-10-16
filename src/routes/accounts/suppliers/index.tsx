@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ActionButton } from "@/components/teryaq/ActionButton";
 import { AppShell } from "@/components/teryaq/AppShell";
 import { CompactListCard } from "@/components/teryaq/CompactListCard";
+import { AccountActivity } from "@/components/teryaq/accounts/AccountActivity";
 import { FilterBar, FilterChip } from "@/components/teryaq/FilterBar";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { SearchInput } from "@/components/teryaq/SearchInput";
@@ -267,8 +268,9 @@ function SuppliersPage() {
               {suppliers.map((account) => (
                 <CompactListCard
                   key={account.id}
+                  details={<AccountActivity account={account} type="supplier" />}
                   title={account.name || "غير محدد"}
-                  subtitle={`${account.phone || "هاتف غير مسجل"} · آخر حركة: ${formatDate(account.lastTransactionDate)}`}
+                  subtitle={account.phone || "هاتف غير مسجل"}
                   value={formatNumber(account.currentBalance)}
                   meta="الرصيد"
                   icon={Truck}
