@@ -25,12 +25,12 @@ export function AccountActivity({ account, type }: { account: AccountPerson; typ
   const trade = activityDate(customer ? account.lastSaleDate : account.lastPurchaseDate);
   const payment = activityDate(customer ? account.lastCollectionDate : account.lastPaymentDate);
   return (
-    <div className="mt-1 space-y-1 text-[11px] leading-5" dir="rtl">
-      <p className="flex items-start gap-1 text-blue-700">
+    <div className="mt-1 flex flex-col gap-1 text-[11px] leading-5" dir="rtl">
+      <p className={`flex items-start gap-1 text-blue-700 ${customer ? "order-2" : "order-1"}`}>
         <ShoppingBag aria-hidden="true" className="mt-1 size-3 shrink-0" />
         <span className="min-w-0 break-words">{trade === null ? (customer ? "لا توجد مبيعات" : "لا توجد مشتريات") : `${customer ? "آخر بيع" : "آخر شراء"}: ${trade}`}</span>
       </p>
-      <p className="flex items-start gap-1 text-emerald-700">
+      <p className={`flex items-start gap-1 ${customer ? "order-1 font-bold text-foreground" : "order-2 text-emerald-700"}`}>
         <Banknote aria-hidden="true" className="mt-1 size-3 shrink-0" />
         <span className="min-w-0 break-words">{payment === null ? (customer ? "لا توجد تحصيلات" : "لا توجد سدادات") : `${customer ? "آخر تحصيل" : "آخر سداد"}: ${payment}`}</span>
       </p>

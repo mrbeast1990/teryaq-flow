@@ -20,6 +20,7 @@ export const Route = createFileRoute("/accounts/customers/")({
 });
 
 type BalanceFilter = "all" | "nonzero" | "debtors";
+type CustomerSort = "balance" | "last-collection-newest" | "last-collection-oldest";
 
 const filterOptions: { id: BalanceFilter; label: string }[] = [
   { id: "nonzero", label: "عليهم رصيد" },
@@ -142,12 +143,13 @@ function CustomersPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<BalanceFilter>("nonzero");
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<CustomerSort>("balance");
   const [isExporting, setIsExporting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
 
   const query = useQuery({
-    queryKey: ["accounts", "customers", search, filter, page, PAGE_SIZE],
-    queryFn: () => getCustomers({ search, balanceFilter: apiBalanceFilter(filter), page, pageSize: PAGE_SIZE }),
+    queryKey: ["accounts", "customers", search, filter, sort, page, PAGE_SIZE],
+    queryFn: () => getCustomers({ search, balanceFilter: apiBalanceFilter(filter), sort, page, pageSize: PAGE_SIZE }),
   });
 
   const customers = query.data?.customers || [];
@@ -164,7 +166,7 @@ function CustomersPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, filter]);
+  }, [search, filter, sort]);
 
   async function fetchAllFilteredCustomers() {
     const allRows: AccountPerson[] = [];
@@ -174,6 +176,7 @@ function CustomersPage() {
       const response = await getCustomers({
         search,
         balanceFilter: apiBalanceFilter(filter),
+        sort,
         page: nextPage,
         pageSize: 500,
       });
@@ -231,6 +234,19 @@ function CustomersPage() {
               <FilterChip key={option.id} label={option.label} active={filter === option.id} onClick={() => setFilter(option.id)} />
             ))}
           </FilterBar>
+          <label className="flex items-center gap-2 text-[12px] font-bold">
+            <span className="shrink-0">ترتيب حسب</span>
+            <select
+              aria-label="ترتيب الزبائن"
+              value={sort}
+              onChange={(event) => { setSort(event.target.value as CustomerSort); setPage(1); }}
+              className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-card px-2 text-[12px]"
+            >
+              <option value="balance">القيمة — الأعلى أولًا</option>
+              <option value="last-collection-newest">آخر تحصيل — الأحدث أولًا</option>
+              <option value="last-collection-oldest">آخر تحصيل — الأقدم أولًا</option>
+            </select>
+          </label>
         </div>
       </div>
 

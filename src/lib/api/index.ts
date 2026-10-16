@@ -795,6 +795,7 @@ export function getSupplierPayables(): Promise<GenericBalanceResponse> {
 export function getCustomers(params: {
   search?: string;
   balanceFilter?: "all" | "nonzero" | "debtors" | "zero";
+  sort?: "balance" | "last-collection-newest" | "last-collection-oldest";
   page?: number;
   pageSize?: number;
 } = {}): Promise<AccountsListResponse> {
