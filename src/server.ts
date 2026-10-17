@@ -1,6 +1,7 @@
 import "./lib/error-capture";
 
 import { handleCompanyPaymentsRequest } from "./lib/companyPaymentsHandler.server";
+import { handleAccountDirectoryRequest } from "./lib/accountDirectoryHandler.server";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
@@ -49,6 +50,7 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const url = new URL(request.url);
+      if (url.pathname === "/_flow/accounts") return await handleAccountDirectoryRequest(request);
       if (url.pathname === "/api/company-payments") {
         return await handleCompanyPaymentsRequest(request);
       }
