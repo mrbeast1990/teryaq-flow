@@ -18,6 +18,7 @@ import { ActionButton } from "../ActionButton";
 import { SearchInput } from "../SearchInput";
 import { EmptyState, ErrorState, LoadingState } from "../States";
 import { AccountActivity } from "./AccountActivity";
+import { accountingDateText, accountExcelBlob } from "@/lib/accountExcelExport";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   accountRequest,
@@ -145,8 +146,8 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
         row.phone || "",
         String(row.currentBalance ?? 0),
         row.closed ? "معطّل" : "نشط",
-        (customer ? row.lastSaleDate : row.lastPurchaseDate) || "",
-        (customer ? row.lastCollectionDate : row.lastPaymentDate) || "",
+        accountingDateText(customer ? row.lastSaleDate : row.lastPurchaseDate),
+        accountingDateText(customer ? row.lastCollectionDate : row.lastPaymentDate),
       ]);
       if (popup) {
         popup.document.write(
@@ -156,22 +157,10 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
         popup.focus();
         popup.print();
       } else {
-        const csv = [headings, ...values]
-          .map((line) =>
-            line
-              .map(
-                (value) =>
-                  `"${(/^[=+@\-]/.test(value) ? `'${value}` : value).replace(/"/g, '""')}"`,
-              )
-              .join(","),
-          )
-          .join("\r\n");
-        const url = URL.createObjectURL(
-          new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }),
-        );
+        const url = URL.createObjectURL(await accountExcelBlob(rows, kind));
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = `${kind}-${filters.state}.csv`;
+        anchor.download = `${kind}-${filters.state}.xlsx`;
         anchor.click();
         URL.revokeObjectURL(url);
       }
