@@ -18,7 +18,8 @@ import { ActionButton } from "../ActionButton";
 import { SearchInput } from "../SearchInput";
 import { EmptyState, ErrorState, LoadingState } from "../States";
 import { AccountActivity } from "./AccountActivity";
-import { accountingDateText, accountExcelBlob } from "@/lib/accountExcelExport";
+import { accountExcelBlob } from "@/lib/accountExcelExport";
+import { accountReportPrintHtml } from "@/lib/accountReportPrint";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   accountRequest,
@@ -36,11 +37,6 @@ import {
 const number = (value: number) =>
   new Intl.NumberFormat("ar-LY", { maximumFractionDigits: 3 }).format(value);
 const field = "h-10 w-full min-w-0 rounded-md border border-border bg-card px-2 text-sm";
-const escape = (value: unknown) =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!,
-  );
 
 export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
   const customer = kind === "customer";
@@ -133,26 +129,8 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
     setNotice("");
     try {
       const rows = await allFilteredAccounts(filters);
-      const headings = [
-        "الاسم",
-        "الهاتف",
-        "الرصيد",
-        "حالة الحساب",
-        customer ? "آخر بيع" : "آخر شراء",
-        paymentLabel,
-      ];
-      const values = rows.map((row) => [
-        row.name || "",
-        row.phone || "",
-        String(row.currentBalance ?? 0),
-        row.closed ? "معطّل" : "نشط",
-        accountingDateText(customer ? row.lastSaleDate : row.lastPurchaseDate),
-        accountingDateText(customer ? row.lastCollectionDate : row.lastPaymentDate),
-      ]);
       if (popup) {
-        popup.document.write(
-          `<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>${escape(scopeLabel)}</title><style>body{font-family:Cairo,Arial;padding:20px}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ddd;padding:6px;text-align:right}</style><h1>صيدلية الترياق الشافي</h1><p>${escape(scopeLabel)}</p><p>العدد: ${rows.length} — مجموع الرصيد: ${number(rows.reduce((sum, row) => sum + Number(row.currentBalance || 0), 0))}</p><table><thead><tr>${headings.map((value) => `<th>${escape(value)}</th>`).join("")}</tr></thead><tbody>${values.map((line) => `<tr>${line.map((value) => `<td>${escape(value)}</td>`).join("")}</tr>`).join("")}</tbody></table></html>`,
-        );
+        popup.document.write(accountReportPrintHtml(rows, kind, scopeLabel));
         popup.document.close();
         popup.focus();
         popup.print();

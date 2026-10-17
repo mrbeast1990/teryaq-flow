@@ -30,44 +30,117 @@ export function accountingDateText(value?: string | null) {
     : "";
 }
 
-export function accountSheetData(rows: DirectoryAccount[], kind: AccountKind) {
+export function accountElapsedText(value?: string | null, now = new Date()) {
+  const date = accountingDate(value);
+  if (!date) return "";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Tripoli",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const part = (type: string) => Number(parts.find((value) => value.type === type)?.value);
+  const today = Date.UTC(part("year"), part("month") - 1, part("day"));
+  const days = Math.round((today - date.getTime()) / 86400000);
+  if (days < 0) return "تاريخ مستقبلي";
+  if (days === 0) return "اليوم";
+  if (days === 1) return "أمس";
+  if (days === 2) return "منذ يومين";
+  return `منذ ${days} ${days <= 10 ? "أيام" : "يومًا"}`;
+}
+
+export function accountExportHeaders(kind: AccountKind) {
+  return [
+    "الاسم",
+    "الهاتف",
+    "الرصيد",
+    "حالة الحساب",
+    kind === "customer" ? "آخر بيع" : "آخر شراء",
+    "المدة",
+    kind === "customer" ? "آخر تحصيل" : "آخر سداد",
+    "المدة",
+  ];
+}
+
+export function accountSheetData(rows: DirectoryAccount[], kind: AccountKind, now = new Date()) {
   const customer = kind === "customer";
   const dateCell = (value?: string | null) => {
     const date = accountingDate(value);
     return date ? { type: Date, value: date, format: "dd/mm/yyyy" } : null;
   };
+  const elapsedCell = (value?: string | null) => {
+    const elapsed = accountElapsedText(value, now);
+    return elapsed
+      ? { type: String, value: elapsed, textColor: "#B91C1C", fontWeight: "bold" as const }
+      : null;
+  };
   return [
-    [
-      "الاسم",
-      "الهاتف",
-      "الرصيد",
-      "حالة الحساب",
-      customer ? "آخر بيع" : "آخر شراء",
-      customer ? "آخر تحصيل" : "آخر سداد",
-    ].map((value) => ({ type: String, value, fontWeight: "bold" as const })),
+    accountExportHeaders(kind).map((value) => ({
+      type: String,
+      value,
+      fontWeight: "bold" as const,
+    })),
     ...rows.map((row) => [
       { type: String, value: row.name || "" },
       { type: String, value: row.phone || "" },
       { type: Number, value: row.currentBalance ?? 0 },
       { type: String, value: row.closed ? "معطّل" : "نشط" },
       dateCell(customer ? row.lastSaleDate : row.lastPurchaseDate),
+      elapsedCell(customer ? row.lastSaleDate : row.lastPurchaseDate),
       dateCell(customer ? row.lastCollectionDate : row.lastPaymentDate),
+      elapsedCell(customer ? row.lastCollectionDate : row.lastPaymentDate),
     ]),
   ];
 }
 
-export async function accountExcelBlob(rows: DirectoryAccount[], kind: AccountKind) {
+export async function accountExcelBlob(
+  rows: DirectoryAccount[],
+  kind: AccountKind,
+  now = new Date(),
+) {
   const { default: writeExcelFile } = await import("write-excel-file/universal");
-  return writeExcelFile(accountSheetData(rows, kind), {
-    sheet: kind === "customer" ? "الزبائن" : "الموردون",
-    rightToLeft: true,
-    columns: [
-      { width: 32 },
-      { width: 22 },
-      { width: 20 },
-      { width: 15 },
-      { width: 18 },
-      { width: 18 },
-    ],
-  }).toBlob();
+  const { findElement, prependMarkupInsideElement } = await import("write-excel-file/utility");
+  return writeExcelFile(
+    accountSheetData(rows, kind, now),
+    {
+      sheet: kind === "customer" ? "الزبائن" : "الموردون",
+      rightToLeft: true,
+      orientation: "landscape",
+      columns: [
+        { width: 32 },
+        { width: 22 },
+        { width: 20 },
+        { width: 15 },
+        { width: 18 },
+        { width: 22 },
+        { width: 18 },
+        { width: 22 },
+      ],
+    },
+    {
+      features: [
+        {
+          files: {
+            transform: {
+              "xl/worksheets/sheet{id}.xml": {
+                transform: (xml) => {
+                  const worksheet = findElement(xml, "worksheet");
+                  if (!worksheet) throw new Error("تعذر تجهيز إعدادات طباعة Excel.");
+                  return prependMarkupInsideElement(
+                    xml,
+                    worksheet,
+                    '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>',
+                  );
+                },
+                transformElementAttributes: (tag, attributes) =>
+                  tag === "pageSetup"
+                    ? { ...attributes, fitToWidth: 1, fitToHeight: 0 }
+                    : attributes,
+              },
+            },
+          },
+        },
+      ],
+    },
+  ).toBlob();
 }
