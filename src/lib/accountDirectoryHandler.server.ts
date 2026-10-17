@@ -1,9 +1,22 @@
 import { createHash } from "node:crypto";
-import { accountAdminSecurity, assertAccountMutationOrigin } from "./accountAdminSecurity.server";
 import { accountMetadataStore } from "./accountMetadataStore.server";
 import { accountMetadataKey, type AccountKind } from "./accountDirectory";
 
 const fail = (message: string, status = 400) => Object.assign(new Error(message), { status });
+export function assertAccountMutationOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  const target = new URL(request.url);
+  let matches = false;
+  try {
+    matches = Boolean(origin && new URL(origin).host === target.host);
+  } catch {
+    /* Reject malformed origins. */
+  }
+  if (!matches || request.headers.get("sec-fetch-site") === "cross-site")
+    throw fail("طلب غير مسموح من هذا المصدر.", 403);
+  if (!request.headers.get("content-type")?.startsWith("application/json"))
+    throw fail("نوع الطلب غير صحيح.", 415);
+}
 async function body(request: Request) {
   const reader = request.body?.getReader();
   if (!reader) throw fail("الطلب فارغ.");
@@ -62,36 +75,21 @@ function kindOf(value: unknown): AccountKind {
   return value;
 }
 export async function handleAccountDirectoryRequest(request: Request) {
-  const json = (value: unknown, status = 200, cookie?: string) =>
+  const json = (value: unknown, status = 200) =>
     new Response(JSON.stringify(value), {
       status,
       headers: {
         "content-type": "application/json; charset=utf-8",
         "cache-control": "no-store",
         "x-content-type-options": "nosniff",
-        ...(cookie ? { "set-cookie": cookie } : {}),
       },
     });
   try {
     const url = new URL(request.url);
     const action = url.searchParams.get("action") || "list";
-    if (request.method === "GET" && action === "session")
-      return json(await accountAdminSecurity.status(request));
     if (request.method === "POST") {
       assertAccountMutationOrigin(request);
-      if (action === "logout")
-        return json({ success: true }, 200, accountAdminSecurity.logout(request));
-      if (action === "login") {
-        const input = await body(request);
-        try {
-          const result = await accountAdminSecurity.login(request, input.code);
-          return json({ authenticated: true }, 200, result.cookie);
-        } finally {
-          input.code = null;
-        }
-      }
       if (action !== "update") throw fail("طلب غير معروف.", 404);
-      const actor = await accountAdminSecurity.authorize(request);
       const input = await body(request);
       const kind = kindOf(input.kind);
       const sourceId = await source();
@@ -117,7 +115,7 @@ export async function handleAccountDirectoryRequest(request: Request) {
           revision: input.revision,
           originalPhone: original.phone,
         },
-        actor,
+        "مستخدم Flow",
       );
       return json({ success: true, metadata: saved });
     }
@@ -183,7 +181,7 @@ export async function handleAccountDirectoryRequest(request: Request) {
         success: false,
         message:
           status >= 500
-            ? "تعذر تحميل الحسابات أو إعداد الإدارة. حاول لاحقًا."
+            ? "تعذر تحميل الحسابات. حاول لاحقًا."
             : error instanceof Error
               ? error.message
               : "تعذر تنفيذ الطلب.",

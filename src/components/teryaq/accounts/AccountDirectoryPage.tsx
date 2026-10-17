@@ -40,7 +40,6 @@ const escape = (value: unknown) =>
     /[&<>"']/g,
     (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!,
   );
-type Session = { configured: boolean; authenticated: boolean };
 
 export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
   const customer = kind === "customer";
@@ -67,13 +66,6 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
     queryFn: () => listAccounts(filters),
     retry: 1,
   });
-  const auth = useQuery({
-    queryKey: ["account-administration"],
-    queryFn: () => accountRequest<Session>("session"),
-    refetchOnWindowFocus: true,
-  });
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [code, setCode] = useState("");
   const [edit, setEdit] = useState<{ row: DirectoryAccount; mode: "phone" | "lock" } | null>(null);
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
@@ -81,52 +73,42 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
   const [notice, setNotice] = useState("");
   const data = query.data;
   const stateLabel =
-    filters.state === "active" ? "النشطة" : filters.state === "closed" ? "المغلقة" : "الكل";
+    filters.state === "active" ? "النشطة" : filters.state === "closed" ? "المعطّلة" : "الكل";
   const scopeLabel = `${noun} — ${stateLabel} — ${filters.balanceFilter === "all" ? "جميع الأرصدة" : filters.balanceFilter === "nonzero" ? "أرصدة غير صفرية" : filters.balanceFilter === "zero" ? "أرصدة صفرية" : customer ? "المدينون فقط" : "المستحق للموردين فقط"}${filters.search ? ` — بحث: ${filters.search}` : ""}${filters.paymentFilter === "none" ? ` — بلا ${customer ? "تحصيل" : "سداد"}` : ""}`;
   function begin(row: DirectoryAccount, mode: "phone" | "lock") {
     setError("");
     setNotice("");
-    if (!auth.data?.authenticated) {
-      setLoginOpen(true);
+    if (mode === "lock" && row.closed) {
+      void persist(row, { closed: false });
       return;
     }
     setPhone(row.phone || "");
     setEdit({ row, mode });
   }
-  async function login(event: React.FormEvent) {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      await accountRequest("login", { code });
-      setLoginOpen(false);
-      await auth.refetch();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر الدخول.");
-    } finally {
-      setCode("");
-      setBusy(false);
-    }
-  }
   async function save(event: React.FormEvent) {
     event.preventDefault();
-    if (!edit || !data) return;
+    if (!edit) return;
+    await persist(edit.row, edit.mode === "phone" ? { phone } : { closed: true });
+  }
+  async function persist(row: DirectoryAccount, changes: { closed?: boolean; phone?: string }) {
+    if (!data || busy) return;
     setBusy(true);
     setError("");
     try {
       await accountRequest("update", {
         kind,
         sourceId: data.sourceId,
-        personNo: Number(edit.row.id),
-        revision: edit.row.revision,
-        ...(edit.mode === "phone" ? { phone } : { closed: !edit.row.closed }),
+        personNo: Number(row.id),
+        revision: row.revision,
+        ...changes,
       });
       setEdit(null);
       setNotice("تم حفظ التعديل.");
       await cache.invalidateQueries({ queryKey: ["account-directory"] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذر حفظ التعديل.");
-      await auth.refetch();
+      const message = err instanceof Error ? err.message : "تعذر حفظ التعديل.";
+      setError(message);
+      setNotice(message);
     } finally {
       setBusy(false);
     }
@@ -162,7 +144,7 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
         row.name || "",
         row.phone || "",
         String(row.currentBalance ?? 0),
-        row.closed ? "مغلق" : "نشط",
+        row.closed ? "معطّل" : "نشط",
         (customer ? row.lastSaleDate : row.lastPurchaseDate) || "",
         (customer ? row.lastCollectionDate : row.lastPaymentDate) || "",
       ]);
@@ -232,26 +214,6 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
         }
       />
       <div className="my-3 space-y-2">
-        <div className="flex items-center justify-between gap-2 text-xs">
-          <span className="text-muted-foreground">إدارة القفل والهاتف</span>
-          <button
-            className="flex min-h-9 items-center gap-1 font-bold text-primary"
-            onClick={async () => {
-              setError("");
-              if (auth.data?.authenticated) {
-                try {
-                  await accountRequest("logout", {});
-                  await auth.refetch();
-                } catch {
-                  setNotice("تعذر إنهاء الجلسة.");
-                }
-              } else setLoginOpen(true);
-            }}
-          >
-            <LockKeyhole size={14} />
-            {auth.data?.authenticated ? "إنهاء جلسة الإدارة" : "فتح الإدارة"}
-          </button>
-        </div>
         <SearchInput
           placeholder="الاسم، الهاتف، أو رقم الحساب..."
           value={filters.search}
@@ -269,7 +231,7 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
               }
             >
               <option value="active">نشطة</option>
-              <option value="closed">مغلقة</option>
+              <option value="closed">معطّلة</option>
               <option value="all">الكل</option>
             </select>
           </label>
@@ -387,7 +349,7 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
                 <strong className="text-base">{number(data.activeBalance)} د.ل</strong>
               </div>
               <div className="rounded-lg border border-border bg-card p-2">
-                <p>المغلقة ({number(data.closedCount)})</p>
+                <p>المعطّلة ({number(data.closedCount)})</p>
                 <strong className="text-base">{number(data.closedBalance)} د.ل</strong>
               </div>
             </div>
@@ -418,7 +380,7 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
                               {row.name || "غير محدد"}
                             </h2>
                             {row.closed && (
-                              <span className="rounded bg-muted px-2 text-xs">مغلق</span>
+                              <span className="rounded bg-muted px-2 text-xs">معطّل</span>
                             )}
                           </div>
                           <div className="shrink-0 text-end">
@@ -475,14 +437,16 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
                           title="تعديل الهاتف"
                           className="p-2"
                           onClick={() => begin(row, "phone")}
+                          disabled={busy}
                         >
                           <Pencil size={16} />
                         </button>
                         <button
-                          aria-label={row.closed ? "إعادة فتح الحساب" : "قفل الحساب"}
-                          title={row.closed ? "إعادة فتح الحساب" : "قفل الحساب"}
+                          aria-label={row.closed ? "إعادة تفعيل الحساب" : "تعطيل الحساب"}
+                          title={row.closed ? "إعادة تفعيل الحساب" : "تعطيل الحساب"}
                           className="p-2"
                           onClick={() => begin(row, "lock")}
+                          disabled={busy}
                         >
                           {row.closed ? <UnlockKeyhole size={16} /> : <LockKeyhole size={16} />}
                         </button>
@@ -511,54 +475,6 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
         )
       )}
       <Dialog
-        open={loginOpen}
-        onOpenChange={(open) => {
-          if (!busy) {
-            setLoginOpen(open);
-            setCode("");
-            setError("");
-          }
-        }}
-      >
-        <DialogContent
-          dir="rtl"
-          className="max-h-[85dvh] w-[calc(100%-2rem)] max-w-sm overflow-y-auto rounded-lg"
-        >
-          <DialogTitle>إدارة الحسابات</DialogTitle>
-          <DialogDescription>جلسة مؤقتة لتعديل القفل والهاتف فقط.</DialogDescription>
-          <form onSubmit={login} className="space-y-3">
-            <label className="block text-sm">
-              رمز الإدارة
-              <input
-                aria-label="رمز الإدارة"
-                type="password"
-                autoComplete="off"
-                required
-                minLength={8}
-                maxLength={128}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className={field}
-              />
-            </label>
-            {auth.data?.configured === false && (
-              <p className="text-sm">رمز الإدارة غير مهيأ. يلزم إعداده محليًا على جهاز الخادم.</p>
-            )}
-            {error && (
-              <p role="alert" className="text-sm text-red-700">
-                {error}
-              </p>
-            )}
-            <button
-              className="h-10 w-full rounded-md bg-primary font-bold text-primary-foreground disabled:opacity-50"
-              disabled={busy || auth.data?.configured === false}
-            >
-              {busy ? "جاري التحقق..." : "دخول"}
-            </button>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <Dialog
         open={Boolean(edit)}
         onOpenChange={(open) => {
           if (!open && !busy) {
@@ -575,8 +491,8 @@ export function AccountDirectoryPage({ kind }: { kind: AccountKind }) {
             {edit?.mode === "phone"
               ? "تعديل الهاتف"
               : edit?.row.closed
-                ? "إعادة فتح الحساب"
-                : "تأكيد قفل الحساب"}
+                ? "إعادة تفعيل الحساب"
+                : "تأكيد تعطيل الحساب"}
           </DialogTitle>
           <DialogDescription>{edit?.row.name}</DialogDescription>
           <form onSubmit={save} className="space-y-3">

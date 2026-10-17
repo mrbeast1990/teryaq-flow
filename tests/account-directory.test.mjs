@@ -1,107 +1,98 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { randomBytes } from "node:crypto";
 import { createServer } from "vite";
 
-const server = await createServer({
+const root = process.cwd();
+const temp = await mkdtemp(path.join(os.tmpdir(), "flow-organization-test-"));
+const vite = await createServer({
+  root,
   configFile: false,
   server: { middlewareMode: true },
   appType: "custom",
 });
-const temp = await mkdtemp(path.join(os.tmpdir(), "flow-account-test-"));
+process.chdir(temp);
 try {
-  const { createAccountMetadataStore } = await server.ssrLoadModule(
+  const { handleAccountDirectoryRequest: handle } = await vite.ssrLoadModule(
+    "/src/lib/accountDirectoryHandler.server.ts",
+  );
+  const { createAccountMetadataStore } = await vite.ssrLoadModule(
     "/src/lib/accountMetadataStore.server.ts",
   );
-  const { createAccountAdminCredential } = await server.ssrLoadModule(
-    "/src/lib/accountAdminCredential.server.ts",
+  const { libyaWhatsappNumber } = await vite.ssrLoadModule("/src/lib/accountDirectory.ts");
+  const get = async (query) => {
+    const r = await handle(new Request("https://flow.test/_flow/accounts?" + query));
+    assert.equal(r.status, 200);
+    return r.json();
+  };
+  const post = (
+    input,
+    origin = "https://flow.test",
+    contentType = "application/json",
+    action = "update",
+  ) =>
+    handle(
+      new Request("https://flow.test/_flow/accounts?action=" + action, {
+        method: "POST",
+        headers: { origin, "content-type": contentType },
+        body: JSON.stringify(input),
+      }),
+    );
+  const initial = await get("kind=customer&state=all&balanceFilter=all&pageSize=500&search=375");
+  const row = initial.rows.find((r) => Number(r.id) === 375);
+  assert.ok(row, "Real account 375 required");
+  const base = {
+    sourceId: initial.sourceId,
+    kind: "customer",
+    personNo: 375,
+    revision: row.revision,
+  };
+  const saved = await post({ ...base, closed: true, phone: " 091-2345678 " });
+  assert.equal(saved.status, 200);
+  assert.equal(saved.headers.get("set-cookie"), null);
+  const meta = (await saved.json()).metadata;
+  assert.equal(meta.phone, " 091-2345678 ");
+  assert.equal(libyaWhatsappNumber(meta.phone), "218912345678");
+  const active = await get("kind=customer&state=active&balanceFilter=all&search=375");
+  const closed = await get("kind=customer&state=closed&balanceFilter=all&search=375");
+  assert.equal(closed.totalCount, 1);
+  assert.equal(closed.rows[0].currentBalance, row.currentBalance);
+  assert.equal(active.totalCount, initial.totalCount - 1);
+  assert.ok(Math.abs(active.activeBalance + active.closedBalance - initial.totalBalance) < 1e-6);
+  const restored = createAccountMetadataStore(path.join(temp, ".data", "account-administration"));
+  const records = await restored.records(initial.sourceId, "customer");
+  assert.equal(records[0].closed, true);
+  assert.equal(records[0].phone, meta.phone);
+  assert.equal((await restored.records(initial.sourceId, "supplier")).length, 0);
+  assert.equal((await restored.records("b".repeat(64), "customer")).length, 0);
+  assert.equal((await post({ ...base, closed: false })).status, 409);
+  assert.equal((await post({ ...base, revision: meta.revision, phone: "" })).status, 400);
+  assert.equal((await post({ ...base, revision: meta.revision, phone: "---" })).status, 400);
+  assert.equal((await post({ ...base, revision: meta.revision, phone: "091\n1234" })).status, 400);
+  assert.equal((await post({ ...base, sourceId: "b".repeat(64) })).status, 409);
+  assert.equal((await post(base, "https://evil.test")).status, 403);
+  assert.equal((await post(base, "")).status, 403);
+  assert.equal((await post(base, "https://flow.test", "text/plain")).status, 415);
+  assert.equal((await post({ padding: "a".repeat(5000) })).status, 413);
+  assert.equal((await post({}, "https://flow.test", "application/json", "login")).status, 404);
+  const reopened = await post({ ...base, revision: meta.revision, closed: false });
+  assert.equal(reopened.status, 200);
+  const latest = (await reopened.json()).metadata;
+  assert.equal(latest.closed, false);
+  assert.equal(latest.phone, meta.phone);
+  const db = JSON.parse(
+    await readFile(path.join(temp, ".data", "account-administration", "accounts.json"), "utf8"),
   );
-  const { createAccountAdminSecurity } = await server.ssrLoadModule(
-    "/src/lib/accountAdminSecurity.server.ts",
-  );
-  const { libyaWhatsappNumber } = await server.ssrLoadModule("/src/lib/accountDirectory.ts");
-  const sourceId = "a".repeat(64);
-  const store = createAccountMetadataStore(temp);
-  const first = await store.update(
-    {
-      sourceId,
-      kind: "customer",
-      personNo: 375,
-      phone: " 091-2345678 ",
-      closed: true,
-      revision: 0,
-      originalPhone: "0920000000",
-    },
-    "test",
-  );
-  assert.equal(first.phone, " 091-2345678 ");
-  assert.equal(libyaWhatsappNumber(first.phone), "218912345678");
-  assert.equal(
-    (await createAccountMetadataStore(temp).records(sourceId, "customer"))[0].closed,
-    true,
-  );
-  assert.equal((await store.records(sourceId, "supplier")).length, 0);
-  assert.equal((await store.records("b".repeat(64), "customer")).length, 0);
-  await assert.rejects(
-    store.update({ sourceId, kind: "customer", personNo: 375, phone: "", revision: 1 }, "test"),
-  );
-  await assert.rejects(
-    store.update(
-      { sourceId, kind: "customer", personNo: 375, phone: "091\n1234", revision: 1 },
-      "test",
-    ),
-  );
-  await assert.rejects(
-    store.update({ sourceId, kind: "customer", personNo: 375, closed: false, revision: 0 }, "test"),
-  );
-  await store.update(
-    { sourceId, kind: "customer", personNo: 375, closed: false, revision: 1 },
-    "test",
-  );
-  assert.equal((await store.records(sourceId, "customer"))[0].phone, first.phone);
-  assert.equal(
-    JSON.parse(await readFile(path.join(temp, "accounts.json"), "utf8")).history.length,
-    2,
-  );
+  assert.equal(db.history.length, 2);
+  const after = await get("kind=customer&state=active&balanceFilter=all&search=375");
+  assert.equal(after.totalCount, initial.totalCount);
+  assert.equal(after.totalBalance, initial.totalBalance);
   console.log(
-    "PASS persistence, identity isolation, original/raw phone, blank rejection, revision conflict, reopen, audit",
-  );
-  const secret = randomBytes(24).toString("hex");
-  const bytes = Buffer.from(secret);
-  const credential = await createAccountAdminCredential(bytes);
-  bytes.fill(0);
-  await writeFile(path.join(temp, "credential.json"), JSON.stringify(credential));
-  let now = Date.now();
-  const auth = createAccountAdminSecurity(temp, () => now);
-  const request = (cookie = "", origin = "https://flow.test") =>
-    new Request("https://flow.test/_flow/accounts", {
-      method: "POST",
-      headers: { origin, "content-type": "application/json", cookie },
-    });
-  await assert.rejects(auth.authorize(request()));
-  await assert.rejects(auth.login(request("", "https://evil.test"), secret));
-  const login = await auth.login(request(), secret);
-  const cookie = login.cookie.split(";")[0];
-  assert.match(login.cookie, /HttpOnly/);
-  assert.match(login.cookie, /SameSite=Strict/);
-  assert.match(login.cookie, /Secure/);
-  assert.equal((await auth.status(request(cookie))).authenticated, true);
-  await auth.authorize(request(cookie));
-  auth.logout(request(cookie));
-  await assert.rejects(auth.authorize(request(cookie)));
-  const again = await auth.login(request(), secret);
-  now += 11 * 60000;
-  await assert.rejects(auth.authorize(request(again.cookie.split(";")[0])));
-  for (let i = 0; i < 5; i++) await assert.rejects(auth.login(request(), "not-the-code"));
-  await assert.rejects(auth.login(request(), secret), (e) => e.status === 429);
-  const fresh = createAccountAdminSecurity(temp);
-  assert.equal((await fresh.status(request(cookie))).authenticated, false);
-  console.log(
-    "PASS server authorization, CSRF, secure cookie, logout, idle expiry, restart session revocation, rate limit",
+    "PASS real-data phone edit/disable/reactivate without code or cookie; persistent store; active/closed totals; unchanged balances; identity isolation; validation/conflicts; origin checks; removed login",
   );
 } finally {
-  await server.close();
+  process.chdir(root);
+  await vite.close();
   await rm(temp, { recursive: true, force: true });
 }
