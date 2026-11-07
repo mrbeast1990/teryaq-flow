@@ -7,6 +7,7 @@ import { AppShell } from "@/components/teryaq/AppShell";
 import { InvoiceDetailsView } from "@/components/teryaq/accounts/InvoiceDetailsView";
 import { PageHeader } from "@/components/teryaq/PageHeader";
 import { PrintFooter, PrintHeader } from "@/components/teryaq/print/PrintHeader";
+import { SupplierPaymentPrintReceipt } from "@/components/teryaq/print/SupplierPaymentPrintReceipt";
 import { SearchInput } from "@/components/teryaq/SearchInput";
 import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/teryaq/States";
@@ -500,6 +501,18 @@ function PaymentDetailsView({
       ) : (
         <>
           <div className="print-only">
+            {!isCustomer ? <SupplierPaymentPrintReceipt
+              paymentNo={movement?.movementNo || row.paymentNo}
+              supplierName={partyName}
+              supplierId={partyId ?? row.personNo}
+              date={movementDate}
+              time={realTime}
+              amount={amount}
+              paymentMethod={paymentMethod}
+              notes={row.notes}
+              recordedBy={movement?.sellerName}
+              invoiceMovementNo={linkedMovementNo}
+            /> : <>
             <PrintHeader title={receiptTitle} subtitle={formatDate(movementDate)} />
             <section className="print-meta-grid">
               <div><span>رقم الحركة</span><strong>{movement?.movementNo || row.paymentNo}</strong></div>
@@ -515,6 +528,7 @@ function PaymentDetailsView({
               <strong>{formatCurrency(amount)}</strong>
             </section>
             <PrintFooter />
+            </>}
           </div>
 
           <section className="receipt-screen-content card-surface space-y-4 p-4">
