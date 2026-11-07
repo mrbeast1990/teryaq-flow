@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreditCard, Info, Printer, ReceiptText, WalletCards } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActionButton } from "@/components/teryaq/ActionButton";
@@ -9,6 +9,8 @@ import { SegmentedTabs } from "@/components/teryaq/SegmentedTabs";
 import { FinancialStatement } from "@/components/teryaq/accounts/FinancialStatement";
 import { InvoiceList } from "@/components/teryaq/accounts/InvoiceList";
 import { PaymentList } from "@/components/teryaq/accounts/PaymentList";
+import { SupplierSettlementSandbox } from "@/components/teryaq/accounts/SupplierSettlementSandbox";
+import { settlementRequest, type SettlementCapabilities } from "@/lib/supplierSettlementsApi";
 import { type SupplierInvoiceRow, getSupplierInvoices, getSupplierLedger, getSuppliers } from "@/lib/api";
 
 export const Route = createFileRoute("/accounts/suppliers/$id")({
@@ -89,23 +91,17 @@ function unpaidInvoices(rows: SupplierInvoiceRow[]) {
     });
 }
 
-function buildDraftAllocations(invoices: SupplierInvoiceRow[], amount: number): AllocationRow[] {
-  let remainingPayment = toMills(amount);
-  return invoices.map((invoice) => {
-    const invoiceRemaining = toMills(invoice.remaining);
-    const allocated = Math.min(invoiceRemaining, remainingPayment);
-    remainingPayment = Math.max(remainingPayment - allocated, 0);
-    return {
-      invoiceNumber: String(invoice.invoiceNumber),
-      amount: fromMills(allocated),
-    };
-  });
-}
-
 function SupplierDetailsPage() {
+  const queryClient = useQueryClient();
   const { id } = useParams({ from: "/accounts/suppliers/$id" });
   const [activeTab, setActiveTab] = useState("statement");
   const [showPaymentDraft, setShowPaymentDraft] = useState(false);
+  const settlementCapabilities = useQuery({
+    queryKey: ["supplier-settlements", "capabilities"],
+    queryFn: () => settlementRequest<SettlementCapabilities>("/capabilities"),
+    enabled: showPaymentDraft,
+    retry: false,
+  });
 
   const suppliersQuery = useQuery({
     queryKey: ["accounts", "suppliers"],
@@ -157,7 +153,11 @@ function SupplierDetailsPage() {
 
       <div className="mt-2 min-h-[40vh]">
         {showPaymentDraft ? (
-          <SupplierPaymentDraft
+          settlementCapabilities.data?.mode === "sandbox" || (settlementCapabilities.data?.mode === "production" && settlementCapabilities.data.productionSaving)
+            ? <SupplierSettlementSandbox key={`${id}:${settlementCapabilities.data.mode}`} supplierId={id} mode={settlementCapabilities.data.mode} onPosted={() => {
+              void queryClient.invalidateQueries({ queryKey: ["accounts", "supplier", id] });
+              void queryClient.invalidateQueries({ queryKey: ["accounts", "suppliers"] });
+            }} /> : <SupplierPaymentDraft
             supplierId={id}
             supplierName={supplier?.name || `مورد ${id}`}
             currentBalance={balance}
@@ -194,7 +194,7 @@ function SupplierPaymentDraft({
   currentBalance: number;
 }) {
   const [amount, setAmount] = useState("");
-  const [paymentType, setPaymentType] = useState("نقداً");
+  const paymentType = "نقداً";
   const [paymentDate, setPaymentDate] = useState(todayInputValue());
   const [note, setNote] = useState("");
   const [allocations, setAllocations] = useState<AllocationRow[]>([]);
@@ -221,8 +221,8 @@ function SupplierPaymentDraft({
   const canPreviewReceipt = paymentAmountMills > 0 && allocatedTotalMills > 0 && !hasInvoiceOverAllocation && !exceedsDebt;
 
   useEffect(() => {
-    setAllocations(buildDraftAllocations(invoices, paymentAmount));
-  }, [invoices, paymentAmount]);
+    setAllocations(invoices.map(invoice => ({ invoiceNumber: String(invoice.invoiceNumber), amount: 0 })));
+  }, [invoices]);
 
   function updateAllocation(invoiceNumber: string, value: string) {
     const nextAmount = fromMills(toMills(value));
@@ -280,18 +280,7 @@ function SupplierPaymentDraft({
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="space-y-1 text-[12px] font-bold">
           <span>نوع الدفع</span>
-          <div className="grid grid-cols-2 gap-2 rounded-lg bg-white p-1 ring-1 ring-border">
-            {["نقداً", "تحويل وحدة"].map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setPaymentType(type)}
-                className={`h-9 rounded-md text-[12px] font-extrabold transition-colors ${paymentType === type ? "bg-emerald-600 text-white" : "text-muted-foreground"}`}
-              >
-                {type === "نقداً" ? "كاش" : "مصرف"}
-              </button>
-            ))}
-          </div>
+          <p className="rounded-lg border bg-white px-3 py-2 text-[12px]">نقداً</p>
         </div>
         <label className="space-y-1 text-[12px] font-bold">
           <span>ملاحظة</span>
@@ -314,7 +303,7 @@ function SupplierPaymentDraft({
           <div>
             <p className="text-[13px] font-black">معاينة التوزيع</p>
             <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
-              التوزيع التلقائي هنا يبدأ بالفواتير الأقدم كمسودة عمل داخل Flow فقط. لم يتم إثبات ترتيب المحاسب 3 الأصلي بعد.
+              اختر الفواتير وأدخل المبلغ المخصص لكل فاتورة صراحة. لا يوجد توزيع تلقائي.
             </p>
           </div>
           <CreditCard className="size-5 shrink-0 text-primary" />

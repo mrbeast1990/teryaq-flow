@@ -1,7 +1,14 @@
+@font-face {
+  font-family: "Cairo Receipt";
+  src: url("/fonts/cairo/Cairo.ttf") format("truetype");
+  font-weight: 200 1000;
+  font-style: normal;
+  font-display: block;
+}
 .supplier-payment-print {
   color: #172c29;
   background: #fff;
-  font-family: "Cairo", "Segoe UI", Arial, sans-serif;
+  font-family: "Cairo Receipt", sans-serif;
   font-size: 14px;
   line-height: 1.7;
   print-color-adjust: exact;
@@ -9,17 +16,19 @@
 }
 .supplier-payment-print .supplier-payment-print__header {
   display: flex !important;
+  flex-direction: column;
+  text-align: center;
   grid-template-columns: none;
   align-items: center;
-  gap: 16px;
+  gap: 6px;
   border-bottom: 2px solid #078579;
-  padding-bottom: 14px;
+  padding-bottom: 18px;
   margin: 0;
   break-inside: avoid;
 }
-.supplier-payment-print__header img { width: 64px; height: 64px; flex: 0 0 64px; object-fit: contain; }
-.supplier-payment-print__header h1 { margin: 0; font-size: 22px; font-weight: 800; }
-.supplier-payment-print__header h2 { margin: 0; font-size: 18px; font-weight: 700; color: #06776e; }
+.supplier-payment-print__header img { width: 90px; height: 90px; object-fit: contain; }
+.supplier-payment-print__header h1 { margin: 0; font-size: 25px; font-weight: 900; }
+.supplier-payment-print__header h2 { margin: 0; font-size: 16px; font-weight: 700; color: #06776e; }
 .supplier-payment-print__header p { margin: 0; font-size: 11px; }
 .supplier-payment-print__meta {
   display: grid;
@@ -28,7 +37,7 @@
   margin: 20px 0;
 }
 .supplier-payment-print__meta div { overflow-wrap: anywhere; }
-.supplier-payment-print__meta span, .supplier-payment-print__notice { color: #586b66; }
+.supplier-payment-print__meta span { color: #586b66; }
 .supplier-payment-print__wide { grid-column: 1 / -1; }
 .supplier-payment-print__number { direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
 .supplier-payment-print__amount {
@@ -46,8 +55,10 @@
 .supplier-payment-print__table th, .supplier-payment-print__table td { border: 1px solid #d4dfdc; padding: 8px 5px; text-align: center; overflow-wrap: anywhere; }
 .supplier-payment-print__table th { background: #eef5f3; }
 .supplier-payment-print__table tr { break-inside: avoid; }
-.supplier-payment-print__notice { margin: 14px 0 24px; font-size: 11px; }
-.supplier-payment-print .print-doc-footer { border-top-color: #d4dfdc; padding-top: 10px; font-size: 11px; }
+.supplier-payment-print__balance { margin: 16px 0 24px; font-size: 13px; break-inside: avoid; }
+.supplier-payment-print__balance strong { color: #a51e29; }
+.supplier-payment-print__footer { display: flex !important; justify-content: space-between; gap: 20px; border-top: 1px solid #d4dfdc; margin-top: 32px; padding-top: 12px; font-size: 12px; break-inside: avoid; }
+.supplier-payment-print__footer bdi { font-weight: 700; }
 
 @media print {
   body:has(.supplier-payment-print),

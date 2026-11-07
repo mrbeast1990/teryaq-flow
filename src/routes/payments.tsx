@@ -506,7 +506,6 @@ function PaymentDetailsView({
               supplierName={partyName}
               supplierId={partyId ?? row.personNo}
               date={movementDate}
-              time={realTime}
               amount={amount}
               paymentMethod={paymentMethod}
               notes={row.notes}

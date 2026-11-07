@@ -1,5 +1,6 @@
-import { PrintFooter } from "@/components/teryaq/print/PrintHeader";
+import { useEffect, useState } from "react";
 import { usePrintSettings } from "@/lib/printSettings";
+import { settlementRequest, type CashSettlementReceipt } from "@/lib/supplierSettlementsApi";
 import "./SupplierPaymentPrintReceipt.css";
 
 interface Props {
@@ -7,7 +8,6 @@ interface Props {
   supplierName: string;
   supplierId?: string | number | null | undefined;
   date?: string | null | undefined;
-  time?: string | null | undefined;
   amount: number;
   paymentMethod: string;
   notes?: string | null | undefined;
@@ -28,16 +28,29 @@ function money(value: number) {
 
 export function SupplierPaymentPrintReceipt(props: Props) {
   const settings = usePrintSettings();
+  const [balance, setBalance] = useState<string | null>(null);
+  const [balanceStatus, setBalanceStatus] = useState<"loading" | "locked" | "missing" | "error" | "ready">("loading");
+  useEffect(() => {
+    let active = true;
+    setBalance(null); setBalanceStatus("loading");
+    (async () => {
+      const session = await settlementRequest<{ authenticated: boolean }>("/session");
+      if (!session.authenticated || !props.supplierId) { if (active) setBalanceStatus(session.authenticated ? "missing" : "locked"); return; }
+      const result = await settlementRequest<{ receipt: CashSettlementReceipt | null }>(`/receipts/by-payment/${encodeURIComponent(props.paymentNo)}?supplierId=${encodeURIComponent(props.supplierId)}`);
+      if (active) {
+        setBalance(result.receipt?.supplierRemainingAfter ?? null);
+        setBalanceStatus(result.receipt?.supplierRemainingAfter != null ? "ready" : "missing");
+      }
+    })().catch(() => { if (active) setBalanceStatus("error"); });
+    return () => { active = false; };
+  }, [props.paymentNo, props.supplierId]);
   return (
     <article className="supplier-payment-print" dir="rtl" aria-label="إيصال سداد مورد">
       <header className="print-doc-header supplier-payment-print__header">
-        <img src={settings.logoDataUrl || "/icons/icon-192.png"} alt="شعار الصيدلية" />
+        {settings.logoDataUrl ? <img src={settings.logoDataUrl} alt="شعار الصيدلية" /> : null}
         <div>
-          <h1>{settings.pharmacyName || "صيدلية الترياق الشافي"}</h1>
+          <h1>صيدلية الترياق الشافي</h1>
           <h2>إيصال سداد مورد</h2>
-          {settings.secondaryLine ? <p>{settings.secondaryLine}</p> : null}
-          {settings.address || settings.phone ? <p>{[settings.address, settings.phone].filter(Boolean).join(" · ")}</p> : null}
-          {settings.commercialText ? <p>{settings.commercialText}</p> : null}
         </div>
       </header>
       <section className="supplier-payment-print__meta">
@@ -45,7 +58,6 @@ export function SupplierPaymentPrintReceipt(props: Props) {
         <div><span>تاريخ السداد: </span><strong className="supplier-payment-print__number">{accountingDate(props.date)}</strong></div>
         <div className="supplier-payment-print__wide"><span>المورد: </span><strong>{props.supplierName}</strong>{props.supplierId ? <span> ({props.supplierId})</span> : null}</div>
         <div><span>طريقة السداد: </span><strong>{props.paymentMethod}</strong></div>
-        {props.time ? <div><span>وقت التسجيل: </span><strong>{props.time}</strong></div> : null}
         <div className="supplier-payment-print__wide"><span>الملاحظة: </span>{props.notes || "-"}</div>
         {props.recordedBy ? <div className="supplier-payment-print__wide"><span>سُجّل بواسطة: </span>{props.recordedBy}</div> : null}
       </section>
@@ -61,8 +73,8 @@ export function SupplierPaymentPrintReceipt(props: Props) {
           <td className="supplier-payment-print__number">{money(props.amount)}</td>
         </tr></tbody>
       </table>
-      <p className="supplier-payment-print__notice">هذا الإيصال يخص حركة السداد المحددة فقط. المتبقي وقت السداد غير متاح ضمن بيانات هذه الحركة.</p>
-      <PrintFooter />
+      <p className="supplier-payment-print__balance">المتبقي من حساب المورد بعد السداد: <strong>{balanceStatus === "ready" ? <><bdi>{balance}</bdi> د.ل</> : balanceStatus === "loading" ? "جاري التحقق..." : balanceStatus === "error" ? "تعذر التحقق" : balanceStatus === "locked" ? "يلزم تفويض السداد للتحقق" : "غير محفوظ في هذا الإيصال"}</strong></p>
+      <footer className="supplier-payment-print__footer"><span>أجدابيا حي 7 أكتوبر</span><bdi>0915938155</bdi></footer>
     </article>
   );
 }
